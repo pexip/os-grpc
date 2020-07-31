@@ -1,0 +1,16 @@
+Description: Add newline to end of file
+ Add newline to fix build failure
+ .
+ grpc (1.23.0-1~bpo10+1) buster-backports; urgency=medium
+ .
+   * Rebuild for buster-backports.
+Author: Pirate Praveen <praveen@debian.org>
+
+Forwarded: not-needed
+Last-Update: 2019-11-05
+
+--- /dev/null
++++ grpc-1.23.0/src/python/grpcio/poison.c
+@@ -0,0 +1 @@
++#error Extensions have been poisoned due to missing Cython-generated code.
+\ No newline at end of file

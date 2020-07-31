@@ -1,0 +1,48 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ grpc (1.29.0-1) experimental; urgency=medium
+ .
+   * New upstream release.
+Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2020-05-19
+
+--- grpc-1.29.0.orig/Makefile
++++ grpc-1.29.0/Makefile
+@@ -720,8 +720,10 @@ ADDRESS_SORTING_MERGE_OBJS = $(LIBADDRES
+ ADDRESS_SORTING_MERGE_LIBS = $(LIBDIR)/$(CONFIG)/libaddress_sorting.a
+ CPPFLAGS := -Ithird_party/address_sorting/include $(CPPFLAGS)
+ 
+-GRPC_ABSEIL_DEP = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
+-GRPC_ABSEIL_MERGE_LIBS = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
++#GRPC_ABSEIL_DEP = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
++GRPC_ABSEIL_DEP = -labsl_base -labsl_int128 -labsl_strings -labsl_time -labsl_bad_optional_access -labsl_throw_delegate -labsl_str_format_internal
++#GRPC_ABSEIL_MERGE_LIBS = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
++GRPC_ABSEIL_MERGE_LIBS = -labsl_base -labsl_int128 -labsl_strings -labsl_time -labsl_bad_optional_access -labsl_throw_delegate -labsl_str_format_internal
+ 
+ UPB_DEP = $(LIBDIR)/$(CONFIG)/libupb.a
+ UPB_MERGE_OBJS = $(LIBUPB_OBJS)
+@@ -6449,6 +6451,7 @@ LIBGRPC_ABSEIL_SRC = \
+ 
+ 
+ LIBGRPC_ABSEIL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_ABSEIL_SRC))))
++LIBGRPC_ABSEIL_OBJS = 
+ 
+ 
+ $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a:  $(LIBGRPC_ABSEIL_OBJS) 

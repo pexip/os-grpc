@@ -1,0 +1,347 @@
+grpc (1.30.2-2~bpo10+1) buster-backports; urgency=medium
+
+  * Rebuild for buster-backports.
+  * Refresh no-link-upb.patch
+
+ -- Pirate Praveen <praveen@debian.org>  Sat, 01 Aug 2020 01:08:23 +0530
+
+grpc (1.30.2-2) unstable; urgency=medium
+
+  * Add Break and Replaces on libgrpc9 to libgrpc10 (closes: #966116).
+  * Upload to Sid (closes: #963583).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 24 Jul 2020 17:28:01 +0200
+
+grpc (1.30.2-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update patches.
+
+  [ Praveen Arimbrathodiyil ]
+  * Bump minimum version of gem2deb to 1.0~ .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sat, 18 Jul 2020 08:53:56 +0200
+
+grpc (1.30.1-1) experimental; urgency=medium
+
+  * New upstream release.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 13 Jul 2020 20:59:22 +0200
+
+grpc (1.30.0-1) experimental; urgency=medium
+
+  * New upstream release.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 26 Jun 2020 12:24:41 +0200
+
+grpc (1.30.0~pre1-1) experimental; urgency=medium
+
+  * New major upstream pre-release version.
+  * Update patches.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 12 Jun 2020 13:11:11 +0200
+
+grpc (1.29.1-1) experimental; urgency=medium
+
+  * New upstream release:
+    - fixes endless looping with default settings (closes: #959675).
+  * Update patches.
+  * Library transition from libgrpc9 to libgrpc10 .
+
+  [ Adrian Bunk <bunk@debian.org> ]
+  * Link with libatomic on armel, mips, mipsel and powerpc (closes: #961193).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sun, 24 May 2020 18:35:05 +0000
+
+grpc (1.26.0-3) unstable; urgency=medium
+
+  * Don't check for Sphinx version (closes: #955064).
+  * Update Standards-Version to 4.5.0 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Thu, 30 Apr 2020 21:13:54 +0000
+
+grpc (1.26.0-2~bpo10+1) buster-backports; urgency=medium
+
+  * Rebuild for buster-backports.
+  * Bump minimum version of debhelper to 12.3 for dh_dwz fix
+  * Add patch to link against protobuf instead of upb
+
+ -- Pirate Praveen <praveen@debian.org>  Tue, 31 Mar 2020 23:07:41 +0530
+
+grpc (1.26.0-2) unstable; urgency=medium
+
+  * Build with protobuf version 3.11.4 or later (closes: #946194).
+  * Make python3-grpcio depend on python3-protobuf (closes: #953890).
+  * Remove Andrew from Uploaders, thanks for all the fish.
+  * Upload to Sid (closes: #934665, #936667).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sat, 21 Mar 2020 17:23:30 +0000
+
+grpc (1.26.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update patches.
+  * Library transition from libgrpc8 to libgrpc9 .
+  * Update Standards-Version to 4.4.1 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 20 Dec 2019 14:34:21 +0000
+
+grpc (1.25.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update patches.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Thu, 07 Nov 2019 18:54:40 +0000
+
+grpc (1.24.3-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update patches.
+  * Remove Python 2 bindings (closes: #936667).
+  * Update Python packaging bits.
+  * Update copyright file.
+  * Library transition from libgrpc7 to libgrpc8 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Wed, 23 Oct 2019 05:45:37 +0000
+
+grpc (1.23.0-1~bpo10+1) buster-backports; urgency=medium
+
+  * Rebuild for buster-backports.
+
+ -- Pirate Praveen <praveen@debian.org>  Tue, 05 Nov 2019 14:47:42 +0530
+
+grpc (1.23.0-1) experimental; urgency=medium
+  
+   * New upstream release.
+   * Update patches.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 19 Aug 2019 09:15:47 +0000
+
+grpc (1.22.0-2) experimental; urgency=medium
+
+  * Unbreak upstream install foreach.
+  * Conflict libgrpc-dev with libgpr3-dev as well (closes: #933708).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sat, 10 Aug 2019 13:40:28 +0000
+
+grpc (1.22.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Build with 3.9+ release of ProtoBuf.
+  * Install roots.pem for certificates.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 09 Aug 2019 18:09:17 +0000
+
+grpc (1.17.2-1) experimental; urgency=medium
+
+  * New upstream release.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sun, 16 Dec 2018 16:28:23 +0000
+
+grpc (1.17.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Remove fix-libgrpc++-soname.diff as applied upstream.
+  * Remove libgrpcpp_channelz_symlink.patch as applied upstream.
+  * Update install_libdir patch.
+  * Install all libraries.
+  * Library transition from libgrpc6 to libgrpc7 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Wed, 05 Dec 2018 13:45:31 +0000
+
+grpc (1.16.1-1) unstable; urgency=medium
+
+  * New upstream release (closes: #908873).
+
+  [ Hilko Bengen <bengen@debian.org> ]
+  * Add python{,3}-grpcio packages (closes: #871442).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Tue, 27 Nov 2018 16:58:17 +0000
+
+grpc (1.16.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Update no-werror.diff patch.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Tue, 23 Oct 2018 18:04:22 +0000
+
+grpc (1.15.1-2) unstable; urgency=medium
+
+  [ Ondřej Nový ]
+  * d/copyright: Use https protocol in Format field
+  * d/changelog: Remove trailing whitespaces
+  * d/control: Set Vcs-* to salsa.debian.org
+
+  [ Laszlo Boszormenyi (GCS) ]
+  * Upload to Sid.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Thu, 11 Oct 2018 15:48:33 +0000
+
+grpc (1.15.1-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Install gRPC platform support library pkg-config file.
+  * Fix libgrpcpp_channelz soname symlink.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 28 Sep 2018 15:40:03 +0000
+
+grpc (1.15.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update patches.
+  * Update Standards-Version to 4.2.1 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sat, 15 Sep 2018 15:33:29 +0000
+
+grpc (1.14.1-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update patches.
+  * Build with recent protobuf release.
+  * Update Standards-Version to 4.1.5 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Wed, 15 Aug 2018 15:30:08 +0000
+
+grpc (1.13.0-1) experimental; urgency=medium
+
+  * New major upstream release.
+  * Put ruby-grpc{,-tools} packages into section ruby.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sun, 01 Jul 2018 22:44:30 +0000
+
+grpc (1.13.0~pre3-1) experimental; urgency=medium
+
+  * New major upstream pre-release version.
+  * Append installed library directory to LD_LIBRARY_PATH for linking Ruby
+    bindings.
+  * Conflict libgrpc-dev with libgpr2-dev as well (closes: #901218).
+  * Ignore all Ruby test failures.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Wed, 27 Jun 2018 17:48:53 +0000
+
+grpc (1.13.0~pre2-1) experimental; urgency=medium
+
+  * New major upstream pre-release version.
+  * Conflict libgrpc-dev with libgpr1-dev due to library name collision
+    (closes: #901218).
+  * Add ruby-grpc{,-tools} packages.
+  * Add Ruby testing.
+  * Enable verbose build.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sun, 17 Jun 2018 11:36:43 +0000
+
+grpc (1.12.0-1) experimental; urgency=medium
+
+  * New upstream release.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sun, 27 May 2018 14:06:16 +0000
+
+grpc (1.11.0-1) experimental; urgency=medium
+
+  [ Pirate Praveen <praveen@debian.org> ]
+  * New upstream release (Closes: #875747)
+  * Refresh patches
+  * Tighten dependencies
+  * Bump standards version to 4.1.4
+  * Bump debhelper compat to 11
+  * Library transition from libgrpc3 to libgrpc6 .
+
+  [ Laszlo Boszormenyi (GCS) ]
+  * Don't specify parallel to debhelper.
+  * Install new C++ headers.
+  * Install upstream NOTICE.txt to protobuf-compiler-grpc package.
+  * Update packaging bits.
+  * Add patch for multiarch library installation.
+  * Make the package multiarch.
+  * Update d/copyright to match source.
+  * Be the maintainer, Andrew seems to be MIA.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 04 May 2018 17:04:13 +0000
+
+grpc (1.3.2-1) unstable; urgency=medium
+
+  [ Pirate Praveen <praveen@onenetbeyond.org> ]
+  * Patch to provide a wrapped memcpy for linking (closes: #867541).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 14 Aug 2017 10:44:38 +0000
+
+grpc (1.3.2-0.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+    * fix-libgrpc++-soname.diff: Update to also fix the soname of
+      libgrpc++_error_details.so. (Closes: #863717)
+
+ -- Steinar H. Gunderson <sesse@debian.org>  Thu, 01 Jun 2017 18:11:56 +0200
+
+grpc (1.3.2-0.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream release.
+    * Refreshed all patches.
+    * Add Build-Dependency on libc-ares-dev.
+
+ -- Steinar H. Gunderson <sesse@debian.org>  Thu, 18 May 2017 18:09:28 +0200
+
+grpc (1.2.5-1+nmu1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Update debian/copyright with missing license information. (Closes: #861383)
+  * make-pkg-config-files-nonexecutable.diff: New patch, installs .pc files
+    as nonexecutable. Fixes Lintian warning.
+
+ -- Steinar H. Gunderson <sesse@debian.org>  Fri, 28 Apr 2017 18:48:22 +0200
+
+grpc (1.2.5-1+nmu0) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * New upstream release.
+    * Fixes CVE-2017-7860 and CVE-2017-7861. (Closes: #860316)
+    * Build the C++ library in addition to the C library.
+      * New packages libgrpc++-dev and libgrpc++1.
+      * Make a new package protobuf-compiler-grpc. (Closes: #818327)
+    * Add build-dependency on libprotoc-dev.
+    * Disable running tests, as they depend on Google's benchmark library,
+      which does not exist in Debian yet (and we do not wish to vendor it).
+      (By extension, Closes: #812845)
+    * Soname bump from libgrpc0 to libgrpc3.
+  * openssl-1.1.0.diff: New patch, fixes FTBFS with OpenSSL 1.1.0.
+    (Closes: #828332)
+  * fix-libgrpc++-soname.diff: New patch, fixes the symlink of libgrpc++
+    to match the soname (fix for upstream bug #10299).
+  * Install libgrpc_unsecure.a.
+  * Install the pkg-config files.
+  * Upgrade to Standards-Version 3.9.8 (no changes needed).
+
+ -- Steinar H. Gunderson <sesse@debian.org>  Wed, 26 Apr 2017 19:11:42 +0200
+
+grpc (0.12.0-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Andrew Pollock <apollock@debian.org>  Mon, 18 Jan 2016 10:16:06 +1000
+
+grpc (0.11.1-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/control: update maintainer with upstream address, add myself as
+    uploader
+
+ -- Andrew Pollock <apollock@debian.org>  Thu, 24 Sep 2015 11:33:03 +1000
+
+grpc (0.11.0.0-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Andrew Pollock <apollock@debian.org>  Wed, 09 Sep 2015 13:05:55 +1000
+
+grpc (0.10.2-1) unstable; urgency=medium
+
+  * New upstream release (closes: #795766)
+
+ -- Andrew Pollock <apollock@debian.org>  Fri, 28 Aug 2015 09:26:25 +1000
+
+grpc (0.10.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #786375)
+
+ -- Andrew Pollock <apollock@debian.org>  Thu, 07 May 2015 13:28:11 +1000
