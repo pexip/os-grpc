@@ -1,6 +1,7 @@
 Source: grpc
 Priority: optional
-Maintainer: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Maintainer: Pexip AS <packaging@pexip.com>
+XSBC-Pexip-Original-Maintainer: Laszlo Boszormenyi (GCS) <gcs@debian.org>
 Build-Depends: debhelper-compat (= 12), debhelper (>= 12.3~), zlib1g-dev, libssl-dev, libabsl-dev,
  libprotobuf-dev, protobuf-compiler (>= 3.12.1~), libgflags-dev, libgtest-dev,
  libgoogle-perftools-dev, libprotoc-dev (>= 3.11.4~), libc-ares-dev,
@@ -21,6 +22,7 @@ Testsuite: autopkgtest-pkg-ruby
 XS-Ruby-Versions: all
 Vcs-Git: https://salsa.debian.org/debian/grpc.git
 Vcs-Browser: https://salsa.debian.org/debian/grpc
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ buster-backports
 
 Package: libgrpc-dev
 Section: libdevel
