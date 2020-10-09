@@ -5,7 +5,7 @@ XSBC-Pexip-Original-Maintainer: Laszlo Boszormenyi (GCS) <gcs@debian.org>
 Build-Depends: debhelper-compat (= 12), debhelper (>= 12.3~), zlib1g-dev, libssl-dev, libabsl-dev,
  libprotobuf-dev, protobuf-compiler (>= 3.12.1~), libgflags-dev, libgtest-dev,
  libgoogle-perftools-dev, libprotoc-dev (>= 3.11.4~), libc-ares-dev,
- gem2deb (>= 1.0~), ruby-google-protobuf (>= 3.9.1~), ruby-googleauth (>= 0.5.1~),
+ gem2deb, ruby-google-protobuf (>= 3.9.1~), ruby-googleauth (>= 0.5.1~),
  ruby-googleapis-common-protos-types, ruby-rspec, ruby-simplecov,
  dh-python,
  python3-all-dev,
