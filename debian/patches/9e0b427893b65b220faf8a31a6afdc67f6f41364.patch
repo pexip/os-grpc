@@ -1,0 +1,22 @@
+From 9e0b427893b65b220faf8a31a6afdc67f6f41364 Mon Sep 17 00:00:00 2001
+From: Lidi Zheng <lidiz@google.com>
+Date: Tue, 29 Sep 2020 14:44:59 -0700
+Subject: [PATCH] Use != with literals
+
+---
+ src/python/grpcio/commands.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/python/grpcio/commands.py b/src/python/grpcio/commands.py
+index 5b21daaf444..8240beb2958 100644
+--- a/src/python/grpcio/commands.py
++++ b/src/python/grpcio/commands.py
+@@ -101,7 +101,7 @@ def run(self):
+         target_dir = os.path.join(GRPC_STEM, 'doc', 'build')
+         exit_code = sphinx.cmd.build.build_main(
+             ['-b', 'html', '-W', '--keep-going', source_dir, target_dir])
+-        if exit_code is not 0:
++        if exit_code != 0:
+             raise CommandError(
+                 "Documentation generation has warnings or errors")
+ 

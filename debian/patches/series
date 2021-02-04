@@ -1,0 +1,17 @@
+unvendor-zlib.diff
+add-wrap-memcpy-flags.diff
+install_libdir.patch
+unversion_sphinx.patch
+no_embedded_abseil.patch
+link_external_abseil.patch
+# Ruby patches
+no-embed-libs.patch
+remove-missing-files-in-gemspec.patch
+no-make-in-extconf.patch
+use-system-grpc.patch
+fix-protoc-path.patch
+add_grpc_libdir.patch
+unbreak_foreach.patch
+9e0b427893b65b220faf8a31a6afdc67f6f41364.patch
+16-member_variable_should_not_be_a_reference.patch
+17-fixing_a_member_var_to_not_be_a_reference.patch

@@ -1,0 +1,35 @@
+From b3cd5fc0c70e92ddab5b1921e3884496887b3018 Mon Sep 17 00:00:00 2001
+From: Donna Dionne <donnadionne@google.com>
+Date: Wed, 26 Aug 2020 10:23:02 -0700
+Subject: [PATCH] Member variable should not be a reference; causing crash when
+ used in destructor (backport into 1.30.x)
+
+---
+ .../lb_policy/weighted_target/weighted_target.cc           | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/src/core/ext/filters/client_channel/lb_policy/weighted_target/weighted_target.cc b/src/core/ext/filters/client_channel/lb_policy/weighted_target/weighted_target.cc
+index 96491b68642..f1cfb73eadf 100644
+--- a/src/core/ext/filters/client_channel/lb_policy/weighted_target/weighted_target.cc
++++ b/src/core/ext/filters/client_channel/lb_policy/weighted_target/weighted_target.cc
+@@ -169,7 +169,7 @@ class WeightedTargetLb : public LoadBalancingPolicy {
+     // The owning LB policy.
+     RefCountedPtr<WeightedTargetLb> weighted_target_policy_;
+ 
+-    const std::string& name_;
++    const std::string name_;
+ 
+     uint32_t weight_;
+ 
+@@ -288,9 +288,8 @@ void WeightedTargetLb::UpdateLocked(UpdateArgs args) {
+     const std::string& name = p.first;
+     auto it = targets_.find(name);
+     if (it == targets_.end()) {
+-      it = targets_.emplace(std::make_pair(name, nullptr)).first;
+-      it->second = MakeOrphanable<WeightedChild>(
+-          Ref(DEBUG_LOCATION, "WeightedChild"), it->first);
++      targets_.emplace(name, MakeOrphanable<WeightedChild>(
++                                 Ref(DEBUG_LOCATION, "WeightedChild"), name));
+     }
+   }
+   // Update all children.

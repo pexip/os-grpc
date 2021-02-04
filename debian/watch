@@ -1,0 +1,6 @@
+version=3
+opts=\
+dversionmangle=s/\+(debian|dfsg|ds|deb)(\.\d+)?$//,\
+uversionmangle=s/(\d)[_\.\-\+]?((RC|rc|pre|dev|beta|alpha)\d*)$/$1~$2/,\
+filenamemangle=s/.*\/v?([\d\.-]+)\.tar\.gz/grpc-$1.tar.gz/ \
+ https://github.com/grpc/grpc/tags .*/archive/v?(\d\S+)@ARCHIVE_EXT@
