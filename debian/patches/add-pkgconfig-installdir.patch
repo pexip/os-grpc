@@ -1,0 +1,37 @@
+Description: set multiarch pkgconfig directory
+ Set full path to multiarch pkgconfig installation.
+Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Last-Update: 2022-01-30
+
+---
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -17236,7 +17236,7 @@ function(generate_pkgconfig name descrip
+     "${output_filepath}"
+     @ONLY)
+   install(FILES "${output_filepath}"
+-    DESTINATION "lib/pkgconfig/")
++    DESTINATION "${gRPC_INSTALL_PKGCONFIGDIR}")
+ endfunction()
+ 
+ # gpr .pc file
+--- a/templates/CMakeLists.txt.template
++++ b/templates/CMakeLists.txt.template
+@@ -163,6 +163,7 @@
+   set(gRPC_INSTALL_LIBDIR "lib" CACHE STRING "Installation directory for libraries")
+   set(gRPC_INSTALL_INCLUDEDIR "include" CACHE STRING "Installation directory for headers")
+   set(gRPC_INSTALL_CMAKEDIR "lib/cmake/<%text>${PACKAGE_NAME}</%text>" CACHE STRING "Installation directory for cmake config files")
++  set(gRPC_INSTALL_PKGCONFIGDIR "lib/pkgconfig/" CACHE STRING "Installation directory for pkg-config files")
+   set(gRPC_INSTALL_SHAREDIR "share/grpc" CACHE STRING "Installation directory for root certificates")
+   set(gRPC_BUILD_MSVC_MP_COUNT 0 CACHE STRING "The maximum number of processes for MSVC /MP option")
+ 
+@@ -760,7 +761,7 @@
+       "<%text>${output_filepath}</%text>"
+       @ONLY)
+     install(FILES "<%text>${output_filepath}</%text>"
+-      DESTINATION "lib/pkgconfig/")
++      DESTINATION "${gRPC_INSTALL_PKGCONFIGDIR}")
+   endfunction()
+ 
+   # gpr .pc file

@@ -1,0 +1,8 @@
+usr/include/grpc++/
+usr/include/grpcpp/
+usr/lib/${DEB_HOST_MULTIARCH}/libgrpc++*.a
+usr/lib/${DEB_HOST_MULTIARCH}/libgrpc++*.so
+usr/lib/${DEB_HOST_MULTIARCH}/libgrpcpp_channelz.a
+usr/lib/${DEB_HOST_MULTIARCH}/libgrpcpp_channelz.so
+usr/lib/${DEB_HOST_MULTIARCH}/pkgconfig/grpc++.pc
+usr/lib/${DEB_HOST_MULTIARCH}/pkgconfig/grpc++_unsecure.pc

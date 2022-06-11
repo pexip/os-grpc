@@ -1,0 +1,15 @@
+usr/include/grpc/
+usr/lib/${DEB_HOST_MULTIARCH}/libgpr.a
+usr/lib/${DEB_HOST_MULTIARCH}/libgpr.so
+usr/lib/${DEB_HOST_MULTIARCH}/libgrpc.a
+usr/lib/${DEB_HOST_MULTIARCH}/libgrpc.so
+usr/lib/${DEB_HOST_MULTIARCH}/libgrpc_*.a
+usr/lib/${DEB_HOST_MULTIARCH}/libgrpc_*.so
+usr/lib/${DEB_HOST_MULTIARCH}/libaddress_sorting.a
+usr/lib/${DEB_HOST_MULTIARCH}/libaddress_sorting.so
+usr/lib/${DEB_HOST_MULTIARCH}/libupb.a
+usr/lib/${DEB_HOST_MULTIARCH}/libupb.so
+usr/lib/${DEB_HOST_MULTIARCH}/cmake/
+usr/lib/${DEB_HOST_MULTIARCH}/pkgconfig/gpr.pc
+usr/lib/${DEB_HOST_MULTIARCH}/pkgconfig/grpc.pc
+usr/lib/${DEB_HOST_MULTIARCH}/pkgconfig/grpc_unsecure.pc

@@ -1,0 +1,20 @@
+Description: all Sphinx version build docs
+ .
+Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Bug-Debian: https://bugs.debian.org/955064
+Forwarded: no
+Last-Update: 2022-03-19
+
+---
+
+--- a/setup.py
++++ b/setup.py
+@@ -478,7 +478,7 @@ EXTRAS_REQUIRES = {
+ }
+ 
+ SETUP_REQUIRES = INSTALL_REQUIRES + (
+-    'Sphinx~=1.8.1',
++    'Sphinx',
+     'six>=1.10',
+ ) if ENABLE_DOCUMENTATION_BUILD else ()
+ 

@@ -1,0 +1,8 @@
+client.prof
+server.prof
+src/python/grpcio/grpc/_cython/_credentials/roots.pem
+src/python/grpcio/grpc/_cython/cygrpc.cpp
+src/python/grpcio/grpc/_grpcio_metadata.py
+third_party/protobuf/src
+third_party/googletest/googlemock
+third_party/googletest/googletest
