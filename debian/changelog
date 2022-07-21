@@ -1,4 +1,4 @@
-grpc (1.30.2-3pexip1) pexip; urgency=medium
+grpc (1.30.2-3pexip1) pexip-bullseye; urgency=medium
 
   * Prepare Pexip packaging
 
