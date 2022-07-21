@@ -139,3 +139,33 @@ Description: GRPC system (Python 3)
  transparently, and makes it easier to build connected systems.
  .
  This package contains the Python 3 bindings.
+
+Package: python3-grpcio-tools
+Section: python
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-protobuf (>= 3.11.4~),
+ ${shlibs:Depends},
+Description: GRPC system (Python 3 tools)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the Python 3 tools package
+
+Package: python3-grpcio-reflection
+Section: python
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-protobuf (>= 3.11.4~),
+ ${shlibs:Depends},
+Description: GRPC system (Python 3 reflection)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the Python 3 reflection package
