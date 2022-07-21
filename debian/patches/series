@@ -12,5 +12,6 @@ use-system-grpc.patch
 fix-protoc-path.patch
 add_grpc_libdir.patch
 unbreak_foreach.patch
-newline-fix.patch
-no-link-upb.patch
+9e0b427893b65b220faf8a31a6afdc67f6f41364.patch
+16-member_variable_should_not_be_a_reference.patch
+17-fixing_a_member_var_to_not_be_a_reference.patch

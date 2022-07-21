@@ -1,3 +1,33 @@
+grpc (1.30.2-3) unstable; urgency=medium
+
+  * Backport upstream fixes for:
+    - member variable should not be a reference; causing crash when used in
+      destructor,
+    - fixing a member var to not be a reference.
+  * Add upstream metadata.
+  * Update packaging bits.
+  * Update watch file.
+  * Update debhelper level to 13 .
+  * Update Standards-Version to 4.5.1 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Thu, 04 Feb 2021 10:44:30 +0100
+
+grpc (1.30.2-2.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+
+  [ Debian Janitor ]
+  * Apply multi-arch hints.
+    + ruby-grpc: Add Multi-Arch: same.
+
+  [ Andreas Henriksson ]
+  * Mark protobuf-compiler-grpc Multi-Arch: foreign.
+    Thanks to Helmut for valuable insight and review. (Closes: #976651)
+  * Cherry-pick python grpcio 'is not' fix from upstream.
+    This fixes a FTBFS with python3.9 (current default in bullseye).
+
+ -- Andreas Henriksson <andreas@fatal.se>  Wed, 13 Jan 2021 22:53:15 +0100
+
 grpc (1.30.2-2~bpo10+1pexip1) pexip; urgency=medium
 
   * Prepare Pexip packaging
@@ -66,6 +96,7 @@ grpc (1.26.0-3) unstable; urgency=medium
 
  -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Thu, 30 Apr 2020 21:13:54 +0000
 
+<<<<<<< HEAD
 grpc (1.26.0-2~bpo10+1) buster-backports; urgency=medium
 
   * Rebuild for buster-backports.
@@ -74,6 +105,8 @@ grpc (1.26.0-2~bpo10+1) buster-backports; urgency=medium
 
  -- Pirate Praveen <praveen@debian.org>  Tue, 31 Mar 2020 23:07:41 +0530
 
+=======
+>>>>>>> debian
 grpc (1.26.0-2) unstable; urgency=medium
 
   * Build with protobuf version 3.11.4 or later (closes: #946194).
@@ -110,6 +143,7 @@ grpc (1.24.3-1) experimental; urgency=medium
 
  -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Wed, 23 Oct 2019 05:45:37 +0000
 
+<<<<<<< HEAD
 grpc (1.23.0-1~bpo10+1) buster-backports; urgency=medium
 
   * Rebuild for buster-backports.
@@ -120,6 +154,12 @@ grpc (1.23.0-1) experimental; urgency=medium
   
    * New upstream release.
    * Update patches.
+=======
+grpc (1.23.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update patches.
+>>>>>>> debian
 
  -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 19 Aug 2019 09:15:47 +0000
 
