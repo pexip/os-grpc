@@ -14,7 +14,8 @@ Build-Depends: debhelper-compat (= 13), zlib1g-dev, libssl-dev, libabsl-dev,
  python3-setuptools,
  python3-pkg-resources,
  python3-sphinx,
- python3-sphinx-rtd-theme
+ python3-sphinx-rtd-theme,
+ protobuf-source
 Standards-Version: 4.5.1
 Section: libs
 Homepage: https://www.grpc.io/
