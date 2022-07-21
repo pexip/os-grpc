@@ -22,7 +22,7 @@ Testsuite: autopkgtest-pkg-ruby
 XS-Ruby-Versions: all
 Vcs-Git: https://salsa.debian.org/debian/grpc.git
 Vcs-Browser: https://salsa.debian.org/debian/grpc
-XS-Pexip-Upstream: http://ftp.debian.org/debian/ buster-backports
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ bullseye
 
 Package: libgrpc-dev
 Section: libdevel
