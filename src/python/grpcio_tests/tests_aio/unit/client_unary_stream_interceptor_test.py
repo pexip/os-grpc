@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import asyncio
+import datetime
 import logging
 import unittest
-import datetime
 
 import grpc
-
 from grpc.experimental import aio
-from tests_aio.unit._constants import UNREACHABLE_TARGET
-from tests_aio.unit._common import inject_callbacks
-from tests_aio.unit._common import CountingResponseIterator
-from tests_aio.unit._test_server import start_test_server
-from tests_aio.unit._test_base import AioTestBase
+
+from src.proto.grpc.testing import messages_pb2
+from src.proto.grpc.testing import test_pb2_grpc
 from tests.unit.framework.common import test_constants
-from src.proto.grpc.testing import messages_pb2, test_pb2_grpc
+from tests_aio.unit._common import CountingResponseIterator
+from tests_aio.unit._common import inject_callbacks
+from tests_aio.unit._constants import UNREACHABLE_TARGET
+from tests_aio.unit._test_base import AioTestBase
+from tests_aio.unit._test_server import start_test_server
 
 _SHORT_TIMEOUT_S = 1.0
 
@@ -96,8 +97,8 @@ class TestUnaryStreamClientInterceptor(AioTestBase):
 
                 self.assertEqual(response_cnt, _NUM_STREAM_RESPONSES)
                 self.assertEqual(await call.code(), grpc.StatusCode.OK)
-                self.assertEqual(await call.initial_metadata(), ())
-                self.assertEqual(await call.trailing_metadata(), ())
+                self.assertEqual(await call.initial_metadata(), aio.Metadata())
+                self.assertEqual(await call.trailing_metadata(), aio.Metadata())
                 self.assertEqual(await call.details(), '')
                 self.assertEqual(await call.debug_error_string(), '')
                 self.assertEqual(call.cancel(), False)

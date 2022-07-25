@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cpython.version cimport PY_MAJOR_VERSION, PY_MINOR_VERSION
+
+TYPE_METADATA_STRING = "Tuple[Tuple[str, Union[str, bytes]]...]"
+
 
 cdef grpc_status_code get_status_code(object code) except *:
     if isinstance(code, int):
@@ -54,7 +58,7 @@ class _EOF:
 
     def __bool__(self):
         return False
-    
+
     def __len__(self):
         return 0
 
@@ -142,7 +146,7 @@ async def generator_to_async_generator(object gen, object loop, object thread_po
         TypeError: StopIteration interacts badly with generators and cannot be
             raised into a Future
     """
-    queue = asyncio.Queue(maxsize=1, loop=loop)
+    queue = asyncio.Queue(maxsize=1)
 
     def yield_to_queue():
         try:
@@ -165,3 +169,34 @@ async def generator_to_async_generator(object gen, object loop, object thread_po
 
     # Port the exception if there is any
     await future
+
+
+if PY_MAJOR_VERSION >= 3 and PY_MINOR_VERSION >= 7:
+    def get_working_loop():
+        """Returns a running event loop.
+
+        Due to a defect of asyncio.get_event_loop, its returned event loop might
+        not be set as the default event loop for the main thread.
+        """
+        try:
+            return asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.get_event_loop()
+else:
+    def get_working_loop():
+        """Returns a running event loop."""
+        return asyncio.get_event_loop()
+
+
+def raise_if_not_valid_trailing_metadata(object metadata):
+    if not hasattr(metadata, '__iter__') or isinstance(metadata, dict):
+        raise TypeError(f'Invalid trailing metadata type, expected {TYPE_METADATA_STRING}: {metadata}')
+    for item in metadata:
+        if not isinstance(item, tuple):
+            raise TypeError(f'Invalid trailing metadata type, expected {TYPE_METADATA_STRING}: {metadata}')
+        if len(item) != 2:
+            raise TypeError(f'Invalid trailing metadata type, expected {TYPE_METADATA_STRING}: {metadata}')
+        if not isinstance(item[0], str):
+            raise TypeError(f'Invalid trailing metadata type, expected {TYPE_METADATA_STRING}: {metadata}')
+        if not isinstance(item[1], str) and not isinstance(item[1], bytes):
+            raise TypeError(f'Invalid trailing metadata type, expected {TYPE_METADATA_STRING}: {metadata}')

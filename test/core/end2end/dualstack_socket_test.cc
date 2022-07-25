@@ -35,20 +35,21 @@
 #include <grpc/support/log.h>
 #include <grpc/support/string_util.h>
 
+#include "src/core/lib/address_utils/sockaddr_utils.h"
 #include "src/core/lib/gpr/string.h"
 #include "src/core/lib/gprpp/host_port.h"
 #include "src/core/lib/iomgr/error.h"
 #include "src/core/lib/iomgr/resolve_address.h"
-#include "src/core/lib/iomgr/sockaddr_utils.h"
 #include "src/core/lib/iomgr/socket_utils_posix.h"
 #include "src/core/lib/slice/slice_string_helpers.h"
+#include "src/core/lib/transport/error_utils.h"
 #include "test/core/end2end/cq_verifier.h"
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
 
 /* This test exercises IPv4, IPv6, and dualstack sockets in various ways. */
 
-static void* tag(intptr_t i) { return (void*)i; }
+static void* tag(intptr_t t) { return reinterpret_cast<void*>(t); }
 
 static void drain_cq(grpc_completion_queue* cq) {
   grpc_event ev;
@@ -59,18 +60,16 @@ static void drain_cq(grpc_completion_queue* cq) {
 }
 
 static void log_resolved_addrs(const char* label, const char* hostname) {
-  grpc_resolved_addresses* res = nullptr;
-  grpc_error* error = grpc_blocking_resolve_address(hostname, "80", &res);
-  if (error != GRPC_ERROR_NONE || res == nullptr) {
-    GRPC_LOG_IF_ERROR(hostname, error);
+  absl::StatusOr<std::vector<grpc_resolved_address>> addresses_or =
+      grpc_core::GetDNSResolver()->ResolveNameBlocking(hostname, "80");
+  if (!addresses_or.ok()) {
+    GRPC_LOG_IF_ERROR(hostname,
+                      absl_status_to_grpc_error(addresses_or.status()));
     return;
   }
-  for (size_t i = 0; i < res->naddrs; ++i) {
-    char* addr_str = grpc_sockaddr_to_uri(&res->addrs[i]);
-    gpr_log(GPR_INFO, "%s: %s", label, addr_str);
-    gpr_free(addr_str);
+  for (const auto& addr : *addresses_or) {
+    gpr_log(GPR_INFO, "%s: %s", label, grpc_sockaddr_to_uri(&addr).c_str());
   }
-  grpc_resolved_addresses_destroy(res);
 }
 
 void test_connect(const char* server_host, const char* client_host, int port,
@@ -128,7 +127,7 @@ void test_connect(const char* server_host, const char* client_host, int port,
   if (client_host[0] == 'i') {
     /* for ipv4:/ipv6: addresses, concatenate the port to each of the parts */
     std::vector<absl::string_view> uri_parts =
-        absl::StrSplit(client_host, ",", absl::SkipEmpty());
+        absl::StrSplit(client_host, ',', absl::SkipEmpty());
     std::vector<std::string> hosts_with_port;
     hosts_with_port.reserve(uri_parts.size());
     for (const absl::string_view& uri_part : uri_parts) {
@@ -232,7 +231,7 @@ void test_connect(const char* server_host, const char* client_host, int port,
     GPR_ASSERT(0 == grpc_slice_str_cmp(call_details.method, "/foo"));
     GPR_ASSERT(0 ==
                grpc_slice_str_cmp(call_details.host, "foo.test.google.fr"));
-    GPR_ASSERT(was_cancelled == 1);
+    GPR_ASSERT(was_cancelled == 0);
 
     grpc_call_unref(s);
   } else {
@@ -277,14 +276,28 @@ void test_connect(const char* server_host, const char* client_host, int port,
 }
 
 int external_dns_works(const char* host) {
-  grpc_resolved_addresses* res = nullptr;
-  grpc_error* error = grpc_blocking_resolve_address(host, "80", &res);
-  GRPC_ERROR_UNREF(error);
-  if (res != nullptr) {
-    grpc_resolved_addresses_destroy(res);
-    return 1;
+  auto addresses_or =
+      grpc_core::GetDNSResolver()->ResolveNameBlocking(host, "80");
+  if (!addresses_or.ok()) {
+    return 0;
   }
-  return 0;
+  int result = 1;
+  for (const auto& addr : *addresses_or) {
+    // Kokoro on Macservice uses Google DNS64 servers by default
+    // (https://en.wikipedia.org/wiki/Google_Public_DNS) and that breaks
+    // "dualstack_socket_test" due to loopback4.unittest.grpc.io resolving to
+    // [64:ff9b::7f00:1]. (Working as expected for DNS64, but it prevents the
+    // dualstack_socket_test from functioning correctly). See b/201064791.
+    if (grpc_sockaddr_to_uri(&addr) == "ipv6:[64:ff9b::7f00:1]:80") {
+      gpr_log(
+          GPR_INFO,
+          "Detected DNS64 server response. Tests that depend on "
+          "*.unittest.grpc.io. will be skipped as they won't work with DNS64.");
+      result = 0;
+      break;
+    }
+  }
+  return result;
 }
 
 int main(int argc, char** argv) {
@@ -333,7 +346,8 @@ int main(int argc, char** argv) {
       test_connect("127.0.0.1", "ipv6:[::1]", 0, 0);
     }
 
-    if (!external_dns_works("loopback46.unittest.grpc.io")) {
+    if (!external_dns_works("loopback4.unittest.grpc.io") ||
+        !external_dns_works("loopback46.unittest.grpc.io")) {
       gpr_log(GPR_INFO, "Skipping tests that depend on *.unittest.grpc.io.");
     } else {
       test_connect("loopback46.unittest.grpc.io", "loopback4.unittest.grpc.io",

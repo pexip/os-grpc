@@ -23,8 +23,6 @@
 
 // Channel arg key for the list of balancer addresses.
 #define GRPC_ARG_GRPCLB_BALANCER_ADDRESSES "grpc.grpclb_balancer_addresses"
-// Channel arg key for a string indicating an address's balancer name.
-#define GRPC_ARG_ADDRESS_BALANCER_NAME "grpc.address_balancer_name"
 
 namespace grpc_core {
 
@@ -44,7 +42,7 @@ int BalancerAddressesArgCmp(void* p, void* q) {
   ServerAddressList* address_list1 = static_cast<ServerAddressList*>(p);
   ServerAddressList* address_list2 = static_cast<ServerAddressList*>(q);
   if (address_list1 == nullptr || address_list2 == nullptr) {
-    return GPR_ICMP(address_list1, address_list2);
+    return QsortCompare(address_list1, address_list2);
   }
   if (address_list1->size() > address_list2->size()) return 1;
   if (address_list1->size() < address_list2->size()) return -1;
@@ -73,17 +71,6 @@ const ServerAddressList* FindGrpclbBalancerAddressesInChannelArgs(
     const grpc_channel_args& args) {
   return grpc_channel_args_find_pointer<const ServerAddressList>(
       &args, const_cast<char*>(GRPC_ARG_GRPCLB_BALANCER_ADDRESSES));
-}
-
-grpc_arg CreateGrpclbBalancerNameArg(const char* balancer_name) {
-  return grpc_channel_arg_string_create(
-      const_cast<char*>(GRPC_ARG_ADDRESS_BALANCER_NAME),
-      const_cast<char*>(balancer_name));
-}
-
-const char* FindGrpclbBalancerNameInChannelArgs(const grpc_channel_args& args) {
-  return grpc_channel_args_find_string(
-      &args, const_cast<char*>(GRPC_ARG_ADDRESS_BALANCER_NAME));
 }
 
 }  // namespace grpc_core
