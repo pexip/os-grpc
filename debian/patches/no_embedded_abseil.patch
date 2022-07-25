@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Description: <short summary of the patch>
  TODO: Put a short summary on the line above and replace this paragraph
  with a longer explanation of this change. Complete the meta-information
@@ -28,6 +29,20 @@ Last-Update: 2020-05-19
 @@ -720,8 +720,10 @@ ADDRESS_SORTING_MERGE_OBJS = $(LIBADDRES
  ADDRESS_SORTING_MERGE_LIBS = $(LIBDIR)/$(CONFIG)/libaddress_sorting.a
  CPPFLAGS := -Ithird_party/address_sorting/include $(CPPFLAGS)
+=======
+Description: don't statically link with abseil
+ Use dynamic linking.
+Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Last-Update: 2022-03-03
+
+---
+
+--- grpc-1.29.0.orig/Makefile
++++ grpc-1.29.0/Makefile
+@@ -568,8 +568,10 @@ CPPFLAGS := -Ithird_party/address_sortin
+ 
+ # Setup abseil dependency
+>>>>>>> debian
  
 -GRPC_ABSEIL_DEP = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
 -GRPC_ABSEIL_MERGE_LIBS = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
@@ -36,13 +51,24 @@ Last-Update: 2020-05-19
 +#GRPC_ABSEIL_MERGE_LIBS = $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a
 +GRPC_ABSEIL_MERGE_LIBS = -labsl_base -labsl_int128 -labsl_strings -labsl_time -labsl_bad_optional_access -labsl_throw_delegate -labsl_str_format_internal
  
+<<<<<<< HEAD
  UPB_DEP = $(LIBDIR)/$(CONFIG)/libupb.a
  UPB_MERGE_OBJS = $(LIBUPB_OBJS)
 @@ -6449,6 +6451,7 @@ LIBGRPC_ABSEIL_SRC = \
+=======
+ # Setup re2 dependency
+ 
+@@ -2713,6 +2715,7 @@ LIBGRPC_ABSEIL_SRC = \
+>>>>>>> debian
  
  
  LIBGRPC_ABSEIL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBGRPC_ABSEIL_SRC))))
 +LIBGRPC_ABSEIL_OBJS = 
  
+<<<<<<< HEAD
  
  $(LIBDIR)/$(CONFIG)/libgrpc_abseil.a:  $(LIBGRPC_ABSEIL_OBJS) 
+=======
+ $(LIBGRPC_ABSEIL_OBJS): CPPFLAGS += -g -Ithird_party/abseil-cpp
+ 
+>>>>>>> debian

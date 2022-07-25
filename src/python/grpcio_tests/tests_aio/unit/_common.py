@@ -13,21 +13,28 @@
 # limitations under the License.
 
 import asyncio
-import grpc
 from typing import AsyncIterable
+
+import grpc
+from grpc.aio._metadata import Metadata
+from grpc.aio._typing import MetadataKey
+from grpc.aio._typing import MetadataValue
+from grpc.aio._typing import MetadatumType
 from grpc.experimental import aio
-from grpc.experimental.aio._typing import MetadataType, MetadatumType
 
 from tests.unit.framework.common import test_constants
 
-
-def seen_metadata(expected: MetadataType, actual: MetadataType):
-    return not bool(set(expected) - set(actual))
+ADHOC_METHOD = '/test/AdHoc'
 
 
-def seen_metadatum(expected: MetadatumType, actual: MetadataType):
-    metadata_dict = dict(actual)
-    return metadata_dict.get(expected[0]) == expected[1]
+def seen_metadata(expected: Metadata, actual: Metadata):
+    return not bool(set(tuple(expected)) - set(tuple(actual)))
+
+
+def seen_metadatum(expected_key: MetadataKey, expected_value: MetadataValue,
+                   actual: Metadata) -> bool:
+    obtained = actual[expected_key]
+    return obtained == expected_value
 
 
 async def block_until_certain_state(channel: aio.Channel,
@@ -50,7 +57,7 @@ def inject_callbacks(call: aio.Call):
     second_callback_ran = asyncio.Event()
 
     def second_callback(call):
-        # Validate that all resopnses have been received
+        # Validate that all responses have been received
         # and the call is an end state.
         assert call.done()
         second_callback_ran.set()
@@ -95,3 +102,20 @@ class CountingResponseIterator:
 
     def __aiter__(self):
         return self._forward_responses()
+
+
+class AdhocGenericHandler(grpc.GenericRpcHandler):
+    """A generic handler to plugin testing server methods on the fly."""
+    _handler: grpc.RpcMethodHandler
+
+    def __init__(self):
+        self._handler = None
+
+    def set_adhoc_handler(self, handler: grpc.RpcMethodHandler):
+        self._handler = handler
+
+    def service(self, handler_call_details):
+        if handler_call_details.method == ADHOC_METHOD:
+            return self._handler
+        else:
+            return None

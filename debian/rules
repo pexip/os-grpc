@@ -1,65 +1,98 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-# output every command that modifies files on the build system.
-#DH_VERBOSE = 1
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
 
-DPKG_EXPORT_BUILDFLAGS = 1
-include /usr/share/dpkg/default.mk
+export DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
-include /usr/share/dpkg/architecture.mk
-
-#export PYBUILD_NAME = grpcio
-
-export DEB_BUILD_MAINT_OPTIONS = hardening=+all
-
-# Flags for Python build
-export GRPC_PYTHON_BUILD_WITH_CYTHON = 1
-export GRPC_PYTHON_BUILD_SYSTEM_ZLIB = 1
-export GRPC_PYTHON_BUILD_SYSTEM_CARES = 1
-export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL = 1
-export GRPC_PYTHON_ENABLE_DOCUMENTATION_BUILD = 1
-
-# package maintainers to append CFLAGS
-#export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
-# package maintainers to append LDFLAGS
-export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
-
-ifneq (,$(filter $(DEB_HOST_ARCH), armel mips mipsel powerpc))
-  export DEB_LDFLAGS_MAINT_APPEND = -Wl,--no-as-needed -latomic -Wl,--as-needed
+# Reduce debug info to workaround address space limitation
+ifneq (,$(filter $(DEB_HOST_ARCH), mipsel))
+    export DEB_CXXFLAGS_MAINT_APPEND += -g1
 endif
 
+#export PYBUILD_NAME=grpcio
+
+# Python building should use system libraries
+export GRPC_BUILD_WITH_BORING_SSL_ASM = 0
+export GRPC_PYTHON_BUILD_WITH_CYTHON = 1
+export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL = 1
+export GRPC_PYTHON_BUILD_SYSTEM_ZLIB = 1
+export GRPC_PYTHON_BUILD_SYSTEM_CARES = 1
+export GRPC_PYTHON_BUILD_SYSTEM_RE2 = 1
+export GRPC_PYTHON_ENABLE_DOCUMENTATION_BUILD = 1
+
+# Ruby
 export GEM2DEB_TEST_RUNNER = --check-dependencies
 export DH_RUBY = --gem-install
-export DH_RUBY_GEM_INSTALL_WHITELIST_APPEND = platform_check.rb version.rb
+export DH_RUBY_GEM_INSTALL_INCLUDE = platform_check.rb version.rb
 
 export DH_RUBY_IGNORE_TESTS = all
 
-export V = 1
+BUILD_STATIC_DIR=$(CURDIR)/build-static/
+BUILD_SHARED_DIR=$(CURDIR)/build-shared/
+
+# -DCMAKE_BUILD_TYPE=Release
+COMMON_BUILD_FLAGS= \
+	-DgRPC_ABSL_PROVIDER=package \
+	-DgRPC_CARES_PROVIDER=package \
+	-DgRPC_BENCHMARK_PROVIDER=package \
+	-DgRPC_PROTOBUF_PROVIDER=package \
+	-DgRPC_RE2_PROVIDER=package \
+	-DgRPC_SSL_PROVIDER=package \
+	-DgRPC_ZLIB_PROVIDER=package \
+	-DgRPC_BACKWARDS_COMPATIBILITY_MODE=OFF \
+	-DgRPC_BUILD_TESTS=ON \
+	-DgRPC_INSTALL_LIBDIR=lib/$(DEB_HOST_MULTIARCH) \
+	-DgRPC_INSTALL_CMAKEDIR=lib/$(DEB_HOST_MULTIARCH)/cmake/grpc \
+	-DgRPC_INSTALL_PKGCONFIGDIR=lib/$(DEB_HOST_MULTIARCH)/pkgconfig \
+	-DgRPC_BUILD_GRPC_CPP_PLUGIN=ON \
+	-DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF \
+	-DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF \
+	-DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF \
+	-DgRPC_BUILD_GRPC_PHP_PLUGIN=ON \
+	-DgRPC_BUILD_GRPC_PYTHON_PLUGIN=ON \
+	-DgRPC_BUILD_GRPC_RUBY_PLUGIN=ON
+
+export V=1
 
 override_dh_auto_clean:
-	dh_auto_clean
+	$(RM) -r $(BUILD_STATIC_DIR)
 	rm -fr debian/tmp-python
+	dh_auto_clean -O--buildsystem=cmake \
+		-O--builddir=$(BUILD_SHARED_DIR)
 	PYBUILD_NAME=grpcio dh_auto_clean -O--buildsystem=pybuild
-	find $(CURDIR)/src/python/grpcio/ -name \*.so -delete
-	$(RM) -r $(CURDIR)/src/python/grpcio/grpcio.egg-info/ \
-		$(CURDIR)/.eggs/
-	$(RM) \
-		$(CURDIR)/src/python/grpcio/grpc/_cython/_credentials/roots.pem \
-		$(CURDIR)/src/python/grpcio/grpc/_cython/cygrpc.cpp \
-		$(CURDIR)/src/python/grpcio/grpc/_grpcio_metadata.py
-	$(RM) a.out
+	$(RM) $(CURDIR)/src/python/grpcio/grpc/_cython/cygrpc.*.so
+	$(RM) -r $(CURDIR)/__pycache__/ \
+		$(CURDIR)/src/python/grpcio/__pycache__/ \
+		$(CURDIR)/python_build/ \
+		$(CURDIR)/.pybuild/
+	$(RM) $(CURDIR)/a.out
 
 override_dh_auto_configure:
-	dh_auto_configure
+	mkdir -p $(CURDIR)/third_party/googletest/
+	ln -s /usr/src/googletest/googlemock/ \
+		$(CURDIR)/third_party/googletest/
+	ln -s /usr/src/googletest/googletest/ \
+		$(CURDIR)/third_party/googletest/
+
+	dh_auto_configure -O--buildsystem=cmake \
+		-O--builddir=$(BUILD_STATIC_DIR) -- \
+		-DBUILD_SHARED_LIBS=OFF \
+		$(COMMON_BUILD_FLAGS)
+	dh_auto_configure -O--buildsystem=cmake \
+		-O--builddir=$(BUILD_SHARED_DIR) -- \
+		-DBUILD_SHARED_LIBS=ON \
+		$(COMMON_BUILD_FLAGS)
+
 	PYBUILD_NAME=grpcio dh_auto_configure -O--buildsystem=pybuild
 	PYBUILD_NAME=grpcio-tools PYBUILD_DIR=tools/distrib/python/grpcio_tools dh_auto_configure -O--buildsystem=pybuild
 
 override_dh_auto_build:
-	# Fake included protobuf .proto files
-	mkdir -p $(CURDIR)/third_party/protobuf/
-	ln -s /usr/include $(CURDIR)/third_party/protobuf/src
-	$(MAKE) shared prefix=/usr
+	dh_auto_build -O--buildsystem=cmake \
+		-O--builddir=$(BUILD_STATIC_DIR)
+	dh_auto_build -O--buildsystem=cmake \
+		-O--builddir=$(BUILD_SHARED_DIR)
 
 	# Handle grpcio-tools as we need it to build other things
 	# Need to build and install grpcio-tools before things which depend on it can be configured / built / installed
@@ -74,39 +107,22 @@ override_dh_auto_build:
 
 	dh_auto_build -O--buildsystem=ruby
 
-override_dh_auto_test:
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-#	make test_c
-endif
-	dh_auto_test -O--buildsystem=pybuild
-
 override_dh_auto_install:
-	$(MAKE) INSTALL_LIBDIR=/lib/$(DEB_HOST_MULTIARCH) \
-		install prefix=$(CURDIR)/debian/tmp/usr
+	dh_auto_install -O--buildsystem=cmake \
+		-O--builddir=$(BUILD_STATIC_DIR)
+	dh_auto_install -O--buildsystem=cmake \
+		-O--builddir=$(BUILD_SHARED_DIR)
 
 	PYBUILD_NAME=grpcio dh_auto_install -O--buildsystem=pybuild
 	PYBUILD_NAME=grpcio-tools PYBUILD_DIR=tools/distrib/python/grpcio_tools dh_auto_install -O--buildsystem=pybuild
 	PYTHONPATH=$(CURDIR)/debian/tmp-python/usr/local/lib/python3.9/dist-packages PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection dh_auto_install -O--buildsystem=pybuild
-	chmod a-x $(CURDIR)/debian/tmp/usr/share/grpc/roots.pem
+
 	TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
 		dh_auto_install -O--buildsystem=ruby
-	echo Run Ruby tests with proper settings
-	# run tests by hand
-	LD_LIBRARY_PATH=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
-	CONFIG=. \
-	gem2deb-test-runner || true
-	find $(CURDIR)/debian/ruby-grpc/ \
-		\( -name ca.pem \
-			-o -name server1.key \
-			-o -name server1.pem \) \
-		-exec chmod a-x {} \;
-
-override_dh_missing:
-	dh_missing --list-missing
 
 %:
-	dh $@ --with=python3
+	dh $@ --builddir=$(BUILD_SHARED_DIR) --buildsystem=cmake \
+		--with=python3
 
-.PHONY: override_dh_auto_clean override_dh_auto_configure \
-	override_dh_auto_build override_dh_auto_test \
-	override_dh_auto_install override_dh_missing
+.PHONY: overide_dh_auto_clean override_dh_auto_configure \
+	override_dh_auto_build override_dh_auto_install

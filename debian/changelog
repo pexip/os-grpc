@@ -1,3 +1,50 @@
+grpc (1.44.0-3) experimental; urgency=medium
+
+  [ Pirate Praveen <praveen@debian.org> ]
+  * Update minimum version of libabsl-dev.
+
+  [ Adrian Bunk <bunk@debian.org> ]
+  * Fix the mipsel FTBFS.
+
+  [ Laszlo Boszormenyi (GCS) <gcs@debian.org> ]
+  * Adjust dependency of development packages.
+  * Make rebuildable.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sat, 11 Jun 2022 11:39:38 +0200
+
+grpc (1.44.0-2) experimental; urgency=medium
+
+  * Use DEB_HOST_MULTIARCH for libdir and friends.
+  * Make libgrpc-dev conflict with libupb-dev (closes: #1008150).
+  * Adjust ruby packaging for new gem2deb versions.
+  * Add ruby autopkgtest.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Wed, 23 Mar 2022 18:32:16 +0100
+
+grpc (1.44.0-1) experimental; urgency=medium
+
+  [ Debian Janitor <janitor@jelmer.uk> ]
+  * Remove constraints unnecessary since buster:
+    + Build-Depends: Drop versioned constraint on ruby-googleauth.
+    + ruby-grpc: Drop versioned constraint on ruby-googleauth in Depends.
+    + ruby-grpc: Drop versioned constraint on ruby-grpc in Conflicts.
+    + ruby-grpc: Drop versioned constraint on ruby-grpc in Replaces.
+    + ruby-grpc-tools: Drop versioned constraint on ruby-grpc-tools in
+      Conflicts.
+    + ruby-grpc-tools: Drop versioned constraint on ruby-grpc-tools in Replaces.
+
+  [ Rob Shearman <rob@graphiant.com> ]
+  * d/rules: fix typo that causes build failure (closes: #996885).
+
+  [ Laszlo Boszormenyi (GCS) <gcs@debian.org> ]
+  * New major upstream release (closes: #1004488, #1006237).
+  * Update patches.
+  * Switch to CMake build system.
+  * Library transition from libgrpc10 to libgrpc22 .
+  * Update watch file.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Thu, 03 Mar 2022 18:38:06 +0100
+
 grpc (1.30.2-3pexip1) pexip-bullseye; urgency=medium
 
   * Prepare Pexip packaging

@@ -51,13 +51,14 @@ some configuration as environment variables that can be set.
     resolver's resolved address sorter
   - cds_lb - traces cds LB policy
   - channel - traces operations on the C core channel stack
+  - channel_stack - traces the set of filters in a channel stack upon
+    construction
   - client_channel_call - traces client channel call batch activity
   - client_channel_routing - traces client channel call routing, including
     resolver and load balancing policy interaction
   - compression - traces compression operations
   - connectivity_state - traces connectivity state changes to channels
   - cronet - traces state in the cronet transport engine
-  - eds_lb - traces eds LB policy
   - executor - traces grpc's internal thread pool ('the executor')
   - glb - traces the grpclb load balancer
   - handshaker - traces handshaking state
@@ -68,17 +69,19 @@ some configuration as environment variables that can be set.
   - inproc - traces the in-process transport
   - http_keepalive - traces gRPC keepalive pings
   - flowctl - traces http2 flow control
-  - lrs_lb - traces lrs LB policy
   - op_failure - traces error information when failure is pushed onto a
     completion queue
   - pick_first - traces the pick first load balancing policy
   - plugin_credentials - traces plugin credentials
-  - pollable_refcount - traces reference counting of 'pollable' objects (only 
+  - pollable_refcount - traces reference counting of 'pollable' objects (only
     in DEBUG)
   - priority_lb - traces priority LB policy
   - resource_quota - trace resource quota objects internals
+  - ring_hash_lb - traces the ring hash load balancing policy
+  - rls_lb - traces the RLS load balancing policy
   - round_robin - traces the round_robin load balancing policy
   - queue_pluck
+  - sdk_authz - traces sdk authorization
   - server_channel - lightweight trace of significant server channel events
   - secure_endpoint - traces bytes flowing through encrypted channels
   - subchannel - traces the connectivity state of subchannel
@@ -90,11 +93,13 @@ some configuration as environment variables that can be set.
   - tsi - traces tsi transport security
   - weighted_target_lb - traces weighted_target LB policy
   - xds_client - traces xds client
+  - xds_cluster_manager_lb - traces cluster manager LB policy
+  - xds_cluster_impl_lb - traces cluster impl LB policy
+  - xds_cluster_resolver_lb - traces xds cluster resolver LB policy
   - xds_resolver - traces xds resolver
 
   The following tracers will only run in binaries built in DEBUG mode. This is
   accomplished by invoking `CONFIG=dbg make <target>`
-  - alarm_refcount - refcounting traces for grpc_alarm structure
   - metadata - tracks creation and mutation of metadata
   - combiner - traces combiner lock state
   - call_combiner - traces call combiner state
@@ -133,7 +138,12 @@ some configuration as environment variables that can be set.
   Default gRPC logging verbosity - one of:
   - DEBUG - log all gRPC messages
   - INFO - log INFO and ERROR message
-  - ERROR - log only errors
+  - ERROR - log only errors (default)
+  - NONE - won't log any
+
+* GRPC_STACKTRACE_MINLOGLEVEL
+  Minimum loglevel to print the stack-trace - one of DEBUG, INFO, ERROR, and NONE.
+  NONE is a default value.
 
 * GRPC_TRACE_FUZZER
   if set, the fuzzers will output trace (it is usually suppressed).

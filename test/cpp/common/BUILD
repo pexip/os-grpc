@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-licenses(["notice"])  # Apache v2
-
 load("//bazel:grpc_build_system.bzl", "grpc_cc_test", "grpc_package")
+
+licenses(["notice"])
 
 grpc_package(name = "test/cpp/common")
 
@@ -50,7 +50,11 @@ grpc_cc_test(
         "gtest",
     ],
     tags = [
+        # Test manipulates system time and requires root while running so it is only
+        # run on demand ("manual") and when no other tests are running ("exclusive").
+        # It also means that the test won't work with setups like bazel RBE.
         "manual",
+        "exclusive",
         "no_windows",
     ],
     deps = [

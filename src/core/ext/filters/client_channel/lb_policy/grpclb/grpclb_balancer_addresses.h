@@ -21,7 +21,7 @@
 
 #include <grpc/impl/codegen/grpc_types.h>
 
-#include "src/core/ext/filters/client_channel/server_address.h"
+#include "src/core/lib/resolver/server_address.h"
 
 namespace grpc_core {
 
@@ -29,9 +29,6 @@ grpc_arg CreateGrpclbBalancerAddressesArg(
     const ServerAddressList* address_list);
 const ServerAddressList* FindGrpclbBalancerAddressesInChannelArgs(
     const grpc_channel_args& args);
-
-grpc_arg CreateGrpclbBalancerNameArg(const char* balancer_name);
-const char* FindGrpclbBalancerNameInChannelArgs(const grpc_channel_args& args);
 
 }  // namespace grpc_core
 
