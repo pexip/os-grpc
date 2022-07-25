@@ -23,11 +23,11 @@ export GRPC_PYTHON_BUILD_SYSTEM_RE2 = 1
 export GRPC_PYTHON_ENABLE_DOCUMENTATION_BUILD = 1
 
 # Ruby
-export GEM2DEB_TEST_RUNNER = --check-dependencies
-export DH_RUBY = --gem-install
-export DH_RUBY_GEM_INSTALL_INCLUDE = platform_check.rb version.rb
+#export GEM2DEB_TEST_RUNNER = --check-dependencies
+#export DH_RUBY = --gem-install
+#export DH_RUBY_GEM_INSTALL_INCLUDE = platform_check.rb version.rb
 
-export DH_RUBY_IGNORE_TESTS = all
+#export DH_RUBY_IGNORE_TESTS = all
 
 BUILD_STATIC_DIR=$(CURDIR)/build-static/
 BUILD_SHARED_DIR=$(CURDIR)/build-shared/
@@ -52,7 +52,7 @@ COMMON_BUILD_FLAGS= \
 	-DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF \
 	-DgRPC_BUILD_GRPC_PHP_PLUGIN=ON \
 	-DgRPC_BUILD_GRPC_PYTHON_PLUGIN=ON \
-	-DgRPC_BUILD_GRPC_RUBY_PLUGIN=ON
+	-DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF
 
 export V=1
 
@@ -105,7 +105,7 @@ override_dh_auto_build:
 	PYTHONPATH=$(CURDIR)/debian/tmp-python/usr/local/lib/python3.9/dist-packages PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection dh_auto_configure -O--buildsystem=pybuild
 	PYTHONPATH=$(CURDIR)/debian/tmp-python/usr/local/lib/python3.9/dist-packages PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection dh_auto_build -O--buildsystem=pybuild
 
-	dh_auto_build -O--buildsystem=ruby
+	# dh_auto_build -O--buildsystem=ruby
 
 override_dh_auto_install:
 	dh_auto_install -O--buildsystem=cmake \
@@ -117,8 +117,8 @@ override_dh_auto_install:
 	PYBUILD_NAME=grpcio-tools PYBUILD_DIR=tools/distrib/python/grpcio_tools dh_auto_install -O--buildsystem=pybuild
 	PYTHONPATH=$(CURDIR)/debian/tmp-python/usr/local/lib/python3.9/dist-packages PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection dh_auto_install -O--buildsystem=pybuild
 
-	TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
-		dh_auto_install -O--buildsystem=ruby
+	# TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
+	#	dh_auto_install -O--buildsystem=ruby
 
 %:
 	dh $@ --builddir=$(BUILD_SHARED_DIR) --buildsystem=cmake \

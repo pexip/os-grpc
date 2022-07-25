@@ -8,9 +8,9 @@ Build-Depends: debhelper-compat (= 13), cmake, pkg-config,
  libgflags-dev, libgtest-dev, libbenchmark-dev,
  libgoogle-perftools-dev, libprotoc-dev (>= 3.20.0~), libc-ares-dev,
  libre2-dev,
- gem2deb (>= 1.6~), ruby-google-protobuf (>= 3.20.0~),
- ruby-googleauth, ruby-googleapis-common-protos-types,
- ruby-rspec, ruby-simplecov,
+# gem2deb (>= 1.6~), ruby-google-protobuf (>= 3.20.0~),
+# ruby-googleauth, ruby-googleapis-common-protos-types,
+# ruby-rspec, ruby-simplecov,
  dh-python,
  python3-all-dev,
  cython3,
@@ -94,40 +94,40 @@ Description: high performance general RPC framework - protobuf plugin
  This package provides the plugins needed for compiling gRPC service
  definitions with the protobuf compiler.
 
-Package: ruby-grpc
-Section: ruby
-Architecture: any
-X-DhRuby-Root: .
-XB-Ruby-Versions: ${ruby:Versions}
-Depends: ${ruby:Depends},
-         ruby-google-protobuf (>= 3.20.0~),
-         ruby-googleauth,
-         ruby-googleapis-common-protos-types,
-         ${misc:Depends},
-         ${shlibs:Depends}
-Multi-Arch: same
-Description: GRPC system in Ruby
- Send RPCs from Ruby using GRPC. GRPC is a high performance, open-source
- universal RPC framework.
- .
- Some features of gRPC:
-  * Simple service definition
-  * Works across languages and platforms
-  * Start quickly and scale
-  * Bi-directional streaming and integrated auth
+#Package: ruby-grpc
+#Section: ruby
+#Architecture: any
+#X-DhRuby-Root: .
+#XB-Ruby-Versions: ${ruby:Versions}
+#Depends: ${ruby:Depends},
+#         ruby-google-protobuf (>= 3.20.0~),
+#         ruby-googleauth,
+#         ruby-googleapis-common-protos-types,
+#         ${misc:Depends},
+#         ${shlibs:Depends}
+#Multi-Arch: same
+#Description: GRPC system in Ruby
+# Send RPCs from Ruby using GRPC. GRPC is a high performance, open-source
+# universal RPC framework.
+# .
+# Some features of gRPC:
+#  * Simple service definition
+#  * Works across languages and platforms
+#  * Start quickly and scale
+#  * Bi-directional streaming and integrated auth
 
-Package: ruby-grpc-tools
-Section: ruby
-Architecture: all
-X-DhRuby-Root: src/ruby/tools
-XB-Ruby-Versions: ${ruby:Versions}
-Depends: ${ruby:Depends},
-         ruby-grpc,
-         protobuf-compiler-grpc,
-         ${misc:Depends}
-Description: Development tools for Ruby gRPC
- Ruby gRPC library allows sending RPCs from Ruby using GRPC.
- GRPC is a high performance, open-source universal RPC framework.
+#Package: ruby-grpc-tools
+#Section: ruby
+#Architecture: all
+#X-DhRuby-Root: src/ruby/tools
+#XB-Ruby-Versions: ${ruby:Versions}
+#Depends: ${ruby:Depends},
+#         ruby-grpc,
+#         protobuf-compiler-grpc,
+#         ${misc:Depends}
+#Description: Development tools for Ruby gRPC
+# Ruby gRPC library allows sending RPCs from Ruby using GRPC.
+# GRPC is a high performance, open-source universal RPC framework.
 
 Package: python3-grpcio
 Section: python
