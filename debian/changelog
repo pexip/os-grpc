@@ -1,3 +1,9 @@
+grpc (1.44.0-3pexip1) pexip-bullseye; urgency=medium
+
+  * New upstream release.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Wed, 27 Jul 2022 13:03:25 +0100
+
 grpc (1.44.0-3) experimental; urgency=medium
 
   [ Pirate Praveen <praveen@debian.org> ]
