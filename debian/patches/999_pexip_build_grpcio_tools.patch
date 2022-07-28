@@ -1,17 +1,17 @@
-Index: os-grpc/tools/distrib/python/grpcio_tools/setup.py
-===================================================================
---- os-grpc.orig/tools/distrib/python/grpcio_tools/setup.py
-+++ os-grpc/tools/distrib/python/grpcio_tools/setup.py
-@@ -252,7 +252,7 @@ def extension_modules():
+--- a/tools/distrib/python/grpcio_tools/setup.py
++++ b/tools/distrib/python/grpcio_tools/setup.py
+@@ -252,17 +252,20 @@
  
      plugin_sources += [
          os.path.join('grpc_tools', 'main.cc'),
 -        os.path.join('grpc_root', 'src', 'compiler', 'python_generator.cc')
+-    ] + [os.path.join(CC_INCLUDE, cc_file) for cc_file in CC_FILES]
 +        os.path.join('..', '..', '..', '..', 'src', 'compiler', 'python_generator.cc')
-     ] + [os.path.join(CC_INCLUDE, cc_file) for cc_file in CC_FILES]
++    ] + [os.path.join(CC_INCLUDE, cc_file) for cc_file in CC_FILES
++    ] + ["/usr/src/googletest/googletest/src/gtest.cc"]
  
      plugin_ext = extension.Extension(
-@@ -260,7 +260,8 @@ def extension_modules():
+         name='grpc_tools._protoc_compiler',
          sources=plugin_sources,
          include_dirs=[
              '.',
@@ -20,11 +20,12 @@ Index: os-grpc/tools/distrib/python/grpcio_tools/setup.py
 +            os.path.join('..', '..', '..', '..', "include"),
              os.path.join('grpc_root', 'include'),
              CC_INCLUDE,
++            "/usr/src/googletest/googletest/include",
          ],
-Index: os-grpc/tools/distrib/python/grpcio_tools/protoc_lib_deps.py
-===================================================================
---- os-grpc.orig/tools/distrib/python/grpcio_tools/protoc_lib_deps.py
-+++ os-grpc/tools/distrib/python/grpcio_tools/protoc_lib_deps.py
+         language='c++',
+         define_macros=list(DEFINE_MACROS),
+--- a/tools/distrib/python/grpcio_tools/protoc_lib_deps.py
++++ b/tools/distrib/python/grpcio_tools/protoc_lib_deps.py
 @@ -14,10 +14,11 @@
  # limitations under the License.
  
