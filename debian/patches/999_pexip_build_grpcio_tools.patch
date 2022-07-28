@@ -1,6 +1,6 @@
 --- a/tools/distrib/python/grpcio_tools/setup.py
 +++ b/tools/distrib/python/grpcio_tools/setup.py
-@@ -252,17 +252,20 @@
+@@ -252,17 +252,21 @@
  
      plugin_sources += [
          os.path.join('grpc_tools', 'main.cc'),
@@ -21,6 +21,7 @@
              os.path.join('grpc_root', 'include'),
              CC_INCLUDE,
 +            "/usr/src/googletest/googletest/include",
++            "/usr/src/googletest/googletest",
          ],
          language='c++',
          define_macros=list(DEFINE_MACROS),
