@@ -10,7 +10,7 @@ Index: os-grpc/tools/distrib/python/grpcio_tools/setup.py
 -    ] + [os.path.join(CC_INCLUDE, cc_file) for cc_file in CC_FILES]
 +        os.path.join('..', '..', '..', '..', 'src', 'compiler', 'python_generator.cc')
 +    ] + [os.path.join(CC_INCLUDE, cc_file) for cc_file in CC_FILES
-+    ] + ["/usr/src/googletest/googletest/src/gtest.cc"]
++    ]
  
      plugin_ext = extension.Extension(
          name='grpc_tools._protoc_compiler',
