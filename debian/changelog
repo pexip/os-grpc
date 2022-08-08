@@ -1,3 +1,9 @@
+grpc (1.44.0-3pexip2) pexip-bullseye; urgency=medium
+
+  * Fix symbol problems in protoc.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Mon, 08 Aug 2022 16:09:25 +0100
+
 grpc (1.44.0-3pexip1) pexip-bullseye; urgency=medium
 
   * New upstream release.
