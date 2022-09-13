@@ -7,17 +7,17 @@ Last-Update: 2022-03-03
 
 --- a/setup.py
 +++ b/setup.py
-@@ -262,6 +262,7 @@ if EXTRA_ENV_LINK_ARGS is None:
+@@ -262,6 +262,7 @@
              ' -static -lshlwapi'.format(msvcr=msvcr))
      if "linux" in sys.platform:
          EXTRA_ENV_LINK_ARGS += ' -static-libgcc'
-+        EXTRA_ENV_LINK_ARGS += ' -labsl_hash -labsl_str_format_internal -labsl_time -labsl_bad_optional_access'
++        EXTRA_ENV_LINK_ARGS += ' ' + subprocess.check_output(["pkg-config", "--libs", "absl_statusor", "absl_status", "absl_hash", "absl_synchronization", "absl_hash", "absl_str_format_internal", "absl_time", "absl_bad_optional_access", "absl_random_internal_randen", "absl_random_internal_randen_slow", "absl_random_internal_pool_urbg", "absl_strings", "absl_spinlock_wait", "absl_random_internal_randen_hwaes"], text=True).strip()
  
  EXTRA_COMPILE_ARGS = shlex.split(EXTRA_ENV_COMPILE_ARGS)
  EXTRA_LINK_ARGS = shlex.split(EXTRA_ENV_LINK_ARGS)
 --- a/src/python/grpcio/grpc_core_dependencies.py
 +++ b/src/python/grpcio/grpc_core_dependencies.py
-@@ -667,101 +667,6 @@ CORE_SOURCE_FILES = [
+@@ -667,101 +667,6 @@
      'src/core/tsi/ssl_transport_security.cc',
      'src/core/tsi/transport_security.cc',
      'src/core/tsi/transport_security_grpc.cc',

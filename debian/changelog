@@ -1,3 +1,9 @@
+grpc (1.44.0-3pexip4) pexip-bullseye; urgency=medium
+
+  * Link against libabsl_* using pkg-config to avoid undefined symbols.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Tue, 13 Sep 2022 17:29:22 +0100
+
 grpc (1.44.0-3pexip3) pexip-bullseye; urgency=medium
 
   * Bullseye rebuild for ARM64 inclusion
