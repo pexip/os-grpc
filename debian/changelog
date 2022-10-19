@@ -1,3 +1,9 @@
+grpc (1.44.0-3pexip5) pexip; urgency=medium
+
+  * Rebuild grpc for new protobuf version.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Wed, 19 Oct 2022 16:29:04 +0100
+
 grpc (1.44.0-3pexip4) pexip-bullseye; urgency=medium
 
   * Link against libabsl_* using pkg-config to avoid undefined symbols.
