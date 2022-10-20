@@ -1,3 +1,10 @@
+grpc (1.44.0-3pexip6) pexip; urgency=medium
+
+  * Rebuild grpc (properly) against new protobuf version.
+  * Add Built-Using on protobuf-source to help tracking.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 20 Oct 2022 16:06:24 +0100
+
 grpc (1.44.0-3pexip5) pexip; urgency=medium
 
   * Rebuild grpc for new protobuf version.

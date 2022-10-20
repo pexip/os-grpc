@@ -37,6 +37,7 @@ Package: libgrpc-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
+Built-Using: ${built-using:Depends}
 Depends: libgrpc22 (= ${binary:Version}), zlib1g-dev, libssl-dev, libabsl-dev, libc-ares-dev, libre2-dev, ${misc:Depends}
 Conflicts: libgpr1-dev, libgpr2-dev, libgpr3-dev, libupb-dev
 Description: high performance general RPC framework (development)
@@ -49,6 +50,7 @@ Description: high performance general RPC framework (development)
 Package: libgrpc22
 Architecture: any
 Multi-Arch: same
+Built-Using: ${built-using:Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Breaks: libgrpc9, libgrpc10
 Replaces: libgrpc9, libgrpc10
@@ -63,6 +65,7 @@ Package: libgrpc++-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
+Built-Using: ${built-using:Depends}
 Depends: libgrpc++1.44 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), zlib1g-dev, libssl-dev, libabsl-dev, libc-ares-dev, libre2-dev, ${misc:Depends}
 Description: high performance general RPC framework (development)
  A modern, open source remote procedure call (RPC) framework that can
@@ -74,6 +77,7 @@ Description: high performance general RPC framework (development)
 Package: libgrpc++1.44
 Architecture: any
 Multi-Arch: same
+Built-Using: ${built-using:Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: high performance general RPC framework
  A modern, open source remote procedure call (RPC) framework that can
@@ -85,6 +89,7 @@ Description: high performance general RPC framework
 Package: protobuf-compiler-grpc
 Architecture: any
 Multi-Arch: foreign
+Built-Using: ${built-using:Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}, protobuf-compiler
 Description: high performance general RPC framework - protobuf plugin
  A modern, open source remote procedure call (RPC) framework that can
@@ -132,6 +137,7 @@ Description: high performance general RPC framework - protobuf plugin
 Package: python3-grpcio
 Section: python
 Architecture: any
+Built-Using: ${built-using:Depends}
 Depends:
  ${misc:Depends},
  ${python3:Depends},
@@ -147,6 +153,7 @@ Description: GRPC system (Python 3)
 Package: python3-grpcio-tools
 Section: python
 Architecture: any
+Built-Using: ${built-using:Depends}
 Depends:
  ${misc:Depends},
  ${python3:Depends},
@@ -162,6 +169,7 @@ Description: GRPC system (Python 3 tools)
 Package: python3-grpcio-reflection
 Section: python
 Architecture: any
+Built-Using: ${built-using:Depends}
 Depends:
  ${misc:Depends},
  ${python3:Depends},

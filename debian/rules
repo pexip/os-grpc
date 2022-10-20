@@ -124,5 +124,11 @@ override_dh_auto_install:
 	dh $@ --builddir=$(BUILD_SHARED_DIR) --buildsystem=cmake \
 		--with=python3
 
+override_dh_gencontrol:
+	dpkg-query -f 'built-using:Depends=$${source:Package} (= $${source:Version})\n' --show protobuf-source \
+		 >> debian/substvars
+	dh_gencontrol
+
 .PHONY: overide_dh_auto_clean override_dh_auto_configure \
-	override_dh_auto_build override_dh_auto_install
+	override_dh_auto_build override_dh_auto_install \
+	override_dh_gencontrol
