@@ -102,6 +102,14 @@ override_dh_auto_build:
 	PYBUILD_NAME=grpcio dh_auto_build -O--buildsystem=pybuild
 	python3.9 setup.py install --root $(CURDIR)/debian/tmp-python
 
+	# grpc_reflection depends on the compiled reflection proto files.
+	PYTHONPATH=$(CURDIR)/debian/tmp-python/usr/local/lib/python3.9/dist-packages python3.9 -m grpc_tools.protoc \
+	  --python_out src/python/grpcio_reflection/grpc_reflection/v1alpha/ \
+	  --grpc_python_out src/python/grpcio_reflection/grpc_reflection/v1alpha/ \
+	  --proto_path src/proto/grpc/reflection/v1alpha/ \
+	  src/proto/grpc/reflection/v1alpha/reflection.proto
+	sed -i -E 's/(import reflection_pb2 as reflection__pb2)/from grpc_reflection.v1alpha \1/' src/python/grpcio_reflection/grpc_reflection/v1alpha/reflection_pb2_grpc.py
+
 	PYTHONPATH=$(CURDIR)/debian/tmp-python/usr/local/lib/python3.9/dist-packages PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection dh_auto_configure -O--buildsystem=pybuild
 	PYTHONPATH=$(CURDIR)/debian/tmp-python/usr/local/lib/python3.9/dist-packages PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection dh_auto_build -O--buildsystem=pybuild
 

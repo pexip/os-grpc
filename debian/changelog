@@ -1,3 +1,9 @@
+grpc (1.44.0-3pexip7) pexip; urgency=medium
+
+  * Ensure reflection.proto is compiled for python3-grpcio-reflection
+
+ -- Huw Jones <huw@pexip.com>  Mon, 07 Nov 2022 14:33:44 +0000
+
 grpc (1.44.0-3pexip6) pexip; urgency=medium
 
   * Rebuild grpc (properly) against new protobuf version.
