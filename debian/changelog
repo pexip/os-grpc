@@ -1,3 +1,9 @@
+grpc (1.44.0-3pexip8) pexip; urgency=medium
+
+  * OpenSSL 3 compatibility
+
+ -- John-Mark Bell <jmb@pexip.com>  Tue, 20 Dec 2022 19:22:43 +0000
+
 grpc (1.44.0-3pexip7) pexip; urgency=medium
 
   * Ensure reflection.proto is compiled for python3-grpcio-reflection
