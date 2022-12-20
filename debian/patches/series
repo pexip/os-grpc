@@ -12,3 +12,4 @@ use-system-grpc.patch
 fix-protoc-path.patch
 add_grpc_libdir.patch
 999_pexip_build_grpcio_tools.patch
+openssl3-deprecations.patch

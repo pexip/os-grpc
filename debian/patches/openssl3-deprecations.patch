@@ -1,0 +1,467 @@
+diff --git a/src/core/lib/security/credentials/external/aws_request_signer.cc b/src/core/lib/security/credentials/external/aws_request_signer.cc
+index bc4920f3..b3a00211 100644
+--- a/src/core/lib/security/credentials/external/aws_request_signer.cc
++++ b/src/core/lib/security/credentials/external/aws_request_signer.cc
+@@ -18,6 +18,7 @@
+ #include "src/core/lib/security/credentials/external/aws_request_signer.h"
+ 
+ #include <openssl/hmac.h>
++#include <openssl/evp.h>
+ #include <openssl/sha.h>
+ 
+ #include "absl/strings/ascii.h"
+@@ -37,10 +38,7 @@ const char kDateFormat[] = "%a, %d %b %E4Y %H:%M:%S %Z";
+ const char kXAmzDateFormat[] = "%Y%m%dT%H%M%SZ";
+ 
+ void SHA256(const std::string& str, unsigned char out[SHA256_DIGEST_LENGTH]) {
+-  SHA256_CTX sha256;
+-  SHA256_Init(&sha256);
+-  SHA256_Update(&sha256, str.c_str(), str.size());
+-  SHA256_Final(out, &sha256);
++  EVP_Digest(str.c_str(), str.size(), out, nullptr, EVP_sha256(), nullptr);
+ }
+ 
+ std::string SHA256Hex(const std::string& str) {
+diff --git a/src/core/lib/security/credentials/jwt/json_token.cc b/src/core/lib/security/credentials/jwt/json_token.cc
+index b57ca7b2..21dc7f74 100644
+--- a/src/core/lib/security/credentials/jwt/json_token.cc
++++ b/src/core/lib/security/credentials/jwt/json_token.cc
+@@ -107,7 +107,7 @@ grpc_auth_json_key grpc_auth_json_key_create_from_json(const Json& json) {
+     goto end;
+   }
+   result.private_key =
+-      PEM_read_bio_RSAPrivateKey(bio, nullptr, nullptr, const_cast<char*>(""));
++      PEM_read_bio_PrivateKey(bio, nullptr, nullptr, const_cast<char*>(""));
+   if (result.private_key == nullptr) {
+     gpr_log(GPR_ERROR, "Could not deserialize private key.");
+     goto end;
+@@ -144,7 +144,7 @@ void grpc_auth_json_key_destruct(grpc_auth_json_key* json_key) {
+     json_key->client_email = nullptr;
+   }
+   if (json_key->private_key != nullptr) {
+-    RSA_free(json_key->private_key);
++    EVP_PKEY_free(json_key->private_key);
+     json_key->private_key = nullptr;
+   }
+ }
+@@ -223,7 +223,6 @@ char* compute_and_encode_signature(const grpc_auth_json_key* json_key,
+                                    const char* to_sign) {
+   const EVP_MD* md = openssl_digest_from_algorithm(signature_algorithm);
+   EVP_MD_CTX* md_ctx = nullptr;
+-  EVP_PKEY* key = EVP_PKEY_new();
+   size_t sig_len = 0;
+   unsigned char* sig = nullptr;
+   char* result = nullptr;
+@@ -233,8 +232,8 @@ char* compute_and_encode_signature(const grpc_auth_json_key* json_key,
+     gpr_log(GPR_ERROR, "Could not create MD_CTX");
+     goto end;
+   }
+-  EVP_PKEY_set1_RSA(key, json_key->private_key);
+-  if (EVP_DigestSignInit(md_ctx, nullptr, md, nullptr, key) != 1) {
++  if (EVP_DigestSignInit(md_ctx, nullptr, md, nullptr,
++                         json_key->private_key) != 1) {
+     gpr_log(GPR_ERROR, "DigestInit failed.");
+     goto end;
+   }
+@@ -254,7 +253,6 @@ char* compute_and_encode_signature(const grpc_auth_json_key* json_key,
+   result = grpc_base64_encode(sig, sig_len, 1, 0);
+ 
+ end:
+-  if (key != nullptr) EVP_PKEY_free(key);
+   if (md_ctx != nullptr) EVP_MD_CTX_destroy(md_ctx);
+   if (sig != nullptr) gpr_free(sig);
+   return result;
+diff --git a/src/core/lib/security/credentials/jwt/json_token.h b/src/core/lib/security/credentials/jwt/json_token.h
+index 163cc3d7..9ade8604 100644
+--- a/src/core/lib/security/credentials/jwt/json_token.h
++++ b/src/core/lib/security/credentials/jwt/json_token.h
+@@ -21,7 +21,7 @@
+ 
+ #include <grpc/support/port_platform.h>
+ 
+-#include <openssl/rsa.h>
++#include <openssl/evp.h>
+ 
+ #include <grpc/slice.h>
+ 
+@@ -38,7 +38,7 @@ struct grpc_auth_json_key {
+   char* private_key_id;
+   char* client_id;
+   char* client_email;
+-  RSA* private_key;
++  EVP_PKEY* private_key;
+ };
+ /* Returns 1 if the object is valid, 0 otherwise. */
+ int grpc_auth_json_key_is_valid(const grpc_auth_json_key* json_key);
+diff --git a/src/core/lib/security/credentials/jwt/jwt_verifier.cc b/src/core/lib/security/credentials/jwt/jwt_verifier.cc
+index 7bc8726b..7f23763e 100644
+--- a/src/core/lib/security/credentials/jwt/jwt_verifier.cc
++++ b/src/core/lib/security/credentials/jwt/jwt_verifier.cc
+@@ -24,8 +24,12 @@
+ #include <string.h>
+ 
+ #include <openssl/bn.h>
++#include <openssl/evp.h>
+ #include <openssl/pem.h>
+-#include <openssl/rsa.h>
++#if OPENSSL_VERSION_NUMBER >= 0x30000000L
++#  include <openssl/param_build.h>
++#  include <openssl/params.h>
++#endif
+ 
+ #include <grpc/support/alloc.h>
+ #include <grpc/support/log.h>
+@@ -464,6 +468,7 @@ static BIGNUM* bignum_from_base64(const char* b64) {
+   return result;
+ }
+ 
++//XXX: pre-v3 compat
+ #if OPENSSL_VERSION_NUMBER < 0x10100000L
+ 
+ // Provide compatibility across OpenSSL 1.02 and 1.1.
+@@ -494,7 +499,9 @@ static int RSA_set0_key(RSA* r, BIGNUM* n, BIGNUM* e, BIGNUM* d) {
+ #endif  // OPENSSL_VERSION_NUMBER < 0x10100000L
+ 
+ static EVP_PKEY* pkey_from_jwk(const Json& json, const char* kty) {
+-  RSA* rsa = nullptr;
++  OSSL_PARAM_BLD *bld = nullptr;
++  OSSL_PARAM *params = nullptr;
++  EVP_PKEY_CTX *ctx = nullptr;
+   EVP_PKEY* result = nullptr;
+   BIGNUM* tmp_n = nullptr;
+   BIGNUM* tmp_e = nullptr;
+@@ -506,9 +513,14 @@ static EVP_PKEY* pkey_from_jwk(const Json& json, const char* kty) {
+     gpr_log(GPR_ERROR, "Unsupported key type %s.", kty);
+     goto end;
+   }
+-  rsa = RSA_new();
+-  if (rsa == nullptr) {
+-    gpr_log(GPR_ERROR, "Could not create rsa key.");
++  bld = OSSL_PARAM_BLD_new();
++  if (bld == nullptr) {
++    gpr_log(GPR_ERROR, "Could not create parameter builder.");
++    goto end;
++  }
++  ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, nullptr);
++  if (ctx == nullptr) {
++    gpr_log(GPR_ERROR, "Could not create key context.");
+     goto end;
+   }
+   it = json.object_value().find("n");
+@@ -525,20 +537,28 @@ static EVP_PKEY* pkey_from_jwk(const Json& json, const char* kty) {
+   }
+   tmp_e = bignum_from_base64(validate_string_field(it->second, "e"));
+   if (tmp_e == nullptr) goto end;
+-  if (!RSA_set0_key(rsa, tmp_n, tmp_e, nullptr)) {
+-    gpr_log(GPR_ERROR, "Cannot set RSA key from inputs.");
++  if (OSSL_PARAM_BLD_push_BN(bld, "n", tmp_n) != 1) goto end;
++  if (OSSL_PARAM_BLD_push_BN(bld, "e", tmp_e) != 1) goto end;
++  params = OSSL_PARAM_BLD_to_param(bld);
++  if (params == nullptr) {
++    gpr_log(GPR_ERROR, "Could not create parameters.");
++    goto end;
++  }
++  if (EVP_PKEY_fromdata_init(ctx) != 1) goto end;
++  if (EVP_PKEY_fromdata(ctx, &result, EVP_PKEY_PUBLIC_KEY, params) != 1) {
++    goto end;
++  }
++  if (result == nullptr) {
++    gpr_log(GPR_ERROR, "Could not create RSA key.");
+     goto end;
+   }
+-  /* RSA_set0_key takes ownership on success. */
+-  tmp_n = nullptr;
+-  tmp_e = nullptr;
+-  result = EVP_PKEY_new();
+-  EVP_PKEY_set1_RSA(result, rsa); /* uprefs rsa. */
+ 
+ end:
+-  RSA_free(rsa);
++  OSSL_PARAM_free(params);
+   BN_free(tmp_n);
+   BN_free(tmp_e);
++  EVP_PKEY_CTX_free(ctx);
++  OSSL_PARAM_BLD_free(bld);
+   return result;
+ }
+ 
+diff --git a/src/core/lib/security/credentials/tls/grpc_tls_certificate_provider.cc b/src/core/lib/security/credentials/tls/grpc_tls_certificate_provider.cc
+index 9ee71806..de2744c9 100644
+--- a/src/core/lib/security/credentials/tls/grpc_tls_certificate_provider.cc
++++ b/src/core/lib/security/credentials/tls/grpc_tls_certificate_provider.cc
+@@ -365,6 +365,10 @@ FileWatcherCertificateProvider::ReadIdentityKeyCertPairFromFiles(
+   return absl::nullopt;
+ }
+ 
++#if OPENSSL_VERSION_NUMBER < 0x30000000L
++#  define EVP_PKEY_eq EVP_PKEY_cmp
++#endif
++
+ absl::StatusOr<bool> PrivateKeyAndCertificateMatch(
+     absl::string_view private_key, absl::string_view cert_chain) {
+   if (private_key.empty()) {
+@@ -407,7 +411,7 @@ absl::StatusOr<bool> PrivateKeyAndCertificateMatch(
+     return absl::InvalidArgumentError(
+         "Conversion from PEM string to EVP_PKEY failed.");
+   }
+-  bool result = EVP_PKEY_cmp(private_evp_pkey, public_evp_pkey) == 1;
++  bool result = EVP_PKEY_eq(private_evp_pkey, public_evp_pkey) == 1;
+   EVP_PKEY_free(private_evp_pkey);
+   EVP_PKEY_free(public_evp_pkey);
+   return result;
+diff --git a/src/core/tsi/alts/crypt/aes_gcm.cc b/src/core/tsi/alts/crypt/aes_gcm.cc
+index 4eaaee28..7897ee7b 100644
+--- a/src/core/tsi/alts/crypt/aes_gcm.cc
++++ b/src/core/tsi/alts/crypt/aes_gcm.cc
+@@ -25,6 +25,9 @@
+ #include <openssl/err.h>
+ #include <openssl/evp.h>
+ #include <openssl/hmac.h>
++#if OPENSSL_VERSION_NUMBER >= 0x30000000L
++#  include <openssl/params.h>
++#endif
+ 
+ #include <grpc/support/alloc.h>
+ 
+@@ -196,7 +199,7 @@ static grpc_status_code aes_gcm_derive_aead_key(uint8_t* dst,
+     return GRPC_STATUS_INTERNAL;
+   }
+   HMAC_CTX_cleanup(&hmac);
+-#else
++#elif OPENSSL_VERSION_NUMBER < 0x30000000L
+   HMAC_CTX* hmac = HMAC_CTX_new();
+   if (hmac == nullptr) {
+     return GRPC_STATUS_INTERNAL;
+@@ -208,6 +211,34 @@ static grpc_status_code aes_gcm_derive_aead_key(uint8_t* dst,
+     return GRPC_STATUS_INTERNAL;
+   }
+   HMAC_CTX_free(hmac);
++#else
++  EVP_MAC *mac = nullptr;
++  EVP_MAC_CTX *ctx = nullptr;
++  OSSL_PARAM params[2];
++  size_t olen = 0;
++
++  params[0] = OSSL_PARAM_construct_utf8_string("digest", (char *) "SHA256", 0);
++  params[1] = OSSL_PARAM_construct_end();
++
++  mac = EVP_MAC_fetch(NULL, "HMAC", NULL);
++  if (mac == nullptr) {
++    return GRPC_STATUS_INTERNAL;
++  }
++  ctx = EVP_MAC_CTX_new(mac);
++  if (ctx == nullptr) {
++    EVP_MAC_free(mac);
++    return GRPC_STATUS_INTERNAL;
++  }
++  if (!EVP_MAC_init(ctx, kdf_key, kKdfKeyLen, params) ||
++      !EVP_MAC_update(ctx, kdf_counter, kKdfCounterLen) ||
++      !EVP_MAC_update(ctx, &ctr, 1) ||
++      !EVP_MAC_final(ctx, buf, &olen, EVP_MAX_MD_SIZE)) {
++    EVP_MAC_CTX_free(ctx);
++    EVP_MAC_free(mac);
++    return GRPC_STATUS_INTERNAL;
++  }
++  EVP_MAC_CTX_free(ctx);
++  EVP_MAC_free(mac);
+ #endif
+   memcpy(dst, buf, kRekeyAeadKeyLen);
+   return GRPC_STATUS_OK;
+diff --git a/src/core/tsi/ssl_transport_security.cc b/src/core/tsi/ssl_transport_security.cc
+index 0dfb1bb5..7df794fb 100644
+--- a/src/core/tsi/ssl_transport_security.cc
++++ b/src/core/tsi/ssl_transport_security.cc
+@@ -856,14 +856,12 @@ static tsi_result populate_ssl_context(
+     return TSI_INVALID_ARGUMENT;
+   }
+   {
+-    EC_KEY* ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+-    if (!SSL_CTX_set_tmp_ecdh(context, ecdh)) {
++    int curve = NID_X9_62_prime256v1;
++    if (!SSL_CTX_set1_curves(context, &curve, 1)) {
+       gpr_log(GPR_ERROR, "Could not set ephemeral ECDH key.");
+-      EC_KEY_free(ecdh);
+       return TSI_INTERNAL_ERROR;
+     }
+     SSL_CTX_set_options(context, SSL_OP_SINGLE_ECDH_USE);
+-    EC_KEY_free(ecdh);
+   }
+   return TSI_OK;
+ }
+@@ -1261,6 +1259,10 @@ tsi_result tsi_ssl_get_cert_chain_contents(STACK_OF(X509) * peer_chain,
+   return result;
+ }
+ 
++#if OPENSSL_VERSION_NUMBER < 0x30000000L
++#  define SSL_get1_peer_certificate SSL_get_peer_certificate
++#endif
++
+ /* --- tsi_handshaker_result methods implementation. ---*/
+ static tsi_result ssl_handshaker_result_extract_peer(
+     const tsi_handshaker_result* self, tsi_peer* peer) {
+@@ -1269,7 +1271,7 @@ static tsi_result ssl_handshaker_result_extract_peer(
+   unsigned int alpn_selected_len;
+   const tsi_ssl_handshaker_result* impl =
+       reinterpret_cast<const tsi_ssl_handshaker_result*>(self);
+-  X509* peer_cert = SSL_get_peer_certificate(impl->ssl);
++  X509* peer_cert = SSL_get1_peer_certificate(impl->ssl);
+   if (peer_cert != nullptr) {
+     result = peer_from_x509(peer_cert, 1, peer);
+     X509_free(peer_cert);
+diff --git a/test/core/handshake/client_ssl.cc b/test/core/handshake/client_ssl.cc
+index a18e971e..cc3c91ef 100644
+--- a/test/core/handshake/client_ssl.cc
++++ b/test/core/handshake/client_ssl.cc
+@@ -192,17 +192,21 @@ static void ssl_server_info_callback(const SSL* ssl, int where, int ret) {
+ static void server_thread(void* arg) {
+   const server_args* args = static_cast<server_args*>(arg);
+ 
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
+   SSL_load_error_strings();
+   OpenSSL_add_ssl_algorithms();
++#endif
+   args->ssl_library_info->Notify();
+ 
+-  const SSL_METHOD* method = TLSv1_2_server_method();
++  const SSL_METHOD* method = SSLv23_server_method();
+   SSL_CTX* ctx = SSL_CTX_new(method);
+   if (!ctx) {
+     perror("Unable to create SSL context");
+     ERR_print_errors_fp(stderr);
+     abort();
+   }
++  SSL_CTX_set_options(ctx,
++      SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
+ 
+   // Load key pair.
+   if (SSL_CTX_use_certificate_file(ctx, SSL_CERT_PATH, SSL_FILETYPE_PEM) < 0) {
+@@ -234,11 +238,13 @@ static void server_thread(void* arg) {
+ 
+   // Enable automatic curve selection. This is a NO-OP when using OpenSSL
+   // versions > 1.0.2.
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
+   if (!SSL_CTX_set_ecdh_auto(ctx, /*onoff=*/1)) {
+     ERR_print_errors_fp(stderr);
+     gpr_log(GPR_ERROR, "Couldn't set automatic curve selection.");
+     abort();
+   }
++#endif
+ 
+   // Register the ALPN selection callback.
+   SSL_CTX_set_alpn_select_cb(ctx, alpn_select_cb, args->alpn_preferred);
+@@ -396,7 +402,9 @@ int main(int argc, char* argv[]) {
+   // and sanity checks the client_ssl_test.
+   GPR_ASSERT(!client_ssl_test(const_cast<char*>("foo")));
+   // Clean up the SSL libraries.
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
+   EVP_cleanup();
++#endif
+   return 0;
+ }
+ 
+diff --git a/test/core/handshake/server_ssl_common.cc b/test/core/handshake/server_ssl_common.cc
+index 7b891467..196a941f 100644
+--- a/test/core/handshake/server_ssl_common.cc
++++ b/test/core/handshake/server_ssl_common.cc
+@@ -187,13 +187,15 @@ bool server_ssl_test(const char* alpn_list[], unsigned int alpn_list_len,
+   // server port.
+   s.Await();
+ 
+-  const SSL_METHOD* method = TLSv1_2_client_method();
++  const SSL_METHOD* method = SSLv23_client_method();
+   SSL_CTX* ctx = SSL_CTX_new(method);
+   if (!ctx) {
+     perror("Unable to create SSL context");
+     ERR_print_errors_fp(stderr);
+     abort();
+   }
++  SSL_CTX_set_options(ctx,
++      SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
+ 
+   // Load key pair.
+   if (SSL_CTX_use_certificate_file(ctx, SSL_CERT_PATH, SSL_FILETYPE_PEM) < 0) {
+@@ -281,4 +283,8 @@ bool server_ssl_test(const char* alpn_list[], unsigned int alpn_list_len,
+   return success;
+ }
+ 
+-void CleanupSslLibrary() { EVP_cleanup(); }
++void CleanupSslLibrary() {
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++  EVP_cleanup();
++#endif
++}
+diff --git a/test/core/security/credentials_test.cc b/test/core/security/credentials_test.cc
+index 612a23de..ebd4ce79 100644
+--- a/test/core/security/credentials_test.cc
++++ b/test/core/security/credentials_test.cc
+@@ -1274,7 +1274,16 @@ static void validate_jwt_encode_and_sign_params(
+     gpr_timespec token_lifetime) {
+   GPR_ASSERT(grpc_auth_json_key_is_valid(json_key));
+   GPR_ASSERT(json_key->private_key != nullptr);
+-  GPR_ASSERT(RSA_check_key(json_key->private_key));
++  {
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++    GPR_ASSERT(RSA_check_key(json_key->private_key->pkey.rsa));
++#else
++    EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(json_key->private_key, nullptr);
++    GPR_ASSERT(ctx != nullptr);
++    GPR_ASSERT(EVP_PKEY_check(ctx));
++    EVP_PKEY_CTX_free(ctx);
++#endif
++  }
+   GPR_ASSERT(json_key->type != nullptr &&
+              strcmp(json_key->type, "service_account") == 0);
+   GPR_ASSERT(json_key->private_key_id != nullptr &&
+diff --git a/test/core/security/json_token_test.cc b/test/core/security/json_token_test.cc
+index 9f855a8d..4d60d2fc 100644
+--- a/test/core/security/json_token_test.cc
++++ b/test/core/security/json_token_test.cc
+@@ -282,21 +282,18 @@ static void check_jwt_claim(const Json& claim, const char* expected_audience,
+   GPR_ASSERT(parsed_lifetime.tv_sec == grpc_max_auth_token_lifetime().tv_sec);
+ }
+ 
+-static void check_jwt_signature(const char* b64_signature, RSA* rsa_key,
++static void check_jwt_signature(const char* b64_signature, EVP_PKEY* key,
+                                 const char* signed_data,
+                                 size_t signed_data_size) {
+   grpc_core::ExecCtx exec_ctx;
+ 
+   EVP_MD_CTX* md_ctx = EVP_MD_CTX_create();
+-  EVP_PKEY* key = EVP_PKEY_new();
+ 
+   grpc_slice sig = grpc_base64_decode(b64_signature, 1);
+   GPR_ASSERT(!GRPC_SLICE_IS_EMPTY(sig));
+   GPR_ASSERT(GRPC_SLICE_LENGTH(sig) == 128);
+ 
+   GPR_ASSERT(md_ctx != nullptr);
+-  GPR_ASSERT(key != nullptr);
+-  EVP_PKEY_set1_RSA(key, rsa_key);
+ 
+   GPR_ASSERT(
+       EVP_DigestVerifyInit(md_ctx, nullptr, EVP_sha256(), nullptr, key) == 1);
+@@ -306,7 +303,6 @@ static void check_jwt_signature(const char* b64_signature, RSA* rsa_key,
+                                    GRPC_SLICE_LENGTH(sig)) == 1);
+ 
+   grpc_slice_unref_internal(sig);
+-  if (key != nullptr) EVP_PKEY_free(key);
+   if (md_ctx != nullptr) EVP_MD_CTX_destroy(md_ctx);
+ }
+ 
+diff --git a/test/core/tsi/ssl_transport_security_test.cc b/test/core/tsi/ssl_transport_security_test.cc
+index f0c2237e..5879a300 100644
+--- a/test/core/tsi/ssl_transport_security_test.cc
++++ b/test/core/tsi/ssl_transport_security_test.cc
+@@ -689,9 +689,10 @@ void ssl_tsi_test_do_round_trip_for_all_configs() {
+ 
+ void ssl_tsi_test_do_round_trip_with_error_on_stack() {
+   gpr_log(GPR_INFO, "ssl_tsi_test_do_round_trip_with_error_on_stack");
+-  // Invoke an SSL function that causes an error, and ensure the error
+-  // makes it to the stack.
+-  GPR_ASSERT(!EC_KEY_new_by_curve_name(NID_rsa));
++  // Place an error on the stack
++  ERR_new();
++  ERR_set_debug(__FILE__, __LINE__, "");
++  ERR_set_error(ERR_LIB_SYS, ERR_R_SYS_LIB, nullptr);
+   GPR_ASSERT(ERR_peek_error() != 0);
+   tsi_test_fixture* fixture = ssl_tsi_test_fixture_create();
+   tsi_test_do_round_trip(fixture);
