@@ -1,9 +1,10 @@
 unversion_sphinx.patch
-#no_embedded_abseil.patch
+no_embedded_abseil.patch
 link_external_abseil.patch
 no-boringssl.patch
-add-pkgconfig-installdir.patch
+#add-pkgconfig-installdir.patch
 #system-upb.patch
+no-opencensus.patch
 # Ruby patches
 no-embed-libs.patch
 remove-missing-files-in-gemspec.patch
@@ -11,3 +12,4 @@ no-make-in-extconf.patch
 use-system-grpc.patch
 fix-protoc-path.patch
 add_grpc_libdir.patch
+link_python_all_absl.patch

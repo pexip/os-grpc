@@ -22,9 +22,10 @@
 #include <vector>
 
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/support/interceptor.h>
 
-using grpc::Status;
-using grpc::StatusCode;
+// IWYU pragma: no_include <google/protobuf/descriptor.h>
+
 using grpc::reflection::v1alpha::ErrorResponse;
 using grpc::reflection::v1alpha::ExtensionNumberResponse;
 using grpc::reflection::v1alpha::ExtensionRequest;

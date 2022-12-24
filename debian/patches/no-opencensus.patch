@@ -1,0 +1,26 @@
+Description: disable opencensus forced download, not seems to be used
+ Just don't download it.
+Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Forwarded: not-needed
+Last-Update: 2022-11-14
+
+---
+
+--- grpc-1.50.1.orig/CMakeLists.txt
++++ grpc-1.50.1/CMakeLists.txt
+@@ -366,6 +366,7 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DI
+   )
+ endif()
+ # Setup external proto library at third_party/opencensus-proto/src with 2 download URLs
++if (FALSE)
+ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/opencensus-proto/src)
+   # Download the archive via HTTP, validate the checksum, and extract to third_party/opencensus-proto/src.
+   download_archive(
+@@ -384,6 +385,7 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DI
+     opencensus-proto-0.3.0/src
+   )
+ endif()
++endif()
+ # Setup external proto library at third_party/xds with 2 download URLs
+ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/xds)
+   # Download the archive via HTTP, validate the checksum, and extract to third_party/xds.

@@ -42,11 +42,6 @@
 #include "test/core/util/port.h"
 #include "test/core/util/test_config.h"
 
-using grpc::testing::DefaultReactorTestPeer;
-using grpc::testing::EchoRequest;
-using grpc::testing::EchoResponse;
-using grpc::testing::EchoTestService;
-using grpc::testing::MockClientReaderWriter;
 using std::vector;
 using ::testing::_;
 using ::testing::AtLeast;
@@ -196,7 +191,7 @@ TEST_F(MockCallbackTest, MockedCallSucceedsWithWait) {
     grpc::internal::CondVar cv;
     absl::optional<grpc::Status> ABSL_GUARDED_BY(mu) status;
   } status;
-  DefaultReactorTestPeer peer(&ctx, [&](::grpc::Status s) {
+  DefaultReactorTestPeer peer(&ctx, [&](grpc::Status s) {
     grpc::internal::MutexLock l(&status.mu);
     status.status = std::move(s);
     status.cv.Signal();
@@ -427,7 +422,7 @@ TEST_F(MockTest, BidiStream) {
 }  // namespace grpc
 
 int main(int argc, char** argv) {
-  grpc::testing::TestEnvironment env(argc, argv);
+  grpc::testing::TestEnvironment env(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

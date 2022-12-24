@@ -1,6 +1,6 @@
 --- a/src/ruby/ext/grpc/extconf.rb
 +++ b/src/ruby/ext/grpc/extconf.rb
-@@ -66,29 +66,13 @@ output_dir = File.expand_path(RbConfig::
+@@ -96,22 +96,6 @@ output_dir = File.expand_path(RbConfig::
  grpc_lib_dir = File.join(output_dir, 'libs', grpc_config)
  ENV['BUILDDIR'] = output_dir
  
@@ -20,11 +20,12 @@
 -  exit 1 unless $? == 0
 -end
 -
+ $CFLAGS << ' -DGRPC_RUBY_WINDOWS_UCRT' if windows_ucrt
  $CFLAGS << ' -I' + File.join(grpc_root, 'include')
  
- ext_export_file = File.join(grpc_root, 'src', 'ruby', 'ext', 'grpc', 'ext-export')
+@@ -120,7 +104,7 @@ ext_export_file += '-truffleruby' if RUB
  $LDFLAGS << ' -Wl,--version-script="' + ext_export_file + '.gcc"' if linux
- $LDFLAGS << ' -Wl,-exported_symbols_list,"' + ext_export_file + '.clang"' if darwin
+ $LDFLAGS << ' -Wl,-exported_symbols_list,"' + ext_export_file + '.clang"' if apple_toolchain
  
 -$LDFLAGS << ' ' + File.join(grpc_lib_dir, 'libgrpc.a') unless windows
 +$LDFLAGS << ' ' + '-Wl,-wrap,memcpy -lgrpc' unless windows

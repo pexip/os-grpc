@@ -1,3 +1,42 @@
+grpc (1.51.1-3) unstable; urgency=medium
+
+  * Link Python gRPC module with all needed Abseil libraries
+    (closes: #1026937).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sat, 24 Dec 2022 18:05:35 +0100
+
+grpc (1.51.1-2) unstable; urgency=medium
+
+  * Upload to Sid.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 23 Dec 2022 17:15:58 +0100
+
+grpc (1.51.1-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Only build self-tests for shared libraries.
+  * Add pkgconf dependency on -dev packages.
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Wed, 30 Nov 2022 17:31:43 +0100
+
+grpc (1.51.0-1) experimental; urgency=medium
+
+  * New major upstream release.
+  * Update patches.
+  * Library transition from libgrpc28 to libgrpc29 .
+  * Update Standards-Version to 4.6.1 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 21 Nov 2022 20:15:40 +0100
+
+grpc (1.50.1-1) experimental; urgency=medium
+
+  * New major upstream release.
+  * Update patches.
+  * Disable download of opencensus-proto.
+  * Library transition from libgrpc22 to libgrpc28 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 14 Nov 2022 16:01:24 +0100
+
 grpc (1.44.0-3) experimental; urgency=medium
 
   [ Pirate Praveen <praveen@debian.org> ]

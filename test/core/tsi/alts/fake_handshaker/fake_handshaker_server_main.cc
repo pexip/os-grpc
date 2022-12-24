@@ -20,7 +20,7 @@
 #include "absl/flags/flag.h"
 
 #include <grpc/support/log.h>
-#include <grpcpp/impl/codegen/service_type.h>
+#include <grpcpp/impl/service_type.h>
 #include <grpcpp/server_builder.h>
 
 #include "test/core/tsi/alts/fake_handshaker/fake_handshaker_server.h"
@@ -44,7 +44,7 @@ static void RunFakeHandshakerServer(const std::string& server_address) {
 }
 
 int main(int argc, char** argv) {
-  grpc::testing::TestEnvironment env(argc, argv);
+  grpc::testing::TestEnvironment env(&argc, argv);
   grpc::testing::InitTest(&argc, &argv, true);
 
   GPR_ASSERT(absl::GetFlag(FLAGS_handshaker_port) != 0);
