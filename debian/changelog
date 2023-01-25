@@ -1,3 +1,9 @@
+grpc (1.44.0-3pexip9) pexip; urgency=medium
+
+  * Merge openssl3 changes to bullseye
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Wed, 25 Jan 2023 16:25:13 +0000
+
 grpc (1.44.0-3pexip8) pexip-bullseye-openssl3; urgency=medium
 
   * OpenSSL 3 compatibility
