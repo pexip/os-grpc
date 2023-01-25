@@ -271,7 +271,7 @@ diff --git a/src/core/tsi/ssl_transport_security.cc b/src/core/tsi/ssl_transport
 index 0dfb1bb5..7df794fb 100644
 --- a/src/core/tsi/ssl_transport_security.cc
 +++ b/src/core/tsi/ssl_transport_security.cc
-@@ -856,14 +856,12 @@ static tsi_result populate_ssl_context(
+@@ -856,14 +856,19 @@ static tsi_result populate_ssl_context(
      return TSI_INVALID_ARGUMENT;
    }
    {
@@ -283,12 +283,19 @@ index 0dfb1bb5..7df794fb 100644
 -      EC_KEY_free(ecdh);
        return TSI_INTERNAL_ERROR;
      }
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++   if (!SSL_CTX_set_ecdh_auto(context, /*onoff=*/1)) {
++     ERR_print_errors_fp(stderr);
++     gpr_log(GPR_ERROR, "Couldn't set automatic curve selection.");
++     return TSI_INTERNAL_ERROR;
++   }
++#endif
      SSL_CTX_set_options(context, SSL_OP_SINGLE_ECDH_USE);
 -    EC_KEY_free(ecdh);
    }
    return TSI_OK;
  }
-@@ -1261,6 +1259,10 @@ tsi_result tsi_ssl_get_cert_chain_contents(STACK_OF(X509) * peer_chain,
+@@ -1261,6 +1266,10 @@ tsi_result tsi_ssl_get_cert_chain_contents(STACK_OF(X509) * peer_chain,
    return result;
  }
  
@@ -299,7 +306,7 @@ index 0dfb1bb5..7df794fb 100644
  /* --- tsi_handshaker_result methods implementation. ---*/
  static tsi_result ssl_handshaker_result_extract_peer(
      const tsi_handshaker_result* self, tsi_peer* peer) {
-@@ -1269,7 +1271,7 @@ static tsi_result ssl_handshaker_result_extract_peer(
+@@ -1269,7 +1278,7 @@ static tsi_result ssl_handshaker_result_extract_peer(
    unsigned int alpn_selected_len;
    const tsi_ssl_handshaker_result* impl =
        reinterpret_cast<const tsi_ssl_handshaker_result*>(self);
