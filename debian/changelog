@@ -1,3 +1,9 @@
+grpc (1.44.0-3pexip10) pexip; urgency=medium
+
+  * Rebuild against new abseil version
+
+ -- Huw Jones <huw@pexip.com>  Tue, 09 May 2023 17:20:49 +0100
+
 grpc (1.44.0-3pexip9) pexip; urgency=medium
 
   * Merge openssl3 changes to bullseye
