@@ -25,11 +25,12 @@ grpc_cc_test(
         "gtest",
     ],
     language = "C++",
+    uses_event_engine = False,
     uses_polling = False,
     deps = [
         "//:gpr",
         "//:grpc",
-        "//:grpc_server_config_selector",
+        "//src/core:grpc_server_config_selector",
         "//test/core/util:grpc_test_util",
     ],
 )

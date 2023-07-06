@@ -42,7 +42,6 @@ COMMON_BUILD_FLAGS= \
 	-DgRPC_SSL_PROVIDER=package \
 	-DgRPC_ZLIB_PROVIDER=package \
 	-DgRPC_BACKWARDS_COMPATIBILITY_MODE=OFF \
-	-DgRPC_BUILD_TESTS=ON \
 	-DgRPC_INSTALL_LIBDIR=lib/$(DEB_HOST_MULTIARCH) \
 	-DgRPC_INSTALL_CMAKEDIR=lib/$(DEB_HOST_MULTIARCH)/cmake/grpc \
 	-DgRPC_INSTALL_PKGCONFIGDIR=lib/$(DEB_HOST_MULTIARCH)/pkgconfig \
@@ -66,7 +65,8 @@ override_dh_auto_clean:
 	$(RM) -r $(CURDIR)/__pycache__/ \
 		$(CURDIR)/src/python/grpcio/__pycache__/ \
 		$(CURDIR)/python_build/ \
-		$(CURDIR)/.pybuild/
+		$(CURDIR)/.pybuild/ \
+		$(CURDIR)/src/python/grpcio/grpcio.egg-info/
 	$(RM) $(CURDIR)/a.out
 
 override_dh_auto_configure:
@@ -79,10 +79,12 @@ override_dh_auto_configure:
 	dh_auto_configure -O--buildsystem=cmake \
 		-O--builddir=$(BUILD_STATIC_DIR) -- \
 		-DBUILD_SHARED_LIBS=OFF \
+		-DgRPC_BUILD_TESTS=OFF \
 		$(COMMON_BUILD_FLAGS)
 	dh_auto_configure -O--buildsystem=cmake \
 		-O--builddir=$(BUILD_SHARED_DIR) -- \
 		-DBUILD_SHARED_LIBS=ON \
+		-DgRPC_BUILD_TESTS=ON \
 		$(COMMON_BUILD_FLAGS)
 
 	PYBUILD_NAME=grpcio dh_auto_configure -O--buildsystem=pybuild
