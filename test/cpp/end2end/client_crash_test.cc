@@ -36,9 +36,6 @@
 #include "test/core/util/test_config.h"
 #include "test/cpp/util/subprocess.h"
 
-using grpc::testing::EchoRequest;
-using grpc::testing::EchoResponse;
-
 static std::string g_root;
 
 namespace grpc {
@@ -55,7 +52,7 @@ class CrashTest : public ::testing::Test {
     std::ostringstream addr_stream;
     addr_stream << "localhost:" << port;
     auto addr = addr_stream.str();
-    server_ = absl::make_unique<SubProcess>(std::vector<std::string>({
+    server_ = std::make_unique<SubProcess>(std::vector<std::string>({
         g_root + "/client_crash_test_server",
         "--address=" + addr,
     }));
@@ -136,7 +133,7 @@ int main(int argc, char** argv) {
     g_root = ".";
   }
 
-  grpc::testing::TestEnvironment env(argc, argv);
+  grpc::testing::TestEnvironment env(&argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
   // Order seems to matter on these tests: run three times to eliminate that
   for (int i = 0; i < 3; i++) {

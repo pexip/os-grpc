@@ -16,6 +16,9 @@
 
 #include "src/core/lib/security/authorization/rbac_policy.h"
 
+#include <algorithm>
+#include <utility>
+
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 
@@ -95,7 +98,7 @@ Rbac::Permission Rbac::Permission::MakeNotPermission(Permission permission) {
   Permission not_permission;
   not_permission.type = Permission::RuleType::kNot;
   not_permission.permissions.push_back(
-      absl::make_unique<Rbac::Permission>(std::move(permission)));
+      std::make_unique<Rbac::Permission>(std::move(permission)));
   return not_permission;
 }
 
@@ -267,7 +270,7 @@ Rbac::Principal Rbac::Principal::MakeNotPrincipal(Principal principal) {
   Principal not_principal;
   not_principal.type = Principal::RuleType::kNot;
   not_principal.principals.push_back(
-      absl::make_unique<Rbac::Principal>(std::move(principal)));
+      std::make_unique<Rbac::Principal>(std::move(principal)));
   return not_principal;
 }
 
@@ -278,7 +281,7 @@ Rbac::Principal Rbac::Principal::MakeAnyPrincipal() {
 }
 
 Rbac::Principal Rbac::Principal::MakeAuthenticatedPrincipal(
-    StringMatcher string_matcher) {
+    absl::optional<StringMatcher> string_matcher) {
   Principal principal;
   principal.type = Principal::RuleType::kPrincipalName;
   principal.string_matcher = std::move(string_matcher);
@@ -398,7 +401,7 @@ std::string Rbac::Principal::ToString() const {
     case RuleType::kAny:
       return "any";
     case RuleType::kPrincipalName:
-      return absl::StrFormat("principal_name=%s", string_matcher.ToString());
+      return absl::StrFormat("principal_name=%s", string_matcher->ToString());
     case RuleType::kSourceIp:
       return absl::StrFormat("source_ip=%s", ip.ToString());
     case RuleType::kDirectRemoteIp:
@@ -408,7 +411,7 @@ std::string Rbac::Principal::ToString() const {
     case RuleType::kHeader:
       return absl::StrFormat("header=%s", header_matcher.ToString());
     case RuleType::kPath:
-      return absl::StrFormat("path=%s", string_matcher.ToString());
+      return absl::StrFormat("path=%s", string_matcher->ToString());
     case RuleType::kMetadata:
       return absl::StrFormat("%smetadata", invert ? "invert " : "");
     default:

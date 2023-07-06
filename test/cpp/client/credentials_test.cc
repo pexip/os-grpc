@@ -28,14 +28,15 @@
 #include <grpcpp/security/tls_credentials_options.h>
 #include <grpcpp/server_builder.h>
 
-#include "src/core/lib/gpr/env.h"
 #include "src/core/lib/gpr/tmpfile.h"
+#include "src/core/lib/gprpp/env.h"
 #include "src/cpp/client/secure_credentials.h"
 #include "test/cpp/util/tls_test_utils.h"
 
 #define CA_CERT_PATH "src/core/tsi/test_creds/ca.pem"
 #define SERVER_CERT_PATH "src/core/tsi/test_creds/server1.pem"
 #define SERVER_KEY_PATH "src/core/tsi/test_creds/server1.key"
+#define CRL_DIR_PATH "test/core/tsi/test_creds/crl_data"
 
 namespace {
 
@@ -101,8 +102,9 @@ TEST(CredentialsTest, ExternalAccountCredentials) {
       "url\":\"service_account_impersonation_url\",\"token_url\":\"https://"
       "foo.com:5555/token\",\"token_info_url\":\"https://foo.com:5555/"
       "token_info\",\"credential_source\":{\"environment_id\":\"aws1\","
-      "\"region_url\":\"https://foo.com:5555/region_url\",\"url\":\"https://"
-      "foo.com:5555/url\",\"regional_cred_verification_url\":\"https://"
+      "\"region_url\":\"https://169.254.169.254:5555/"
+      "region_url\",\"url\":\"https://"
+      "169.254.169.254:5555/url\",\"regional_cred_verification_url\":\"https://"
       "foo.com:5555/regional_cred_verification_url_{region}\"},"
       "\"quota_project_id\":\"quota_"
       "project_id\",\"client_id\":\"client_id\",\"client_secret\":\"client_"
@@ -227,7 +229,7 @@ TEST(CredentialsTest, StsCredentialsOptionsJson) {
 
 TEST(CredentialsTest, StsCredentialsOptionsFromEnv) {
   // Unset env and check expected failure.
-  gpr_unsetenv("STS_CREDENTIALS");
+  grpc_core::UnsetEnv("STS_CREDENTIALS");
   grpc::experimental::StsCredentialsOptions options;
   auto status = grpc::experimental::StsCredentialsOptionsFromEnv(&options);
   EXPECT_EQ(grpc::StatusCode::NOT_FOUND, status.error_code());
@@ -246,7 +248,7 @@ TEST(CredentialsTest, StsCredentialsOptionsFromEnv) {
   ASSERT_EQ(sizeof(valid_json),
             fwrite(valid_json, 1, sizeof(valid_json), creds_file));
   fclose(creds_file);
-  gpr_setenv("STS_CREDENTIALS", creds_file_name);
+  grpc_core::SetEnv("STS_CREDENTIALS", creds_file_name);
   gpr_free(creds_file_name);
   status = grpc::experimental::StsCredentialsOptionsFromEnv(&options);
   EXPECT_TRUE(status.ok());
@@ -261,7 +263,7 @@ TEST(CredentialsTest, StsCredentialsOptionsFromEnv) {
   EXPECT_EQ(options.actor_token_type, "");
 
   // Cleanup.
-  gpr_unsetenv("STS_CREDENTIALS");
+  grpc_core::UnsetEnv("STS_CREDENTIALS");
 }
 
 TEST(CredentialsTest, TlsChannelCredentialsWithDefaultRootsAndDefaultVerifier) {
@@ -377,6 +379,20 @@ TEST(CredentialsTest, TlsChannelCredentialsWithAsyncExternalVerifier) {
   options.set_verify_server_certs(true);
   options.set_certificate_verifier(verifier);
   options.set_check_call_host(false);
+  auto channel_credentials = grpc::experimental::TlsCredentials(options);
+  GPR_ASSERT(channel_credentials.get() != nullptr);
+}
+
+TEST(CredentialsTest, TlsChannelCredentialsWithCrlDirectory) {
+  auto certificate_provider = std::make_shared<FileWatcherCertificateProvider>(
+      SERVER_KEY_PATH, SERVER_CERT_PATH, CA_CERT_PATH, 1);
+  grpc::experimental::TlsChannelCredentialsOptions options;
+  options.set_certificate_provider(certificate_provider);
+  options.watch_root_certs();
+  options.set_root_cert_name(kRootCertName);
+  options.watch_identity_key_cert_pairs();
+  options.set_identity_cert_name(kIdentityCertName);
+  options.set_crl_directory(CRL_DIR_PATH);
   auto channel_credentials = grpc::experimental::TlsCredentials(options);
   GPR_ASSERT(channel_credentials.get() != nullptr);
 }
