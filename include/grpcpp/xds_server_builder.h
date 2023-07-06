@@ -28,7 +28,7 @@ namespace grpc {
 class XdsServerServingStatusNotifierInterface {
  public:
   struct ServingStatusUpdate {
-    ::grpc::Status status;
+    grpc::Status status;
   };
 
   virtual ~XdsServerServingStatusNotifierInterface() = default;
@@ -44,12 +44,12 @@ class XdsServerServingStatusNotifierInterface {
                                      ServingStatusUpdate update) = 0;
 };
 
-class XdsServerBuilder : public ::grpc::ServerBuilder {
+class XdsServerBuilder : public grpc::ServerBuilder {
  public:
   // NOTE: class experimental_type is not part of the public API of this class
   // TODO(yashykt): Integrate into public API when this is no longer
   // experimental.
-  class experimental_type : public ::grpc::ServerBuilder::experimental_type {
+  class experimental_type : public grpc::ServerBuilder::experimental_type {
    public:
     explicit experimental_type(XdsServerBuilder* builder)
         : ServerBuilder::experimental_type(builder), builder_(builder) {}
@@ -106,18 +106,6 @@ class XdsServerBuilder : public ::grpc::ServerBuilder {
   int drain_grace_time_ms_ = -1;
 };
 
-namespace experimental {
-// TODO(yashykt): Delete this after the 1.42 release.
-GRPC_DEPRECATED(
-    "Use grpc::XdsServerServingStatusNotifierInterface instead. The "
-    "experimental version will be deleted after the 1.42 release.")
-typedef grpc::XdsServerServingStatusNotifierInterface
-    XdsServerServingStatusNotifierInterface;
-GRPC_DEPRECATED(
-    "Use grpc::XdsServerBuilder instead. The experimental version will be "
-    "deleted after the 1.42 release.")
-typedef grpc::XdsServerBuilder XdsServerBuilder;
-}  // namespace experimental
 }  // namespace grpc
 
 #endif /* GRPCPP_XDS_SERVER_BUILDER_H */

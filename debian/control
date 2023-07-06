@@ -2,13 +2,13 @@ Source: grpc
 Priority: optional
 Maintainer: Pexip AS <packaging@pexip.com>
 XSBC-Pexip-Original-Maintainer: Laszlo Boszormenyi (GCS) <gcs@debian.org>
-Build-Depends: debhelper-compat (= 13), cmake, pkg-config,
- googletest, zlib1g-dev, libssl-dev (>= 3), libabsl-dev (>= 0~20210324~),
- libprotobuf-dev, protobuf-compiler (>= 3.20.0~),
+Build-Depends: debhelper-compat (= 13), cmake, pkgconf,
+ googletest, zlib1g-dev, libssl-dev (>= 3), libabsl-dev (>= 20220623.1),
+ libprotobuf-dev, protobuf-compiler (>= 3.21.0~),
  libgflags-dev, libgtest-dev, libbenchmark-dev,
- libgoogle-perftools-dev, libprotoc-dev (>= 3.20.0~), libc-ares-dev,
+ libgoogle-perftools-dev, libprotoc-dev (>= 3.21.0~), libc-ares-dev,
  libre2-dev,
-# gem2deb (>= 1.6~), ruby-google-protobuf (>= 3.20.0~),
+# gem2deb (>= 1.6~), ruby-google-protobuf (>= 3.21.0~),
 # ruby-googleauth, ruby-googleapis-common-protos-types,
 # ruby-rspec, ruby-simplecov,
  dh-python,
@@ -20,10 +20,10 @@ Build-Depends: debhelper-compat (= 13), cmake, pkg-config,
  python3-pkg-resources,
  python3-protobuf,
  python3-sphinx,
- python3-sphinx-rtd-theme,
  python3-wheel,
  protobuf-source
-Standards-Version: 4.5.1
+ python3-sphinx-rtd-theme
+Standards-Version: 4.6.1
 Section: libs
 Homepage: https://www.grpc.io/
 Rules-Requires-Root: no
@@ -38,22 +38,22 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Built-Using: ${built-using:Depends}
-Depends: libgrpc22 (= ${binary:Version}), zlib1g-dev, libssl-dev, libabsl-dev, libc-ares-dev, libre2-dev, ${misc:Depends}
+Depends: libgrpc29 (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
 Conflicts: libgpr1-dev, libgpr2-dev, libgpr3-dev, libupb-dev
 Description: high performance general RPC framework (development)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
- This package contains the headers and the static library for libgrpc22.
+ This package contains the headers and the static library for libgrpc29 .
 
-Package: libgrpc22
+Package: libgrpc29
 Architecture: any
 Multi-Arch: same
 Built-Using: ${built-using:Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Breaks: libgrpc9, libgrpc10
-Replaces: libgrpc9, libgrpc10
+Breaks: libgrpc9, libgrpc10, libgrpc28
+Replaces: libgrpc9, libgrpc10, libgrpc28
 Description: high performance general RPC framework
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
@@ -66,15 +66,15 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Built-Using: ${built-using:Depends}
-Depends: libgrpc++1.44 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), zlib1g-dev, libssl-dev, libabsl-dev, libc-ares-dev, libre2-dev, ${misc:Depends}
+Depends: libgrpc++1.51 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
 Description: high performance general RPC framework (development)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
- This package contains the headers and the static library for libgrpc++1.44 .
+ This package contains the headers and the static library for libgrpc++1.51 .
 
-Package: libgrpc++1.44
+Package: libgrpc++1.51
 Architecture: any
 Multi-Arch: same
 Built-Using: ${built-using:Depends}
@@ -105,7 +105,7 @@ Description: high performance general RPC framework - protobuf plugin
 #X-DhRuby-Root: .
 #XB-Ruby-Versions: ${ruby:Versions}
 #Depends: ${ruby:Depends},
-#         ruby-google-protobuf (>= 3.20.0~),
+#         ruby-google-protobuf (>= 3.21.0~),
 #         ruby-googleauth,
 #         ruby-googleapis-common-protos-types,
 #         ${misc:Depends},
@@ -141,7 +141,7 @@ Built-Using: ${built-using:Depends}
 Depends:
  ${misc:Depends},
  ${python3:Depends},
- python3-protobuf (>= 3.20.0~),
+ python3-protobuf (>= 3.21.0~),
  ${shlibs:Depends},
 Description: GRPC system (Python 3)
  A modern, open source remote procedure call (RPC) framework that can

@@ -1,0 +1,20 @@
+Description: link Python gRPC module with all needed Abseil libraries
+ Add the needed libraries to link with.
+Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Bug-Debian: https://bugs.debian.org/1026937
+Forwarded: no
+Last-Update: 2022-12-24
+
+---
+
+--- grpc-1.51.1.orig/setup.py
++++ grpc-1.51.1/setup.py
+@@ -268,7 +268,7 @@ if EXTRA_ENV_LINK_ARGS is None:
+             ' -static -lshlwapi'.format(msvcr=msvcr))
+     if "linux" in sys.platform:
+         EXTRA_ENV_LINK_ARGS += ' -static-libgcc'
+-        EXTRA_ENV_LINK_ARGS += ' -labsl_str_format_internal -labsl_time -labsl_bad_optional_access'
++        EXTRA_ENV_LINK_ARGS += ' -labsl_str_format_internal -labsl_time -labsl_bad_optional_access -labsl_hash -labsl_raw_hash_set -labsl_status -labsl_statusor -labsl_random_internal_randen_slow -labsl_random_internal_randen_hwaes_impl -labsl_random_internal_randen -labsl_random_internal_pool_urbg -labsl_bad_variant_access'
+ 
+ EXTRA_COMPILE_ARGS = shlex.split(EXTRA_ENV_COMPILE_ARGS)
+ EXTRA_LINK_ARGS = shlex.split(EXTRA_ENV_LINK_ARGS)
