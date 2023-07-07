@@ -1,3 +1,10 @@
+grpc (1.51.1-3pexip1) pexip; urgency=medium
+
+  * New upstream release
+  * Refresh patches
+
+ -- Huw Jones <huw@pexip.com>  Fri, 07 Jul 2023 16:06:54 +0100
+
 grpc (1.51.1-3) unstable; urgency=medium
 
   * Link Python gRPC module with all needed Abseil libraries
