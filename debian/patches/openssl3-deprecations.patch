@@ -426,7 +426,7 @@ index 9f855a8d..4d60d2fc 100644
  }
  
 -static void check_jwt_signature(const char* b64_signature, RSA* rsa_key,
-+static void check_jwt_signature(const char* b64_signature, EVP_PKEY* rsa_key,
++static void check_jwt_signature(const char* b64_signature, EVP_PKEY* key,
                                  const char* signed_data,
                                  size_t signed_data_size) {
    grpc_core::ExecCtx exec_ctx;
