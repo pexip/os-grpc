@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Pexip AS <packaging@pexip.com>
 XSBC-Pexip-Original-Maintainer: Laszlo Boszormenyi (GCS) <gcs@debian.org>
 Build-Depends: debhelper-compat (= 13), cmake, pkgconf,
- googletest, zlib1g-dev, libssl-dev (>= 3), libabsl-dev (>= 20220623.1),
+ googletest (>= 1.12), zlib1g-dev, libssl-dev (>= 3), libabsl-dev (>= 20220623.1),
  libprotobuf-dev, protobuf-compiler (>= 3.21.0~),
  libgflags-dev, libgtest-dev, libbenchmark-dev,
  libgoogle-perftools-dev, libprotoc-dev (>= 3.21.0~), libc-ares-dev,
