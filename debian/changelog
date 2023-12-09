@@ -1,3 +1,9 @@
+grpc (1.51.1-3+pexip4) pexip-bookworm; urgency=medium
+
+  * Bookworm build for product distribution
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Sat, 09 Dec 2023 22:52:38 +0000
+
 grpc (1.51.1-3+pexip3) pexip-bookworm; urgency=medium
 
   * Bump version number to supercede binary NMU in stable.
