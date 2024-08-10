@@ -102,6 +102,8 @@ override_dh_auto_install:
 	dh_auto_install -O--buildsystem=pybuild
 	TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
 		dh_auto_install -O--buildsystem=ruby
+	find $(CURDIR)/debian/ruby-grpc -name ca.pem \
+		-o -name server1.key -o -name server1.pem | xargs chmod a-x
 
 %:
 	dh $@ --builddir=$(BUILD_SHARED_DIR) --buildsystem=cmake \

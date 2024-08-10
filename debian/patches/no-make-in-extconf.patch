@@ -1,8 +1,8 @@
 --- a/src/ruby/ext/grpc/extconf.rb
 +++ b/src/ruby/ext/grpc/extconf.rb
-@@ -96,22 +96,6 @@ output_dir = File.expand_path(RbConfig::
- grpc_lib_dir = File.join(output_dir, 'libs', grpc_config)
- ENV['BUILDDIR'] = output_dir
+@@ -99,33 +99,6 @@ ENV['BUILDDIR'] = output_dir
+ strip_tool = RbConfig::CONFIG['STRIP']
+ strip_tool += ' -x' if apple_toolchain
  
 -unless windows
 -  puts 'Building internal gRPC into ' + grpc_lib_dir
@@ -18,14 +18,25 @@
 -  puts "Building grpc native library: #{cmd}"
 -  system(cmd)
 -  exit 1 unless $? == 0
+-
+-  if grpc_config == 'opt'
+-    rm_obj_cmd = "rm -rf #{File.join(output_dir, 'objs')}"
+-    puts "Removing grpc object files: #{rm_obj_cmd}"
+-    system(rm_obj_cmd)
+-    exit 1 unless $? == 0
+-    strip_cmd = "#{strip_tool} #{grpc_lib_dir}/*.a"
+-    puts "Stripping grpc native library: #{strip_cmd}"
+-    system(strip_cmd)
+-    exit 1 unless $? == 0
+-  end
 -end
 -
  $CFLAGS << ' -DGRPC_RUBY_WINDOWS_UCRT' if windows_ucrt
  $CFLAGS << ' -I' + File.join(grpc_root, 'include')
  
-@@ -120,7 +104,7 @@ ext_export_file += '-truffleruby' if RUB
- $LDFLAGS << ' -Wl,--version-script="' + ext_export_file + '.gcc"' if linux
- $LDFLAGS << ' -Wl,-exported_symbols_list,"' + ext_export_file + '.clang"' if apple_toolchain
+@@ -163,7 +136,7 @@ if apple_toolchain
+   $LDFLAGS << ' -Wl,-exported_symbols_list,"' + ext_export_file + '.clang"'
+ end
  
 -$LDFLAGS << ' ' + File.join(grpc_lib_dir, 'libgrpc.a') unless windows
 +$LDFLAGS << ' ' + '-Wl,-wrap,memcpy -lgrpc' unless windows

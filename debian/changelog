@@ -1,18 +1,11 @@
-grpc (1.51.1-6) unstable; urgency=medium
+grpc (1.59.5-1) experimental; urgency=medium
 
-  [ Stefano Rivera <stefanor@debian.org> ]
-  * Patch: support abseil 20240722.0 (closes: #1100044).
+  * New major upstream release.
+  * Update patches.
+  * Update copyright file.
+  * Library transition from libgrpc29 to libgrpc36 .
 
- -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 10 Mar 2025 20:47:04 +0100
-
-grpc (1.51.1-5) unstable; urgency=medium
-
-  [ Stefano Rivera <stefanor@debian.org> ]
-  * Patch: Cython 3 support.
-  * Patch: Python 3.13 support (closes: #1084603).
-  * Patch: GCC-14 support (closes: #1075045).
-
- -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 11 Nov 2024 18:25:37 +0100
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sat, 10 Aug 2024 07:13:45 +0200
 
 grpc (1.51.1-4.1) unstable; urgency=medium
 

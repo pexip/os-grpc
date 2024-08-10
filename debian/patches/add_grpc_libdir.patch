@@ -2,18 +2,18 @@ Description: add local libdir to link with grpc
  d/rules set TOPDIR to installed library directory.
 Forwarded: not-needed
 Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
-Last-Update: 2022-11-13
+Last-Update: 2024-08-11
 
 ---
 
---- grpc-1.24.0.orig/src/ruby/ext/grpc/extconf.rb
-+++ grpc-1.24.0/src/ruby/ext/grpc/extconf.rb
-@@ -95,6 +95,8 @@ env_append 'CPPFLAGS', '-DGRPC_XDS_USER_
+--- a/src/ruby/ext/grpc/extconf.rb
++++ b/src/ruby/ext/grpc/extconf.rb
+@@ -95,6 +95,8 @@ env_append 'CPPFLAGS', '-DGRPC_POSIX_FOR
  output_dir = File.expand_path(RbConfig::CONFIG['topdir'])
  grpc_lib_dir = File.join(output_dir, 'libs', grpc_config)
  ENV['BUILDDIR'] = output_dir
 +topdir = ENV['TOPDIR'] || '.'
 +$LDFLAGS << ' -L' + topdir
  
- $CFLAGS << ' -DGRPC_RUBY_WINDOWS_UCRT' if windows_ucrt
- $CFLAGS << ' -I' + File.join(grpc_root, 'include')
+ strip_tool = RbConfig::CONFIG['STRIP']
+ strip_tool += ' -x' if apple_toolchain

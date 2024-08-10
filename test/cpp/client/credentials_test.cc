@@ -1,20 +1,20 @@
-/*
- *
- * Copyright 2015 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+//
+//
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//
 
 #include <memory>
 
@@ -22,6 +22,7 @@
 #include <gtest/gtest.h>
 
 #include <grpc/grpc.h>
+#include <grpc/grpc_crl_provider.h>
 #include <grpc/grpc_security.h>
 #include <grpcpp/security/credentials.h>
 #include <grpcpp/security/server_credentials.h>
@@ -30,13 +31,14 @@
 
 #include "src/core/lib/gpr/tmpfile.h"
 #include "src/core/lib/gprpp/env.h"
+#include "src/core/lib/security/credentials/tls/grpc_tls_credentials_options.h"
 #include "src/cpp/client/secure_credentials.h"
 #include "test/cpp/util/tls_test_utils.h"
 
 #define CA_CERT_PATH "src/core/tsi/test_creds/ca.pem"
 #define SERVER_CERT_PATH "src/core/tsi/test_creds/server1.pem"
 #define SERVER_KEY_PATH "src/core/tsi/test_creds/server1.key"
-#define CRL_DIR_PATH "test/core/tsi/test_creds/crl_data"
+#define CRL_DIR_PATH "test/core/tsi/test_creds/crl_data/crls"
 
 namespace {
 
@@ -395,6 +397,47 @@ TEST(CredentialsTest, TlsChannelCredentialsWithCrlDirectory) {
   options.set_crl_directory(CRL_DIR_PATH);
   auto channel_credentials = grpc::experimental::TlsCredentials(options);
   GPR_ASSERT(channel_credentials.get() != nullptr);
+}
+
+TEST(CredentialsTest, TlsChannelCredentialsWithCrlProvider) {
+  auto provider = experimental::CreateStaticCrlProvider({});
+  ASSERT_TRUE(provider.ok());
+  grpc::experimental::TlsChannelCredentialsOptions options;
+  options.set_crl_provider(*provider);
+  auto channel_credentials = grpc::experimental::TlsCredentials(options);
+  GPR_ASSERT(channel_credentials.get() != nullptr);
+}
+
+TEST(CredentialsTest, TlsChannelCredentialsWithCrlProviderAndDirectory) {
+  auto provider = experimental::CreateStaticCrlProvider({});
+  ASSERT_TRUE(provider.ok());
+  grpc::experimental::TlsChannelCredentialsOptions options;
+  options.set_crl_directory(CRL_DIR_PATH);
+  options.set_crl_provider(*provider);
+  auto channel_credentials = grpc::experimental::TlsCredentials(options);
+  // TODO(gtcooke94) - behavior might change to make this return nullptr in the
+  // future
+  GPR_ASSERT(channel_credentials.get() != nullptr);
+}
+
+// TODO(gtcooke94) - Add test to make sure Tls*CredentialsOptions does not leak
+// when not moved into TlsCredentials
+
+TEST(CredentialsTest, TlsChannelCredentialsWithGoodMinAndMaxTlsVersions) {
+  grpc::experimental::TlsChannelCredentialsOptions options;
+  options.set_min_tls_version(grpc_tls_version::TLS1_2);
+  options.set_max_tls_version(grpc_tls_version::TLS1_3);
+  auto channel_credentials = grpc::experimental::TlsCredentials(options);
+  EXPECT_NE(channel_credentials, nullptr);
+}
+
+TEST(CredentialsTest, TlsChannelCredentialsWithBadMinAndMaxTlsVersions) {
+  grpc::experimental::TlsChannelCredentialsOptions options;
+  options.set_min_tls_version(grpc_tls_version::TLS1_3);
+  options.set_max_tls_version(grpc_tls_version::TLS1_2);
+  auto channel_credentials = grpc::experimental::TlsCredentials(options);
+  EXPECT_EQ(channel_credentials, nullptr);
+  delete options.c_credentials_options();
 }
 
 }  // namespace

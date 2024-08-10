@@ -1,0 +1,19 @@
+Description: fix FTBFS with GCC 14 with a special gRPC NULL value
+ It contains a struct with should have a dimension / value, but a NULL value
+ can't have that.
+Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Forwarded: no
+Last-Update: 2024-08-11
+
+---
+
+--- grpc-1.59.5.orig/src/ruby/ext/grpc/extconf.rb
++++ grpc-1.59.5/src/ruby/ext/grpc/extconf.rb
+@@ -159,6 +159,7 @@ $CFLAGS << ' -std=c11 '
+ $CFLAGS << ' -Wall '
+ $CFLAGS << ' -Wextra '
+ $CFLAGS << ' -pedantic '
++$CFLAGS << ' -Wno-incompatible-pointer-types '
+ 
+ output = File.join('grpc', 'grpc_c')
+ puts 'Generating Makefile for ' + output

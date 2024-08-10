@@ -1,20 +1,20 @@
-/*
- *
- * Copyright 2019 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+//
+//
+// Copyright 2019 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//
 
 #ifndef GRPCPP_SECURITY_TLS_CREDENTIALS_OPTIONS_H
 #define GRPCPP_SECURITY_TLS_CREDENTIALS_OPTIONS_H
@@ -28,6 +28,7 @@
 #include <grpc/support/log.h>
 #include <grpcpp/security/tls_certificate_provider.h>
 #include <grpcpp/security/tls_certificate_verifier.h>
+#include <grpcpp/security/tls_crl_provider.h>
 #include <grpcpp/support/config.h>
 
 namespace grpc {
@@ -104,6 +105,17 @@ class TlsCredentialsOptions {
   // version > 1.1.
   void set_crl_directory(const std::string& path);
 
+  void set_crl_provider(std::shared_ptr<CrlProvider> crl_provider);
+
+  // Sets the minimum TLS version that will be negotiated during the TLS
+  // handshake. If not set, the underlying SSL library will use TLS v1.2.
+  // @param tls_version: The minimum TLS version.
+  void set_min_tls_version(grpc_tls_version tls_version);
+  // Sets the maximum TLS version that will be negotiated during the TLS
+  // handshake. If not set, the underlying SSL library will use TLS v1.3.
+  // @param tls_version: The maximum TLS version.
+  void set_max_tls_version(grpc_tls_version tls_version);
+
   // ----- Getters for member fields ----
   // Get the internal c options. This function shall be used only internally.
   grpc_tls_credentials_options* c_credentials_options() const {
@@ -147,6 +159,18 @@ class TlsServerCredentialsOptions final : public TlsCredentialsOptions {
   // The default is GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE.
   void set_cert_request_type(
       grpc_ssl_client_certificate_request_type cert_request_type);
+
+  // Sets whether or not a TLS server should send a list of CA names in the
+  // ServerHello. This list of CA names is read from the server's trust bundle,
+  // so that the client can use this list as a hint to know which certificate it
+  // should send to the server.
+  //
+  // By default, this option is turned off.
+  //
+  // WARNING: This API is extremely dangerous and should not be used. If the
+  // server's trust bundle is too large, then the TLS server will be unable to
+  // form a ServerHello, and hence will be unusable.
+  void set_send_client_ca_list(bool send_client_ca_list);
 
  private:
 };
