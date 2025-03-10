@@ -1,8 +1,8 @@
 Source: grpc
 Priority: optional
 Maintainer: Laszlo Boszormenyi (GCS) <gcs@debian.org>
-Build-Depends: debhelper-compat (= 13), cmake, pkgconf,
- googletest, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1),
+Build-Depends: dpkg-dev (>= 1.22.5), debhelper-compat (= 13), cmake, pkgconf,
+ googletest (>= 1.12~), zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1),
  libprotobuf-dev, protobuf-compiler (>= 3.21.0~),
  libgflags-dev, libgtest-dev, libbenchmark-dev,
  libgoogle-perftools-dev, libprotoc-dev (>= 3.21.0~), libc-ares-dev,
@@ -31,21 +31,22 @@ Package: libgrpc-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libgrpc29 (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
+Depends: libgrpc29t64 (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
 Conflicts: libgpr1-dev, libgpr2-dev, libgpr3-dev, libupb-dev
 Description: high performance general RPC framework (development)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
- This package contains the headers and the static library for libgrpc29 .
+ This package contains the headers and the static library for libgrpc29t64 .
 
-Package: libgrpc29
+Package: libgrpc29t64
+Provides: ${t64:Provides}
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Breaks: libgrpc9, libgrpc10, libgrpc28
-Replaces: libgrpc9, libgrpc10, libgrpc28
+Breaks: libgrpc29 (<< ${source:Version}), libgrpc9, libgrpc10, libgrpc28, libgrpc22
+Replaces: libgrpc29, libgrpc9, libgrpc10, libgrpc28, libgrpc22
 Description: high performance general RPC framework
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
@@ -57,15 +58,18 @@ Package: libgrpc++-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libgrpc++1.51 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
+Depends: libgrpc++1.51t64 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
 Description: high performance general RPC framework (development)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
- This package contains the headers and the static library for libgrpc++1.51 .
+ This package contains the headers and the static library for libgrpc++1.51t64 .
 
-Package: libgrpc++1.51
+Package: libgrpc++1.51t64
+Provides: ${t64:Provides}
+Replaces: libgrpc++1.51
+Breaks: libgrpc++1.51 (<< ${source:Version})
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}

@@ -1,0 +1,170 @@
+From 4bea12353c2f0f5a52746821f1e3f961592c7ca0 Mon Sep 17 00:00:00 2001
+From: Atri Bhattacharya <A.Bhattacharya@uliege.be>
+Date: Tue, 2 Apr 2024 10:05:04 -0700
+Subject: [PATCH] [python] Cython 3 compatibility: declare functions noexcept.
+ (#35995)
+
+In Cython 3, cdef functions that really will not raise exceptions must be declared as `noexcept`. Fixed by this commit.
+
+Update requirements to `cython >= 3.0` in requirements*.txt and setup.py.
+
+Fixes issue #33918.
+
+<!--
+
+If you know who should review your pull request, please assign it to that
+person, otherwise the pull request would get assigned randomly.
+
+If your pull request is for a specific language, please add the appropriate
+lang label.
+
+-->
+
+Closes #35995
+
+COPYBARA_INTEGRATE_REVIEW=https://github.com/grpc/grpc/pull/35995 from badshah400:master b3277bac1585ddee88a170b0a95c260d909cce9c
+PiperOrigin-RevId: 621214091
+---
+ requirements.bazel.txt                                      | 2 +-
+ requirements.txt                                            | 2 +-
+ setup.py                                                    | 2 +-
+ .../grpcio/grpc/_cython/_cygrpc/aio/callback_common.pxd.pxi | 2 +-
+ .../grpcio/grpc/_cython/_cygrpc/aio/callback_common.pyx.pxi | 2 +-
+ src/python/grpcio/grpc/_cython/_cygrpc/credentials.pyx.pxi  | 2 +-
+ src/python/grpcio/grpc/_cython/_cygrpc/fork_posix.pxd.pxi   | 6 +++---
+ src/python/grpcio/grpc/_cython/_cygrpc/fork_posix.pyx.pxi   | 6 +++---
+ src/python/grpcio/grpc/_cython/_cygrpc/vtable.pyx.pxi       | 6 +++---
+ 9 files changed, 15 insertions(+), 15 deletions(-)
+
+Origin: upstream, https://github.com/grpc/grpc/commit/4bea12353c2f0f5a52746821f1e3f961592c7ca0
+Bug-upstream: https://github.com/grpc/grpc/issues/33918
+--- a/requirements.bazel.txt
++++ b/requirements.bazel.txt
+@@ -1,6 +1,6 @@
+ # GRPC Python setup requirements
+ coverage==4.5.4
+-cython==0.29.21
++cython==3.0.0
+ protobuf>=3.5.0.post1, < 4.0dev
+ wheel==0.36.2
+ google-auth==1.24.0
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,5 +1,5 @@
+ # GRPC Python setup requirements
+ coverage>=4.0
+-cython>=0.29.8
++cython>=3.0.0
+ protobuf>=4.21.3,<5.0dev
+ wheel>=0.29
+--- a/setup.py
++++ b/setup.py
+@@ -502,7 +502,7 @@
+     elif need_cython:
+         sys.stderr.write(
+             'We could not find Cython. Setup may take 10-20 minutes.\n')
+-        SETUP_REQUIRES += ('cython>=0.23',)
++        SETUP_REQUIRES += ('cython>=3.0.0',)
+ 
+ COMMAND_CLASS = {
+     'doc': commands.SphinxDocumentation,
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/aio/callback_common.pxd.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/aio/callback_common.pxd.pxi
+@@ -48,7 +48,7 @@
+     @staticmethod
+     cdef void functor_run(
+             grpc_completion_queue_functor* functor,
+-            int succeed)
++            int succeed) noexcept
+ 
+     cdef grpc_completion_queue_functor *c_functor(self)
+ 
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/aio/callback_common.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/aio/callback_common.pyx.pxi
+@@ -50,7 +50,7 @@
+     @staticmethod
+     cdef void functor_run(
+             grpc_completion_queue_functor* functor,
+-            int success):
++            int success) noexcept:
+         cdef CallbackContext *context = <CallbackContext *>functor
+         cdef object waiter = <object>context.waiter
+         if not waiter.cancelled():
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/credentials.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/credentials.pyx.pxi
+@@ -314,7 +314,7 @@
+   return credentials
+ 
+ cdef grpc_ssl_certificate_config_reload_status _server_cert_config_fetcher_wrapper(
+-        void* user_data, grpc_ssl_server_certificate_config **config) with gil:
++        void* user_data, grpc_ssl_server_certificate_config **config) noexcept with gil:
+   # This is a credentials.ServerCertificateConfig
+   cdef ServerCertificateConfig cert_config = None
+   if not user_data:
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/fork_posix.pxd.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/fork_posix.pxd.pxi
+@@ -20,10 +20,10 @@
+         void (*child)() nogil)
+ 
+ 
+-cdef void __prefork() nogil
++cdef void __prefork() noexcept nogil
+ 
+ 
+-cdef void __postfork_parent() nogil
++cdef void __postfork_parent() noexcept nogil
+ 
+ 
+-cdef void __postfork_child() nogil
+\ No newline at end of file
++cdef void __postfork_child() noexcept nogil
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/fork_posix.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/fork_posix.pyx.pxi
+@@ -34,7 +34,7 @@
+ 
+ _fork_handler_failed = False
+ 
+-cdef void __prefork() nogil:
++cdef void __prefork() noexcept nogil:
+     with gil:
+         global _fork_handler_failed
+         _fork_handler_failed = False
+@@ -48,14 +48,14 @@
+             _fork_handler_failed = True
+ 
+ 
+-cdef void __postfork_parent() nogil:
++cdef void __postfork_parent() noexcept nogil:
+     with gil:
+         with _fork_state.fork_in_progress_condition:
+             _fork_state.fork_in_progress = False
+             _fork_state.fork_in_progress_condition.notify_all()
+ 
+ 
+-cdef void __postfork_child() nogil:
++cdef void __postfork_child() noexcept nogil:
+     with gil:
+         try:
+             if _fork_handler_failed:
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/vtable.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/vtable.pyx.pxi
+@@ -13,16 +13,16 @@
+ # limitations under the License.
+ 
+ # TODO(https://github.com/grpc/grpc/issues/15662): Reform this.
+-cdef void* _copy_pointer(void* pointer):
++cdef void* _copy_pointer(void* pointer) noexcept:
+   return pointer
+ 
+ 
+ # TODO(https://github.com/grpc/grpc/issues/15662): Reform this.
+-cdef void _destroy_pointer(void* pointer):
++cdef void _destroy_pointer(void* pointer) noexcept:
+   pass
+ 
+ 
+-cdef int _compare_pointer(void* first_pointer, void* second_pointer):
++cdef int _compare_pointer(void* first_pointer, void* second_pointer) noexcept:
+   if first_pointer < second_pointer:
+     return -1
+   elif first_pointer > second_pointer:

@@ -1,0 +1,24 @@
+From: Esun Kim <veblush@google.com>
+Date: Thu, 14 Sep 2023 17:25:41 -0700
+Subject: [Fix] Added missing #include (#34359)
+
+One more missing #include
+
+Origin: upstream, 9a7ecfad0086fed7a77aa0db8a9a024b5622b29c
+---
+ test/core/tsi/crl_ssl_transport_security_test.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/test/core/tsi/crl_ssl_transport_security_test.cc b/test/core/tsi/crl_ssl_transport_security_test.cc
+index 8633042..456a7f6 100644
+--- a/test/core/tsi/crl_ssl_transport_security_test.cc
++++ b/test/core/tsi/crl_ssl_transport_security_test.cc
+@@ -19,6 +19,8 @@
+ #include <gmock/gmock.h>
+ #include <gtest/gtest.h>
+ 
++#include "absl/strings/str_cat.h"
++
+ #include <grpc/grpc.h>
+ #include <grpc/support/alloc.h>
+ #include <grpc/support/log.h>
