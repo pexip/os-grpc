@@ -1,0 +1,250 @@
+From d6cdc919ba40eb650ed29f4ef3ed2813528db28e Mon Sep 17 00:00:00 2001
+From: Xuan Wang <xuanwn@google.com>
+Date: Mon, 14 Oct 2024 15:16:27 -0700
+Subject: [PATCH 1/3] [Cython AIO] Fix Aio tests time out issue (#37917)
+
+### What's happening
+Some of our asyncio tests began timing out following a Cython upgrade to 3.0. This issue occurs consistently across both our Bazel and setup.py test environments.
+
+### Why the time out
+After some investigation, we found that our code here:https://github.com/grpc/grpc/blob/4ffcdd4ab7976cac397fcff25b6f952d0b5c8168/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi#L115-L116
+
+Was translated to this in Cython 0.29:
+```
+__pyx_f_7_cython_6cygrpc__unified_socket_write(__pyx_v_self->_write_fd);
+```
+
+And it changed to this in Cython 3.0:
+```
+__pyx_f_7_cython_6cygrpc__unified_socket_write(__pyx_v_self->_write_fd); if (unlikely(__Pyx_ErrOccurredWithGIL())) __PYX_ERR(7, 136, __pyx_L1_error)
+```
+
+Which indicates that this `nogil` function `_unified_socket_write` now requires GIL.
+
+### What's new in Cython 3
+* Cython 3 `cdef` functions with `void` return type will default to use `except *` as exception specification.
+* If function have `void` return type and defined as `nogil`, Cython will always re-acquire the GIL after the function call to check if an exception has been raised.
+* In some cases, this will cause a deadlock, especially if the function was called inside another `nogil` function.
+
+### What's the fix
+* This PR changes those functions to use `noexcept` as exception specification since we don't expect them to throw any exception, and this is also the suggested workarounds in Cython documentation: https://cython.readthedocs.io/en/latest/src/userguide/language_basics.html#error-return-values
+
+### Test
+* Tested locally by running `bazel test`, time our rate decreased from 5% to 0.3% in 3000 runs and 10s test time out.
+<!--
+
+If you know who should review your pull request, please assign it to that
+person, otherwise the pull request would get assigned randomly.
+
+If your pull request is for a specific language, please add the appropriate
+lang label.
+
+-->
+
+Closes #37917
+
+COPYBARA_INTEGRATE_REVIEW=https://github.com/grpc/grpc/pull/37917 from XuanWang-Amos:fix_cython_aio 063d27aee9192a26f36d16e6f056dcab1a48b9c9
+PiperOrigin-RevId: 685851320
+---
+ .../grpc/_cython/_cygrpc/aio/completion_queue.pxd.pxi       | 4 ++--
+ .../grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi       | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+Origin: upstream, https://github.com/grpc/grpc/pull/38003
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pxd.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pxd.pxi
+@@ -23,7 +23,7 @@
+         int win_socket_send "send" (WIN_SOCKET s, const char *buf, int len, int flags)
+ 
+ 
+-cdef void _unified_socket_write(int fd) nogil
++cdef void _unified_socket_write(int fd) noexcept nogil
+ 
+ 
+ cdef class BaseCompletionQueue:
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/aio/completion_queue.pyx.pxi
+@@ -22,12 +22,12 @@
+ cdef bint _has_fd_monitoring = True
+ 
+ IF UNAME_SYSNAME == "Windows":
+-    cdef void _unified_socket_write(int fd) nogil:
++    cdef void _unified_socket_write(int fd) noexcept nogil:
+         win_socket_send(<WIN_SOCKET>fd, b"1", 1, 0)
+ ELSE:
+     from posix cimport unistd
+ 
+-    cdef void _unified_socket_write(int fd) nogil:
++    cdef void _unified_socket_write(int fd) noexcept nogil:
+         unistd.write(fd, b"1", 1)
+ 
+ 
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/credentials.pxd.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/credentials.pxd.pxi
+@@ -26,9 +26,9 @@
+     grpc_credentials_plugin_metadata_cb cb, void *user_data,
+     grpc_metadata creds_md[GRPC_METADATA_CREDENTIALS_PLUGIN_SYNC_MAX],
+     size_t *num_creds_md, grpc_status_code *status,
+-    const char **error_details) except * with gil
++    const char **error_details) except -1 with gil
+ 
+-cdef void _destroy(void *state) except * with gil
++cdef void _destroy(void *state) noexcept nogil
+ 
+ 
+ cdef class MetadataPluginCallCredentials(CallCredentials):
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/credentials.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/credentials.pyx.pxi
+@@ -12,6 +12,7 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
++import atexit
+ 
+ def _spawn_callback_in_thread(cb_func, args):
+   t = ForkManagedThread(target=cb_func, args=args)
+@@ -41,7 +42,7 @@
+                        grpc_metadata creds_md[GRPC_METADATA_CREDENTIALS_PLUGIN_SYNC_MAX],
+                        size_t *num_creds_md,
+                        grpc_status_code *status,
+-                       const char **error_details) except * with gil:
++                       const char **error_details) except -1 with gil:
+   cdef size_t metadata_count
+   cdef grpc_metadata *c_metadata
+   def callback(metadata, grpc_status_code status, bytes error_details):
+@@ -65,11 +66,59 @@
+   return 0  # Asynchronous return
+ 
+ 
+-cdef void _destroy(void *state) except * with gil:
+-  cpython.Py_DECREF(<object>state)
++# Protects access to GIL from _destroy() and to g_shutting_down.
++# Do NOT hold this while holding GIL to prevent a deadlock.
++cdef mutex g_shutdown_mu
++# Number of C-core clean up calls in progress. Set to -1 when Python is shutting
++# down.
++cdef int g_shutting_down = 0
++
++# This is called by C-core when the plugin is destroyed, which may race between
++# GIL destruction during process shutdown. Since GIL destruction happens after
++# Python's exit handlers, we mark that Python is shutting down from an exit
++# handler and don't grab GIL in this function afterwards using a C mutex.
++cdef void _destroy(void *state) noexcept nogil:
++  global g_shutdown_mu
++  global g_shutting_down
++  g_shutdown_mu.lock()
++  if g_shutting_down > -1:
++    g_shutting_down += 1
++    g_shutdown_mu.unlock()
++    with gil:
++      cpython.Py_DECREF(<object>state)
++    g_shutdown_mu.lock()
++    g_shutting_down -= 1
++  g_shutdown_mu.unlock()
+   grpc_shutdown()
+ 
+ 
++g_shutdown_handler_registered = False
++
++def _maybe_register_shutdown_handler():
++  global g_shutdown_handler_registered
++  if g_shutdown_handler_registered:
++    return
++  g_shutdown_handler_registered = True
++  atexit.register(_on_shutdown)
++
++cdef void _on_shutdown() noexcept nogil:
++  global g_shutdown_mu
++  global g_shutting_down
++  # Wait for up to ~2s if C-core is still cleaning up.
++  cdef int wait_ms = 10
++  while wait_ms < 1500:
++    g_shutdown_mu.lock()
++    if g_shutting_down == 0:
++      g_shutting_down = -1
++      g_shutdown_mu.unlock()
++      return
++    g_shutdown_mu.unlock()
++    with gil:
++      time.sleep(wait_ms / 1000)
++    wait_ms = wait_ms * 2
++  with gil:
++    _LOGGER.error('Timed out waiting for C-core clean-up')
++
+ cdef class MetadataPluginCallCredentials(CallCredentials):
+ 
+   def __cinit__(self, metadata_plugin, name):
+@@ -83,6 +132,7 @@
+     c_metadata_plugin.state = <void *>self._metadata_plugin
+     c_metadata_plugin.type = self._name
+     cpython.Py_INCREF(self._metadata_plugin)
++    _maybe_register_shutdown_handler()
+     fork_handlers_and_grpc_init()
+     # TODO(yihuazhang): Expose min_security_level via the Python API so that
+     # applications can decide what minimum security level their plugins require.
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/records.pxd.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/records.pxd.pxi
+@@ -14,8 +14,8 @@
+ 
+ 
+ cdef bytes _slice_bytes(grpc_slice slice)
+-cdef grpc_slice _copy_slice(grpc_slice slice) nogil
+-cdef grpc_slice _slice_from_bytes(bytes value) nogil
++cdef grpc_slice _copy_slice(grpc_slice slice) noexcept nogil
++cdef grpc_slice _slice_from_bytes(bytes value) noexcept nogil
+ 
+ 
+ cdef class CallDetails:
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/records.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/records.pyx.pxi
+@@ -18,12 +18,12 @@
+   cdef size_t length = grpc_slice_length(slice)
+   return (<const char *>start)[:length]
+ 
+-cdef grpc_slice _copy_slice(grpc_slice slice) nogil:
++cdef grpc_slice _copy_slice(grpc_slice slice) noexcept nogil:
+   cdef void *start = grpc_slice_start_ptr(slice)
+   cdef size_t length = grpc_slice_length(slice)
+   return grpc_slice_from_copied_buffer(<const char *>start, length)
+ 
+-cdef grpc_slice _slice_from_bytes(bytes value) nogil:
++cdef grpc_slice _slice_from_bytes(bytes value) noexcept nogil:
+   cdef const char *value_ptr
+   cdef size_t length
+   with gil:
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/security.pxd.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/security.pxd.pxi
+@@ -14,4 +14,4 @@
+ 
+ 
+ cdef grpc_ssl_roots_override_result ssl_roots_override_callback(
+-    char **pem_root_certs) nogil
++    char **pem_root_certs) noexcept nogil
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/security.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/security.pyx.pxi
+@@ -18,7 +18,7 @@
+ 
+ 
+ cdef grpc_ssl_roots_override_result ssl_roots_override_callback(
+-    char **pem_root_certs) nogil:
++    char **pem_root_certs) noexcept nogil:
+   with gil:
+     pkg = __name__
+     if pkg.endswith('.cygrpc'):
+--- a/tools/distrib/python/grpcio_tools/grpc_tools/_protoc_compiler.pyx
++++ b/tools/distrib/python/grpcio_tools/grpc_tools/_protoc_compiler.pyx
+@@ -39,12 +39,12 @@
+                         vector[string]* include_path,
+                         vector[pair[string, string]]* files_out,
+                         vector[cProtocError]* errors,
+-                        vector[cProtocWarning]* wrnings) nogil except +
++                        vector[cProtocWarning]* wrnings) except + nogil
+   int protoc_get_services(char* protobuf_path,
+                           vector[string]* include_path,
+                           vector[pair[string, string]]* files_out,
+                           vector[cProtocError]* errors,
+-                          vector[cProtocWarning]* wrnings) nogil except +
++                          vector[cProtocWarning]* wrnings) except + nogil
+ 
+ def run_main(list args not None):
+   cdef char **argv = <char **>stdlib.malloc(len(args)*sizeof(char *))

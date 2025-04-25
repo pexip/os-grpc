@@ -1,0 +1,28 @@
+From f55bf225da0eafeeebffd507dcb57c625933d105 Mon Sep 17 00:00:00 2001
+From: alto-ruby <altorubys@gmail.com>
+Date: Tue, 17 Sep 2024 18:09:05 -0700
+Subject: [PATCH] [Ruby] fix incompatible pointer type of
+ grpc_compression_algorithm_name (#37741)
+
+fixes #37731
+
+Closes #37741
+
+COPYBARA_INTEGRATE_REVIEW=https://github.com/grpc/grpc/pull/37741 from alto-ruby:fix-incompatible-pointer-type-in-grpc_compression_algorithm_name 18a89be44d54e8c8bd614f1cee626d1db598a45a
+PiperOrigin-RevId: 675779382
+---
+ src/ruby/ext/grpc/rb_compression_options.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Origin: upstream, https://github.com/grpc/grpc/pull/37741
+--- a/src/ruby/ext/grpc/rb_compression_options.c
++++ b/src/ruby/ext/grpc/rb_compression_options.c
+@@ -297,7 +297,7 @@
+  * Fails if the enum value is invalid. */
+ VALUE grpc_rb_compression_options_algorithm_value_to_name_internal(
+     grpc_compression_algorithm internal_value) {
+-  char* algorithm_name = NULL;
++  const char* algorithm_name = NULL;
+ 
+   if (!grpc_compression_algorithm_name(internal_value, &algorithm_name)) {
+     rb_raise(rb_eArgError, "Failed to convert algorithm value to name");

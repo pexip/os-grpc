@@ -1,0 +1,110 @@
+From dfa9d853fff02212ff232da5b39b76adf3ecce83 Mon Sep 17 00:00:00 2001
+From: Leonardo Pistone <lepistone@spotify.com>
+Date: Thu, 7 Dec 2023 12:59:29 -0800
+Subject: [PATCH] Fix Python DeprecationWarning: 'pipes' (#34941)
+
+Starting from Python 3.11, the pipes module produces this warning:
+
+DeprecationWarning: 'pipes' is deprecated and slated for removal in Python 3.13
+
+Turns out that in this repo the pipes module is only used for the
+"quote" function which is turn directly taken from the shlex module [1].
+
+The shlex module is not deprecated as of today and is already used in
+other places in this repo. The function shlex.quote has been around
+since the ancient Python 3.3.
+
+[1] https://github.com/python/cpython/blob/3.11/Lib/pipes.py#L64-L66
+
+<!--
+
+If you know who should review your pull request, please assign it to that
+person, otherwise the pull request would get assigned randomly.
+
+If your pull request is for a specific language, please add the appropriate
+lang label.
+
+-->
+
+Closes #34941
+
+COPYBARA_INTEGRATE_REVIEW=https://github.com/grpc/grpc/pull/34941 from lepistone:deprecate-python-pipes 233c54c135542178703aa700a2dddadc895fedb0
+PiperOrigin-RevId: 588883480
+---
+ tools/run_tests/run_performance_tests.py | 10 +++++-----
+ tools/run_tests/run_tests.py             |  4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+Origin: upstream, https://github.com/grpc/grpc/pull/34941
+Bug-Debian: https://bugs.debian.org/1084603
+--- a/tools/run_tests/run_performance_tests.py
++++ b/tools/run_tests/run_performance_tests.py
+@@ -22,8 +22,8 @@
+ import json
+ import multiprocessing
+ import os
+-import pipes
+ import re
++import shlex
+ import subprocess
+ import sys
+ import tempfile
+@@ -124,7 +124,7 @@
+     if bq_result_table:
+         cmd += 'BQ_RESULT_TABLE="%s" ' % bq_result_table
+     cmd += 'tools/run_tests/performance/run_qps_driver.sh '
+-    cmd += '--scenarios_json=%s ' % pipes.quote(
++    cmd += '--scenarios_json=%s ' % shlex.quote(
+         json.dumps({'scenarios': [scenario_json]}))
+     cmd += '--scenario_result_file=scenario_result.json '
+     if server_cpu_load != 0:
+@@ -132,7 +132,7 @@
+     if remote_host:
+         user_at_host = '%s@%s' % (_REMOTE_HOST_USERNAME, remote_host)
+         cmd = 'ssh %s "cd ~/performance_workspace/grpc/ && "%s' % (
+-            user_at_host, pipes.quote(cmd))
++            user_at_host, shlex.quote(cmd))
+ 
+     return jobset.JobSpec(cmdline=[cmd],
+                           shortname='%s' % scenario_json['name'],
+@@ -149,7 +149,7 @@
+     if remote_host:
+         user_at_host = '%s@%s' % (_REMOTE_HOST_USERNAME, remote_host)
+         cmd = 'ssh %s "cd ~/performance_workspace/grpc/ && "%s' % (
+-            user_at_host, pipes.quote(cmd))
++            user_at_host, shlex.quote(cmd))
+ 
+     return jobset.JobSpec(cmdline=[cmd],
+                           shortname='shutdown_workers',
+@@ -180,7 +180,7 @@
+     if client_host:
+         user_at_host = '%s@%s' % (_REMOTE_HOST_USERNAME, client_host)
+         cmd = 'ssh %s "cd ~/performance_workspace/grpc/ && "%s' % (
+-            user_at_host, pipes.quote(cmd))
++            user_at_host, shlex.quote(cmd))
+ 
+     return jobset.JobSpec(cmdline=[cmd],
+                           shortname='netperf',
+--- a/tools/run_tests/run_tests.py
++++ b/tools/run_tests/run_tests.py
+@@ -26,10 +26,10 @@
+ import multiprocessing
+ import os
+ import os.path
+-import pipes
+ import platform
+ import random
+ import re
++import shlex
+ import socket
+ import subprocess
+ import sys
+@@ -415,7 +415,7 @@
+                         cmdline = [binary] + target['args']
+                         shortname = target.get(
+                             'shortname',
+-                            ' '.join(pipes.quote(arg) for arg in cmdline))
++                            ' '.join(shlex.quote(arg) for arg in cmdline))
+                         shortname += shortname_ext
+                         out.append(
+                             self.config.job_spec(
