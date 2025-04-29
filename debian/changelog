@@ -1,3 +1,9 @@
+grpc (1.51.1-6+pexip25u1) pexip-trixie; urgency=medium
+
+  * Initial trixie build
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Tue, 29 Apr 2025 22:33:09 +0100
+
 grpc (1.51.1-6) unstable; urgency=medium
 
   [ Stefano Rivera <stefanor@debian.org> ]
