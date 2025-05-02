@@ -156,6 +156,9 @@ Depends:
  ${python3:Depends},
  python3-protobuf (>= 3.11.4~),
  ${shlibs:Depends},
+Replaces: python3-grpc-tools
+Conflicts: python3-grpc-tools
+Provides: python3-grpc-tools
 Description: GRPC system (Python 3 tools)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
