@@ -15,3 +15,4 @@ add_grpc_libdir.patch
 link_python_all_absl.patch
 999_pexip_build_grpcio_tools.patch
 openssl3-deprecations.patch
+absl_api_fixups.patch

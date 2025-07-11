@@ -1,0 +1,21 @@
+Fixup ABSL includes
+
+Taken from 784e3b1c40fff4cb1381ddc6b9917b29bafab8f upstream
+
+Index: grpc/src/core/lib/iomgr/tcp_posix.cc
+===================================================================
+--- grpc.orig/src/core/lib/iomgr/tcp_posix.cc
++++ grpc/src/core/lib/iomgr/tcp_posix.cc
+@@ -18,6 +18,12 @@
+ 
+ #include <grpc/support/port_platform.h>
+ 
++#include "absl/base/thread_annotations.h"
++#include "absl/status/status.h"
++#include "absl/strings/str_cat.h"
++#include "absl/strings/string_view.h"
++#include "absl/types/optional.h"
++
+ #include <grpc/impl/codegen/grpc_types.h>
+ 
+ #include "src/core/lib/gprpp/global_config_generic.h"
