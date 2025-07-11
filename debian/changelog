@@ -3,6 +3,7 @@ grpc (1.51.1-3++pexip24u6) pexip; urgency=medium
   * Rebuild for newer abseil.
   * Backport 784e3b1c40fff4cb1381ddc6b9917b29bafab8f2 as absl build fix
   * Backport 9a7ecfad0086fed7a77aa0db8a9a024b5622b29c as absl build fix
+  * Fix up xds_server.h to include absl/strings/numbers.h
 
  -- Mark Hymers <mark.hymers@pexip.com>  Thu, 26 Jun 2025 12:29:12 +0100
 

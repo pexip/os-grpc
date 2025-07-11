@@ -2,6 +2,8 @@ Fixup ABSL includes
 
 Taken from 784e3b1c40fff4cb1381ddc6b9917b29bafab8f2 upstream
 Taken from 9a7ecfad0086fed7a77aa0db8a9a024b5622b29c upstream
+The xds_server.h part was done locally because upstream refactored
+the code before fixing the includes
 
 Index: grpc/src/core/lib/iomgr/tcp_posix.cc
 ===================================================================
@@ -33,3 +35,15 @@ Index: grpc/test/core/tsi/crl_ssl_transport_security_test.cc
  #include <grpc/grpc.h>
  #include <grpc/support/alloc.h>
  #include <grpc/support/log.h>
+Index: grpc/test/cpp/end2end/xds/xds_server.h
+===================================================================
+--- grpc.orig/test/cpp/end2end/xds/xds_server.h
++++ grpc/test/cpp/end2end/xds/xds_server.h
+@@ -27,6 +27,7 @@
+ #include <gtest/gtest.h>
+ 
+ #include "absl/types/optional.h"
++#include "absl/strings/numbers.h"
+ 
+ #include <grpc/support/log.h>
+ 
