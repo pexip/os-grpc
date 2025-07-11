@@ -1,6 +1,7 @@
 Fixup ABSL includes
 
-Taken from 784e3b1c40fff4cb1381ddc6b9917b29bafab8f upstream
+Taken from 784e3b1c40fff4cb1381ddc6b9917b29bafab8f2 upstream
+Taken from 9a7ecfad0086fed7a77aa0db8a9a024b5622b29c upstream
 
 Index: grpc/src/core/lib/iomgr/tcp_posix.cc
 ===================================================================
@@ -19,3 +20,16 @@ Index: grpc/src/core/lib/iomgr/tcp_posix.cc
  #include <grpc/impl/codegen/grpc_types.h>
  
  #include "src/core/lib/gprpp/global_config_generic.h"
+Index: grpc/test/core/tsi/crl_ssl_transport_security_test.cc
+===================================================================
+--- grpc.orig/test/core/tsi/crl_ssl_transport_security_test.cc
++++ grpc/test/core/tsi/crl_ssl_transport_security_test.cc
+@@ -19,6 +19,8 @@
+ #include <gmock/gmock.h>
+ #include <gtest/gtest.h>
+ 
++#include "absl/strings/str_cat.h"
++
+ #include <grpc/grpc.h>
+ #include <grpc/support/alloc.h>
+ #include <grpc/support/log.h>
