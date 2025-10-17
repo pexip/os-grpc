@@ -16,28 +16,30 @@
 //
 //
 
+#include <grpc/status.h>
+
 #include <memory>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-
-#include <grpc/status.h>
-
-#include "src/core/lib/gprpp/time.h"
+#include "src/core/ext/transport/chttp2/transport/internal.h"
+#include "src/core/util/time.h"
 #include "test/core/end2end/end2end_tests.h"
 #include "test/core/end2end/tests/cancel_test_helpers.h"
 
 namespace grpc_core {
 namespace {
-const Duration kTimeout = Duration::Seconds(2);
+const Duration kCancelTimeout = Duration::Seconds(20);
+const Duration kDeadlineTimeout = Duration::Seconds(2);
 }  // namespace
 
 void CancelAfterInvoke6(CoreEnd2endTest& test,
-                        std::unique_ptr<CancellationMode> mode) {
-  auto c = test.NewClientCall("/service/method").Timeout(kTimeout).Create();
-  CoreEnd2endTest::IncomingStatusOnClient server_status;
-  CoreEnd2endTest::IncomingMetadata server_initial_metadata;
-  CoreEnd2endTest::IncomingMessage server_message;
+                        std::unique_ptr<CancellationMode> mode,
+                        Duration timeout) {
+  auto c = test.NewClientCall("/service/method").Timeout(timeout).Create();
+  IncomingStatusOnClient server_status;
+  IncomingMetadata server_initial_metadata;
+  IncomingMessage server_message;
   c.NewBatch(1)
       .RecvStatusOnClient(server_status)
       .RecvInitialMetadata(server_initial_metadata)
@@ -53,10 +55,11 @@ void CancelAfterInvoke6(CoreEnd2endTest& test,
 }
 
 void CancelAfterInvoke5(CoreEnd2endTest& test,
-                        std::unique_ptr<CancellationMode> mode) {
-  auto c = test.NewClientCall("/service/method").Timeout(kTimeout).Create();
-  CoreEnd2endTest::IncomingStatusOnClient server_status;
-  CoreEnd2endTest::IncomingMetadata server_initial_metadata;
+                        std::unique_ptr<CancellationMode> mode,
+                        Duration timeout) {
+  auto c = test.NewClientCall("/service/method").Timeout(timeout).Create();
+  IncomingStatusOnClient server_status;
+  IncomingMetadata server_initial_metadata;
   c.NewBatch(1)
       .RecvStatusOnClient(server_status)
       .RecvInitialMetadata(server_initial_metadata)
@@ -71,10 +74,11 @@ void CancelAfterInvoke5(CoreEnd2endTest& test,
 }
 
 void CancelAfterInvoke4(CoreEnd2endTest& test,
-                        std::unique_ptr<CancellationMode> mode) {
-  auto c = test.NewClientCall("/service/method").Timeout(kTimeout).Create();
-  CoreEnd2endTest::IncomingStatusOnClient server_status;
-  CoreEnd2endTest::IncomingMetadata server_initial_metadata;
+                        std::unique_ptr<CancellationMode> mode,
+                        Duration timeout) {
+  auto c = test.NewClientCall("/service/method").Timeout(timeout).Create();
+  IncomingStatusOnClient server_status;
+  IncomingMetadata server_initial_metadata;
   c.NewBatch(1)
       .RecvStatusOnClient(server_status)
       .RecvInitialMetadata(server_initial_metadata)
@@ -88,10 +92,11 @@ void CancelAfterInvoke4(CoreEnd2endTest& test,
 }
 
 void CancelAfterInvoke3(CoreEnd2endTest& test,
-                        std::unique_ptr<CancellationMode> mode) {
-  auto c = test.NewClientCall("/service/method").Timeout(kTimeout).Create();
-  CoreEnd2endTest::IncomingStatusOnClient server_status;
-  CoreEnd2endTest::IncomingMetadata server_initial_metadata;
+                        std::unique_ptr<CancellationMode> mode,
+                        Duration timeout) {
+  auto c = test.NewClientCall("/service/method").Timeout(timeout).Create();
+  IncomingStatusOnClient server_status;
+  IncomingMetadata server_initial_metadata;
   c.NewBatch(1)
       .RecvStatusOnClient(server_status)
       .RecvInitialMetadata(server_initial_metadata)
@@ -103,44 +108,44 @@ void CancelAfterInvoke3(CoreEnd2endTest& test,
               ::testing::AnyOf(mode->ExpectedStatus(), GRPC_STATUS_INTERNAL));
 }
 
-CORE_END2END_TEST(CoreEnd2endTest, CancelAfterInvoke6) {
-  // TODO(vigneshbabu): re-enable these before release
-  SKIP_IF_USES_EVENT_ENGINE_LISTENER();
-  CancelAfterInvoke6(*this, std::make_unique<CancelCancellationMode>());
+CORE_END2END_TEST(CoreEnd2endTests, CancelAfterInvoke6) {
+  CancelAfterInvoke6(*this, std::make_unique<CancelCancellationMode>(),
+                     kCancelTimeout);
 }
 
-CORE_END2END_TEST(CoreEnd2endTest, CancelAfterInvoke5) {
-  // TODO(vigneshbabu): re-enable these before release
-  SKIP_IF_USES_EVENT_ENGINE_LISTENER();
-  CancelAfterInvoke5(*this, std::make_unique<CancelCancellationMode>());
+CORE_END2END_TEST(CoreEnd2endTests, CancelAfterInvoke5) {
+  CancelAfterInvoke5(*this, std::make_unique<CancelCancellationMode>(),
+                     kCancelTimeout);
 }
 
-CORE_END2END_TEST(CoreEnd2endTest, CancelAfterInvoke4) {
-  // TODO(vigneshbabu): re-enable these before release
-  SKIP_IF_USES_EVENT_ENGINE_LISTENER();
-  CancelAfterInvoke4(*this, std::make_unique<CancelCancellationMode>());
+CORE_END2END_TEST(CoreEnd2endTests, CancelAfterInvoke4) {
+  CancelAfterInvoke4(*this, std::make_unique<CancelCancellationMode>(),
+                     kCancelTimeout);
 }
 
-CORE_END2END_TEST(CoreEnd2endTest, CancelAfterInvoke3) {
-  // TODO(vigneshbabu): re-enable these before release
-  SKIP_IF_USES_EVENT_ENGINE_LISTENER();
-  CancelAfterInvoke3(*this, std::make_unique<CancelCancellationMode>());
+CORE_END2END_TEST(CoreEnd2endTests, CancelAfterInvoke3) {
+  CancelAfterInvoke3(*this, std::make_unique<CancelCancellationMode>(),
+                     kCancelTimeout);
 }
 
-CORE_END2END_TEST(CoreDeadlineTest, DeadlineAfterInvoke6) {
-  CancelAfterInvoke6(*this, std::make_unique<DeadlineCancellationMode>());
+CORE_END2END_TEST(CoreDeadlineTests, DeadlineAfterInvoke6) {
+  CancelAfterInvoke6(*this, std::make_unique<DeadlineCancellationMode>(),
+                     kDeadlineTimeout);
 }
 
-CORE_END2END_TEST(CoreDeadlineTest, DeadlineAfterInvoke5) {
-  CancelAfterInvoke5(*this, std::make_unique<DeadlineCancellationMode>());
+CORE_END2END_TEST(CoreDeadlineTests, DeadlineAfterInvoke5) {
+  CancelAfterInvoke5(*this, std::make_unique<DeadlineCancellationMode>(),
+                     kDeadlineTimeout);
 }
 
-CORE_END2END_TEST(CoreDeadlineTest, DeadlineAfterInvoke4) {
-  CancelAfterInvoke4(*this, std::make_unique<DeadlineCancellationMode>());
+CORE_END2END_TEST(CoreDeadlineTests, DeadlineAfterInvoke4) {
+  CancelAfterInvoke4(*this, std::make_unique<DeadlineCancellationMode>(),
+                     kDeadlineTimeout);
 }
 
-CORE_END2END_TEST(CoreDeadlineTest, DeadlineAfterInvoke3) {
-  CancelAfterInvoke3(*this, std::make_unique<DeadlineCancellationMode>());
+CORE_END2END_TEST(CoreDeadlineTests, DeadlineAfterInvoke3) {
+  CancelAfterInvoke3(*this, std::make_unique<DeadlineCancellationMode>(),
+                     kDeadlineTimeout);
 }
 
 }  // namespace grpc_core
