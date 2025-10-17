@@ -14,17 +14,12 @@
 
 #include "src/core/lib/promise/for_each.h"
 
-#include <stdint.h>
+#include <grpc/event_engine/memory_allocator.h>
 
-#include <initializer_list>
 #include <memory>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-
-#include <grpc/event_engine/memory_allocator.h>
-
-#include "src/core/lib/gprpp/ref_counted_ptr.h"
 #include "src/core/lib/promise/activity.h"
 #include "src/core/lib/promise/inter_activity_pipe.h"
 #include "src/core/lib/promise/join.h"
@@ -35,6 +30,7 @@
 #include "src/core/lib/resource_quota/arena.h"
 #include "src/core/lib/resource_quota/memory_quota.h"
 #include "src/core/lib/resource_quota/resource_quota.h"
+#include "src/core/util/ref_counted_ptr.h"
 #include "test/core/promise/test_wakeup_schedulers.h"
 
 using testing::Mock;
@@ -43,13 +39,7 @@ using testing::StrictMock;
 
 namespace grpc_core {
 
-class ForEachTest : public ::testing::Test {
- protected:
-  MemoryAllocator memory_allocator_ = MemoryAllocator(
-      ResourceQuota::Default()->memory_quota()->CreateMemoryAllocator("test"));
-};
-
-TEST_F(ForEachTest, SendThriceWithPipe) {
+TEST(ForEachTest, SendThriceWithPipe) {
   int num_received = 0;
   StrictMock<MockFunction<void(absl::Status)>> on_done;
   EXPECT_CALL(on_done, Call(absl::OkStatus()));
@@ -79,12 +69,12 @@ TEST_F(ForEachTest, SendThriceWithPipe) {
       },
       NoWakeupScheduler(),
       [&on_done](absl::Status status) { on_done.Call(std::move(status)); },
-      MakeScopedArena(1024, &memory_allocator_));
+      SimpleArenaAllocator()->MakeArena());
   Mock::VerifyAndClearExpectations(&on_done);
   EXPECT_EQ(num_received, 3);
 }
 
-TEST_F(ForEachTest, SendThriceWithInterActivityPipe) {
+TEST(ForEachTest, SendThriceWithInterActivityPipe) {
   int num_received = 0;
   StrictMock<MockFunction<void(absl::Status)>> on_done_sender;
   StrictMock<MockFunction<void(absl::Status)>> on_done_receiver;
@@ -141,7 +131,7 @@ class MoveableUntilPolled {
   }
 
   Poll<absl::Status> operator()() {
-    Activity::current()->ForceImmediateRepoll();
+    GetContext<Activity>()->ForceImmediateRepoll();
     ++polls_;
     if (polls_ == 10) return absl::OkStatus();
     return Pending();
@@ -151,7 +141,7 @@ class MoveableUntilPolled {
   int polls_ = 0;
 };
 
-TEST_F(ForEachTest, NoMoveAfterPoll) {
+TEST(ForEachTest, NoMoveAfterPoll) {
   int num_received = 0;
   StrictMock<MockFunction<void(absl::Status)>> on_done;
   EXPECT_CALL(on_done, Call(absl::OkStatus()));
@@ -182,12 +172,12 @@ TEST_F(ForEachTest, NoMoveAfterPoll) {
       },
       NoWakeupScheduler(),
       [&on_done](absl::Status status) { on_done.Call(std::move(status)); },
-      MakeScopedArena(1024, &memory_allocator_));
+      SimpleArenaAllocator()->MakeArena());
   Mock::VerifyAndClearExpectations(&on_done);
   EXPECT_EQ(num_received, 1);
 }
 
-TEST_F(ForEachTest, NextResultHeldThroughCallback) {
+TEST(ForEachTest, NextResultHeldThroughCallback) {
   int num_received = 0;
   StrictMock<MockFunction<void(absl::Status)>> on_done;
   EXPECT_CALL(on_done, Call(absl::OkStatus()));
@@ -233,7 +223,7 @@ TEST_F(ForEachTest, NextResultHeldThroughCallback) {
       },
       NoWakeupScheduler(),
       [&on_done](absl::Status status) { on_done.Call(std::move(status)); },
-      MakeScopedArena(1024, &memory_allocator_));
+      SimpleArenaAllocator()->MakeArena());
   Mock::VerifyAndClearExpectations(&on_done);
   EXPECT_EQ(num_received, 1);
 }
