@@ -1,6 +1,0 @@
-usr/share/grpc/roots.pem
-usr/lib/${DEB_HOST_MULTIARCH}/libgpr.so.*
-usr/lib/${DEB_HOST_MULTIARCH}/libgrpc.so.*
-usr/lib/${DEB_HOST_MULTIARCH}/libgrpc_*.so.*
-usr/lib/${DEB_HOST_MULTIARCH}/libaddress_sorting.so.*
-usr/lib/${DEB_HOST_MULTIARCH}/libupb.so.*

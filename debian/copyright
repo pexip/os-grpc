@@ -74,11 +74,16 @@ Copyright: 1980, 1982, 1983, 1986, 1987, 1988, 1989, 1993 The Regents of the Uni
 License: BSD-3-clause
 
 Files: third_party/upb/*
-Copyright: 2009-2011, Google Inc.
+Copyright: 2009-2021, Google Inc.
 License: BSD-3-clause
 
 Files: third_party/upb/third_party/lunit/*
 Copyright: 2004-2010 Michael Roth <mroth@nessie.de>
+License: MIT
+
+Files: third_party/utf8_range/*
+Copyright: 2019 Yibo Cai
+ 2022 Google LLC
 License: MIT
 
 License: BSD-3-clause

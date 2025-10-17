@@ -127,8 +127,10 @@ override_dh_auto_install:
 	PYBUILD_NAME=grpcio-tools PYBUILD_DIR=tools/distrib/python/grpcio_tools dh_auto_install -O--buildsystem=pybuild
 	PYTHONPATH=$(CURDIR)/debian/tmp-python/usr/local/lib/python3.13/dist-packages PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection dh_auto_install -O--buildsystem=pybuild
 
-	# TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
+	#TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
 	#	dh_auto_install -O--buildsystem=ruby
+	#find $(CURDIR)/debian/ruby-grpc -name ca.pem \
+	#	-o -name server1.key -o -name server1.pem | xargs chmod a-x
 
 %:
 	dh $@ --builddir=$(BUILD_SHARED_DIR) --buildsystem=cmake \
