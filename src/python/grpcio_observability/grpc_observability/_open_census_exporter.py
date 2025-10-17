@@ -14,10 +14,11 @@
 
 from datetime import datetime
 import os
-from typing import Any, List, Mapping, Optional, Tuple
+from typing import List, Mapping, Optional, Tuple
 
 from google.rpc import code_pb2
 from grpc_observability import _observability  # pytype: disable=pyi-error
+from grpc_observability import _observability_config
 from grpc_observability import _views
 from opencensus.common.transports import async_
 from opencensus.ext.stackdriver import stats_exporter
@@ -37,8 +38,6 @@ from opencensus.trace import status
 from opencensus.trace import time_event
 from opencensus.trace import trace_options
 from opencensus.trace import tracer
-
-_gcp_observability = Any  # grpc_observability.py imports this module.
 
 # 60s is the default time for open census to call export.
 CENSUS_UPLOAD_INTERVAL_SECS = int(
@@ -61,16 +60,14 @@ class StackDriverAsyncTransport(async_.AsyncTransport):
 
 
 class OpenCensusExporter(_observability.Exporter):
-    config: "_gcp_observability.GcpObservabilityPythonConfig"
+    config: _observability_config.GcpObservabilityConfig
     default_labels: Optional[Mapping[str, str]]
     project_id: str
     tracer: Optional[tracer.Tracer]
     stats_recorder: Optional[StatsRecorder]
     view_manager: Optional[ViewManager]
 
-    def __init__(
-        self, config: "_gcp_observability.GcpObservabilityPythonConfig"
-    ):
+    def __init__(self, config: _observability_config.GcpObservabilityConfig):
         self.config = config.get()
         self.default_labels = self.config.labels
         self.project_id = self.config.project_id
@@ -126,7 +123,7 @@ class OpenCensusExporter(_observability.Exporter):
             if not measure:
                 continue
             # Create a measurement map for each metric, otherwise metrics will
-            # be override instead of accumulate.
+            # be overridden instead of accumulate.
             measurement_map = self.stats_recorder.new_measurement_map()
             # Add data label to default labels.
             labels = data.labels
@@ -206,7 +203,7 @@ class OpenCensusExporter(_observability.Exporter):
 
 
 def _get_span_annotations(
-    span_annotations: List[Tuple[str, str]]
+    span_annotations: List[Tuple[str, str]],
 ) -> List[time_event.Annotation]:
     annotations = []
 
@@ -282,9 +279,9 @@ def _get_span_data(
             name=span_data.name,
             context=span_context,
             span_id=span_data.span_id,
-            parent_span_id=span_data.parent_span_id
-            if span_data.parent_span_id
-            else None,
+            parent_span_id=(
+                span_data.parent_span_id if span_data.parent_span_id else None
+            ),
             attributes=span_attributes,
             start_time=span_data.start_time,
             end_time=span_data.end_time,
@@ -294,9 +291,9 @@ def _get_span_data(
             message_events=None,
             links=None,
             status=span_status,
-            same_process_as_parent_span=True
-            if span_data.parent_span_id
-            else None,
+            same_process_as_parent_span=(
+                True if span_data.parent_span_id else None
+            ),
             span_kind=span.SpanKind.UNSPECIFIED,
         )
     ]

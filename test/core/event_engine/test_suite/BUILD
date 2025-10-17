@@ -26,11 +26,14 @@ grpc_cc_library(
     testonly = True,
     srcs = ["event_engine_test_framework.cc"],
     hdrs = ["event_engine_test_framework.h"],
-    external_deps = ["gtest"],
+    external_deps = [
+        "absl/log:check",
+        "gtest",
+    ],
     deps = [
         "//:grpc",
         "//test/core/event_engine:event_engine_test_utils",
-        "//test/core/util:grpc_test_util",
+        "//test/core/test_util:grpc_test_util",
     ],
 )
 
@@ -40,8 +43,11 @@ grpc_cc_test(
     name = "posix_event_engine_test",
     srcs = ["posix_event_engine_test.cc"],
     tags = [
+        "grpc:fails-internally",
         "no_mac",
         "no_windows",
+        "requires-net:ipv4",
+        "requires-net:loopback",
     ],
     uses_event_engine = True,
     uses_polling = True,
@@ -51,8 +57,27 @@ grpc_cc_test(
         "//test/core/event_engine/test_suite/posix:oracle_event_engine_posix",
         "//test/core/event_engine/test_suite/tests:client",
         "//test/core/event_engine/test_suite/tests:dns",
+        "//test/core/event_engine/test_suite/tests:endpoint",
         "//test/core/event_engine/test_suite/tests:server",
         "//test/core/event_engine/test_suite/tests:timer",
+    ],
+)
+
+grpc_cc_test(
+    name = "posix_event_engine_native_dns_test",
+    srcs = ["posix_event_engine_native_dns_test.cc"],
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    uses_event_engine = True,
+    uses_polling = True,
+    deps = [
+        "//:config_vars",
+        "//src/core:posix_event_engine",
+        "//test/core/event_engine:event_engine_test_utils",
+        "//test/core/event_engine/test_suite/posix:oracle_event_engine_posix",
+        "//test/core/event_engine/test_suite/tests:dns",
     ],
 )
 
@@ -70,6 +95,7 @@ grpc_cc_test(
         "//test/core/event_engine:event_engine_test_utils",
         "//test/core/event_engine/test_suite/posix:oracle_event_engine_posix",
         "//test/core/event_engine/test_suite/tests:client",
+        "//test/core/event_engine/test_suite/tests:endpoint",
         "//test/core/event_engine/test_suite/tests:server",
         "//test/core/event_engine/test_suite/tests:timer",
     ],
@@ -88,6 +114,8 @@ grpc_cc_test(
         "//src/core:windows_event_engine",
         "//test/core/event_engine:event_engine_test_utils",
         "//test/core/event_engine/test_suite/tests:client",
+        "//test/core/event_engine/test_suite/tests:dns",
+        "//test/core/event_engine/test_suite/tests:endpoint",
         "//test/core/event_engine/test_suite/tests:server",
         "//test/core/event_engine/test_suite/tests:timer",
     ],
@@ -96,7 +124,6 @@ grpc_cc_test(
 grpc_cc_test(
     name = "cf_event_engine_test",
     srcs = ["cf_event_engine_test.cc"],
-    copts = ["-DGRPC_IOS_EVENT_ENGINE_CLIENT=1"],
     tags = [
         "no_linux",
         "no_windows",
@@ -106,6 +133,7 @@ grpc_cc_test(
         "//src/core:cf_event_engine",
         "//test/core/event_engine/test_suite/posix:oracle_event_engine_posix",
         "//test/core/event_engine/test_suite/tests:client",
+        "//test/core/event_engine/test_suite/tests:server",
         "//test/core/event_engine/test_suite/tests:timer",
     ],
 )
@@ -121,6 +149,7 @@ grpc_cc_test(
     deps = [
         "//test/core/event_engine/fuzzing_event_engine",
         "//test/core/event_engine/test_suite/tests:client",
+        "//test/core/event_engine/test_suite/tests:endpoint",
         "//test/core/event_engine/test_suite/tests:server",
         "//test/core/event_engine/test_suite/tests:timer",
     ],
