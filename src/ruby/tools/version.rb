@@ -14,6 +14,6 @@
 
 module GRPC
   module Tools
-    VERSION = '1.51.1'
+    VERSION = '1.59.5'
   end
 end

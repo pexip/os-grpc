@@ -1,20 +1,20 @@
-/*
- *
- * Copyright 2015 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+//
+//
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//
 
 #include "src/cpp/server/secure_server_credentials.h"
 
@@ -152,8 +152,13 @@ std::shared_ptr<ServerCredentials> LocalServerCredentials(
 
 std::shared_ptr<ServerCredentials> TlsServerCredentials(
     const grpc::experimental::TlsServerCredentialsOptions& options) {
-  return std::shared_ptr<ServerCredentials>(new SecureServerCredentials(
-      grpc_tls_server_credentials_create(options.c_credentials_options())));
+  grpc_server_credentials* c_creds =
+      grpc_tls_server_credentials_create(options.c_credentials_options());
+  if (c_creds == nullptr) {
+    return nullptr;
+  }
+  return std::shared_ptr<ServerCredentials>(
+      new SecureServerCredentials(c_creds));
 }
 
 }  // namespace experimental

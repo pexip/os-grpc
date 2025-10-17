@@ -16,23 +16,23 @@
 
 #include <memory>
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <grpc/grpc.h>
+#include <grpc/grpc_crl_provider.h>
 #include <grpc/grpc_security.h>
 #include <grpcpp/security/server_credentials.h>
 #include <grpcpp/security/tls_credentials_options.h>
+#include <grpcpp/security/tls_crl_provider.h>
 
-#include "src/cpp/client/secure_credentials.h"
-#include "test/core/util/port.h"
+#include "src/core/lib/security/credentials/tls/grpc_tls_credentials_options.h"
 #include "test/core/util/test_config.h"
 #include "test/cpp/util/tls_test_utils.h"
 
 #define CA_CERT_PATH "src/core/tsi/test_creds/ca.pem"
 #define SERVER_CERT_PATH "src/core/tsi/test_creds/server1.pem"
 #define SERVER_KEY_PATH "src/core/tsi/test_creds/server1.key"
-#define CRL_DIR_PATH "test/core/tsi/test_creds/crl_data"
+#define CRL_DIR_PATH "test/core/tsi/test_creds/crl_data/crls"
 
 namespace {
 
@@ -174,6 +174,53 @@ TEST(CredentialsTest, TlsServerCredentialsWithAsyncExternalVerifier) {
   options.set_certificate_verifier(verifier);
   auto server_credentials = grpc::experimental::TlsServerCredentials(options);
   GPR_ASSERT(server_credentials.get() != nullptr);
+}
+
+TEST(CredentialsTest, TlsServerCredentialsWithCrlProvider) {
+  auto provider = experimental::CreateStaticCrlProvider({});
+  ASSERT_TRUE(provider.ok());
+  auto certificate_provider = std::make_shared<FileWatcherCertificateProvider>(
+      SERVER_KEY_PATH, SERVER_CERT_PATH, CA_CERT_PATH, 1);
+  grpc::experimental::TlsServerCredentialsOptions options(certificate_provider);
+  options.set_crl_provider(*provider);
+  auto channel_credentials = grpc::experimental::TlsServerCredentials(options);
+  GPR_ASSERT(channel_credentials.get() != nullptr);
+}
+
+TEST(CredentialsTest, TlsServerCredentialsWithCrlProviderAndDirectory) {
+  auto provider = experimental::CreateStaticCrlProvider({});
+  ASSERT_TRUE(provider.ok());
+  auto certificate_provider = std::make_shared<FileWatcherCertificateProvider>(
+      SERVER_KEY_PATH, SERVER_CERT_PATH, CA_CERT_PATH, 1);
+  grpc::experimental::TlsServerCredentialsOptions options(certificate_provider);
+  options.set_crl_directory(CRL_DIR_PATH);
+  options.set_crl_provider(*provider);
+  auto server_credentials = grpc::experimental::TlsServerCredentials(options);
+  //   TODO(gtcooke94) - behavior might change to make this return nullptr in
+  //   the future
+  GPR_ASSERT(server_credentials != nullptr);
+}
+
+// TODO(gtcooke94) - Add test to make sure Tls*CredentialsOptions does not leak
+// when not moved into TlsCredentials
+
+TEST(CredentialsTest, TlsServerCredentialsWithGoodMinMaxTlsVersions) {
+  grpc::experimental::TlsServerCredentialsOptions options(
+      /*certificate_provider=*/nullptr);
+  options.set_min_tls_version(grpc_tls_version::TLS1_2);
+  options.set_max_tls_version(grpc_tls_version::TLS1_3);
+  auto server_credentials = grpc::experimental::TlsServerCredentials(options);
+  EXPECT_NE(server_credentials, nullptr);
+}
+
+TEST(CredentialsTest, TlsServerCredentialsWithBadMinMaxTlsVersions) {
+  grpc::experimental::TlsServerCredentialsOptions options(
+      /*certificate_provider=*/nullptr);
+  options.set_min_tls_version(grpc_tls_version::TLS1_3);
+  options.set_max_tls_version(grpc_tls_version::TLS1_2);
+  auto server_credentials = grpc::experimental::TlsServerCredentials(options);
+  EXPECT_EQ(server_credentials, nullptr);
+  delete options.c_credentials_options();
 }
 
 }  // namespace
