@@ -13,7 +13,7 @@ Build-Depends: dpkg-dev (>= 1.22.5), debhelper-compat (= 13), cmake, pkgconf,
 # ruby-rspec, ruby-simplecov,
  dh-python,
  python3-all-dev,
- cython3-legacy,
+ cython3,
  python3-six,
  python3-setuptools,
  python3-pip,
@@ -37,16 +37,16 @@ Package: libgrpc-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libgrpc36 (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
+Depends: libgrpc50 (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
 Conflicts: libgpr1-dev, libgpr2-dev, libgpr3-dev, libupb-dev
 Description: high performance general RPC framework (development)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
- This package contains the headers and the static library for libgrpc36 .
+ This package contains the headers and the static library for libgrpc50 .
 
-Package: libgrpc36
+Package: libgrpc50
 Provides: ${t64:Provides}
 Architecture: any
 Multi-Arch: same
@@ -64,18 +64,18 @@ Package: libgrpc++-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libgrpc++1.59 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
+Depends: libgrpc++1.75 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
 Description: high performance general RPC framework (development)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
- This package contains the headers and the static library for libgrpc++1.59 .
+ This package contains the headers and the static library for libgrpc++1.75 .
 
-Package: libgrpc++1.59
+Package: libgrpc++1.75
 Provides: ${t64:Provides}
-Replaces: libgrpc++1.51
-Breaks: libgrpc++1.51 (<< ${source:Version})
+Replaces: libgrpc++1.51, libgrpc++1.59
+Breaks: libgrpc++1.51, libgrpc++1.59
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
