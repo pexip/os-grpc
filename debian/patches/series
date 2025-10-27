@@ -12,6 +12,4 @@ no-make-in-extconf.patch
 use-system-grpc.patch
 fix-protoc-path.patch
 add_grpc_libdir.patch
-link_python_all_absl.patch
-fix-run_poll_channels_loop-FTBFS.patch
 ruby_no-incompatible-pointer-types.patch

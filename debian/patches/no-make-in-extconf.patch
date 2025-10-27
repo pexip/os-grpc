@@ -1,6 +1,8 @@
---- a/src/ruby/ext/grpc/extconf.rb
-+++ b/src/ruby/ext/grpc/extconf.rb
-@@ -99,33 +99,6 @@ ENV['BUILDDIR'] = output_dir
+Index: grpc/src/ruby/ext/grpc/extconf.rb
+===================================================================
+--- grpc.orig/src/ruby/ext/grpc/extconf.rb
++++ grpc/src/ruby/ext/grpc/extconf.rb
+@@ -124,22 +124,6 @@ ENV['BUILDDIR'] = output_dir
  strip_tool = RbConfig::CONFIG['STRIP']
  strip_tool += ' -x' if apple_toolchain
  
@@ -18,23 +20,12 @@
 -  puts "Building grpc native library: #{cmd}"
 -  system(cmd)
 -  exit 1 unless $? == 0
--
--  if grpc_config == 'opt'
--    rm_obj_cmd = "rm -rf #{File.join(output_dir, 'objs')}"
--    puts "Removing grpc object files: #{rm_obj_cmd}"
--    system(rm_obj_cmd)
--    exit 1 unless $? == 0
--    strip_cmd = "#{strip_tool} #{grpc_lib_dir}/*.a"
--    puts "Stripping grpc native library: #{strip_cmd}"
--    system(strip_cmd)
--    exit 1 unless $? == 0
--  end
 -end
 -
- $CFLAGS << ' -DGRPC_RUBY_WINDOWS_UCRT' if windows_ucrt
- $CFLAGS << ' -I' + File.join(grpc_root, 'include')
- 
-@@ -163,7 +136,7 @@ if apple_toolchain
+ # C-core built, generate Makefile for ruby extension
+ $LDFLAGS = maybe_remove_strip_all_linker_flag($LDFLAGS)
+ $DLDFLAGS = maybe_remove_strip_all_linker_flag($DLDFLAGS)
+@@ -183,7 +167,7 @@ if apple_toolchain
    $LDFLAGS << ' -Wl,-exported_symbols_list,"' + ext_export_file + '.clang"'
  end
  

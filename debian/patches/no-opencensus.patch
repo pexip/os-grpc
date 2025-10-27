@@ -6,21 +6,23 @@ Last-Update: 2022-11-14
 
 ---
 
---- grpc-1.50.1.orig/CMakeLists.txt
-+++ grpc-1.50.1/CMakeLists.txt
-@@ -366,6 +366,7 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DI
+Index: grpc/CMakeLists.txt
+===================================================================
+--- grpc.orig/CMakeLists.txt
++++ grpc/CMakeLists.txt
+@@ -443,6 +443,7 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DI
    )
  endif()
  # Setup external proto library at third_party/opencensus-proto/src with 2 download URLs
 +if (FALSE)
- if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/opencensus-proto/src)
+ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/opencensus-proto/src AND gRPC_DOWNLOAD_ARCHIVES)
    # Download the archive via HTTP, validate the checksum, and extract to third_party/opencensus-proto/src.
    download_archive(
-@@ -384,6 +385,7 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DI
+@@ -461,6 +462,7 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DI
      opencensus-proto-0.3.0/src
    )
  endif()
 +endif()
- # Setup external proto library at third_party/xds with 2 download URLs
- if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/xds)
-   # Download the archive via HTTP, validate the checksum, and extract to third_party/xds.
+ # Setup external proto library at third_party/protoc-gen-validate with 2 download URLs
+ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/protoc-gen-validate AND gRPC_DOWNLOAD_ARCHIVES)
+   # Download the archive via HTTP, validate the checksum, and extract to third_party/protoc-gen-validate.

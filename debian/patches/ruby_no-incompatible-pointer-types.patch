@@ -7,13 +7,15 @@ Last-Update: 2024-08-11
 
 ---
 
---- grpc-1.59.5.orig/src/ruby/ext/grpc/extconf.rb
-+++ grpc-1.59.5/src/ruby/ext/grpc/extconf.rb
-@@ -159,6 +159,7 @@ $CFLAGS << ' -std=c11 '
+Index: grpc/src/ruby/ext/grpc/extconf.rb
+===================================================================
+--- grpc.orig/src/ruby/ext/grpc/extconf.rb
++++ grpc/src/ruby/ext/grpc/extconf.rb
+@@ -189,6 +189,7 @@ $CFLAGS << ' -std=c11 '
  $CFLAGS << ' -Wall '
  $CFLAGS << ' -Wextra '
  $CFLAGS << ' -pedantic '
 +$CFLAGS << ' -Wno-incompatible-pointer-types '
  
  output = File.join('grpc', 'grpc_c')
- puts 'Generating Makefile for ' + output
+ puts "extconf.rb $LDFLAGS: #{$LDFLAGS}"
