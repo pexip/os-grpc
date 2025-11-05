@@ -13,3 +13,6 @@ use-system-grpc.patch
 fix-protoc-path.patch
 add_grpc_libdir.patch
 ruby_no-incompatible-pointer-types.patch
+999_pexip_python_grpcio_tools_fixups.patch
+999_pexip_openssl3_compat.patch
+999_pexip_python_grpcio_fixups.patch

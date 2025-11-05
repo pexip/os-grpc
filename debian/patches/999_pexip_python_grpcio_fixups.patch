@@ -1,0 +1,49 @@
+Index: grpc/setup.py
+===================================================================
+--- grpc.orig/setup.py
++++ grpc/setup.py
+@@ -194,7 +194,7 @@ BUILD_WITH_STATIC_LIBSTDCXX = _env_bool_
+ #
+ # TODO(ericgribkoff) Respect the BUILD_WITH_SYSTEM_* flags alongside this option
+ USE_PREBUILT_GRPC_CORE = _env_bool_value(
+-    "GRPC_PYTHON_USE_PREBUILT_GRPC_CORE", "False"
++    "GRPC_PYTHON_USE_PREBUILT_GRPC_CORE", "True"
+ )
+ 
+ # Environment variable to determine whether or not to enable coverage analysis
+@@ -488,16 +488,15 @@ def cython_extensions_and_necessity():
+     config = os.environ.get("CONFIG", "opt")
+     prefix = "libs/" + config + "/"
+     if USE_PREBUILT_GRPC_CORE:
+-        extra_objects = [
+-            prefix + "libares.a",
+-            prefix + "libboringssl.a",
+-            prefix + "libgpr.a",
+-            prefix + "libgrpc.a",
+-        ]
++        extension_libraries = EXTENSION_LIBRARIES + ("gpr", "grpc")
++        extra_objects = []
+         core_c_files = []
++        extra_link_args = LDFLAGS + ("-Lbuild-shared", )
+     else:
++        extension_libraries = EXTENSION_LIBRARIES
+         core_c_files = list(CORE_C_FILES)
+         extra_objects = []
++        extra_link_args = LDFLAGS
+     extensions = [
+         Extension(
+             name=module_name,
+@@ -508,11 +507,11 @@ def cython_extensions_and_necessity():
+                 + asm_files
+             ),
+             include_dirs=list(EXTENSION_INCLUDE_DIRECTORIES),
+-            libraries=list(EXTENSION_LIBRARIES),
++            libraries=list(extension_libraries),
+             define_macros=list(DEFINE_MACROS),
+             extra_objects=extra_objects,
+             extra_compile_args=list(CFLAGS),
+-            extra_link_args=list(LDFLAGS),
++            extra_link_args=list(extra_link_args),
+         )
+         for (module_name, module_file) in zip(
+             list(CYTHON_EXTENSION_MODULE_NAMES), cython_module_files

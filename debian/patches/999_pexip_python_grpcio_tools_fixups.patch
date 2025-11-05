@@ -1,0 +1,31 @@
+Index: grpc/tools/distrib/python/grpcio_tools/setup.py
+===================================================================
+--- grpc.orig/tools/distrib/python/grpcio_tools/setup.py
++++ grpc/tools/distrib/python/grpcio_tools/setup.py
+@@ -49,6 +49,9 @@ if sys.version_info[0] == 2:
+ else:
+     _EXT_INIT_SYMBOL = "PyInit__protoc_compiler"
+ 
++BUILD_WITH_SYSTEM_ABSL = True
++BUILD_WITH_SYSTEM_PROTOBUF = True
++
+ _parallel_compile_patch.monkeypatch_compile_maybe()
+ _spawn_patch.monkeypatch_spawn()
+ 
+@@ -257,6 +260,16 @@ PROTO_INCLUDE = os.path.normpath(protoc_
+ GRPC_PYTHON_TOOLS_PACKAGE = "grpc_tools"
+ GRPC_PYTHON_PROTO_RESOURCES_NAME = "_proto"
+ 
++if BUILD_WITH_SYSTEM_ABSL:
++    CC_FILES = [x for x in CC_FILES if "third_party/abseil-cpp" not in x]
++    CC_INCLUDES = [x for x in CC_INCLUDES if "third_party/abseil-cpp" not in x]
++
++if BUILD_WITH_SYSTEM_PROTOBUF:
++    CC_FILES = [x for x in CC_FILES if "third_party/protobuf" not in x]
++    CC_INCLUDES = [x for x in CC_INCLUDES if "third_party/protobuf" not in x]
++    EXTRA_LINK_ARGS.append("-lprotobuf")
++    PROTO_INCLUDE = "/usr/include"
++
+ DEFINE_MACROS = ()
+ if "win32" in sys.platform:
+     DEFINE_MACROS += (
