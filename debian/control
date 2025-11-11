@@ -16,6 +16,7 @@ Build-Depends: dpkg-dev (>= 1.22.5), debhelper-compat (= 13), cmake, pkgconf,
  cython3,
  python3-six,
  python3-setuptools,
+ python3-opentelemetry-api,
  python3-pip,
  python3-pkg-resources,
  python3-protobuf,
@@ -147,6 +148,96 @@ Description: GRPC system (Python 3)
  .
  This package contains the Python 3 bindings.
 
+Package: python3-grpcio-channelz
+Section: python
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-protobuf (>= 3.11.4~),
+ ${shlibs:Depends},
+Description: GRPC system (Python 3 channelz)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the Python 3 channelz package
+
+Package: python3-grpcio-health-checking
+Section: python
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-protobuf (>= 3.11.4~),
+ ${shlibs:Depends},
+Description: GRPC system (Python 3 health checking)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the Python 3 health checking package
+
+Package: python3-grpcio-observability
+Section: python
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-protobuf (>= 3.11.4~),
+ ${shlibs:Depends},
+Description: GRPC system (Python 3 observability)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the Python 3 observability package
+
+Package: python3-grpcio-reflection
+Section: python
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-protobuf (>= 3.11.4~),
+ ${shlibs:Depends},
+Description: GRPC system (Python 3 reflection)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the Python 3 reflection package
+
+Package: python3-grpcio-status
+Section: python
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-protobuf (>= 3.11.4~),
+ ${shlibs:Depends},
+Description: GRPC system (Python 3 status)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the Python 3 status package
+
+Package: python3-grpcio-testing
+Section: python
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-protobuf (>= 3.11.4~),
+ ${shlibs:Depends},
+Description: GRPC system (Python 3 testing)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the Python 3 testing package
+
 Package: python3-grpcio-tools
 Section: python
 Architecture: any
@@ -164,18 +255,3 @@ Description: GRPC system (Python 3 tools)
  transparently, and makes it easier to build connected systems.
  .
  This package contains the Python 3 tools package
-
-Package: python3-grpcio-reflection
-Section: python
-Architecture: any
-Depends:
- ${misc:Depends},
- ${python3:Depends},
- python3-protobuf (>= 3.11.4~),
- ${shlibs:Depends},
-Description: GRPC system (Python 3 reflection)
- A modern, open source remote procedure call (RPC) framework that can
- run anywhere. It enables client and server applications to communicate
- transparently, and makes it easier to build connected systems.
- .
- This package contains the Python 3 reflection package

@@ -76,9 +76,9 @@ override_dh_auto_clean:
 
 override_dh_auto_configure:
 	mkdir -p $(CURDIR)/third_party/googletest/
-	ln -s /usr/src/googletest/googlemock/ \
+	ln -sfn /usr/src/googletest/googlemock/ \
 		$(CURDIR)/third_party/googletest/
-	ln -s /usr/src/googletest/googletest/ \
+	ln -sfn /usr/src/googletest/googletest/ \
 		$(CURDIR)/third_party/googletest/
 
 	dh_auto_configure -O--buildsystem=cmake \
@@ -125,11 +125,24 @@ override_dh_auto_build:
 	cd tools/distrib/python/grpcio_tools && HOME=$(CURDIR)/.pybuild/cpython3_$(PYTHON_VERSION)_grpcio-tools \
 		python$(PYTHON_VERSION) setup.py install --root $(PYTHON_TMP_DIR)
 
-	# Build grpc reflection python bindings
-	PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection \
-		dh_auto_configure -O--buildsystem=pybuild
-	PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection \
-		dh_auto_build -O--buildsystem=pybuild
+	# Build python binding packages in specified order
+	for package in reflection observability status channelz health_checking testing; do \
+		ln -sfn ../../.. src/python/grpcio_$$package/grpc_root ; \
+		GRPC_PYTHON_LDFLAGS="-L$(CURDIR)/build-shared -lgrpc" \
+		PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) \
+		PYBUILD_NAME=grpcio_$$package \
+		PYBUILD_DIR=src/python/grpcio_$$package \
+			dh_auto_configure -O--buildsystem=pybuild ; \
+		\
+		GRPC_PYTHON_LDFLAGS="-L$(CURDIR)/build-shared -lgrpc" \
+		PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) \
+		PYBUILD_NAME=grpcio_$$package \
+		PYBUILD_DIR=src/python/grpcio_$$package \
+			dh_auto_build -O--buildsystem=pybuild ; \
+		\
+		cd src/python/grpcio_$$package && HOME=$(CURDIR)/.pybuild/cpython3_$(PYTHON_VERSION)_grpcio_$$package \
+			python$(PYTHON_VERSION) setup.py install --root $(PYTHON_TMP_DIR) && cd $(CURDIR) ; \
+	done
 
 	# dh_auto_build -O--buildsystem=ruby
 
@@ -145,8 +158,10 @@ override_dh_auto_install:
 	PYBUILD_NAME=grpcio-tools PYBUILD_DIR=tools/distrib/python/grpcio_tools \
 		dh_auto_install -O--buildsystem=pybuild
 
-	PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) PYBUILD_NAME=grpcio_reflection PYBUILD_DIR=src/python/grpcio_reflection \
-		dh_auto_install -O--buildsystem=pybuild
+	for package in reflection observability status channelz health_checking testing; do \
+		PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) PYBUILD_NAME=grpcio_$$package PYBUILD_DIR=src/python/grpcio_$$package \
+			dh_auto_install -O--buildsystem=pybuild ; \
+	done
 
 	# We currently don't ship this
 	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/grpcpp_otel_plugin.pc
