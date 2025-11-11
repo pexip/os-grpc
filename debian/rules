@@ -149,7 +149,7 @@ override_dh_auto_install:
 		dh_auto_install -O--buildsystem=pybuild
 
 	# We currently don't ship this
-	rm -f debian/tmp/usr/lib/x86_64-linux-gnu/pkgconfig/grpcpp_otel_plugin.pc
+	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/grpcpp_otel_plugin.pc
 
 	#TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
 	#	dh_auto_install -O--buildsystem=ruby
