@@ -1,0 +1,1733 @@
+diff --git a/third_party/xds/udpa/annotations/migrate.proto b/third_party/xds/udpa/annotations/migrate.proto
+new file mode 100644
+index 00000000..5289cb8a
+--- /dev/null
++++ b/third_party/xds/udpa/annotations/migrate.proto
+@@ -0,0 +1,55 @@
++// THIS FILE IS DEPRECATED
++// Users should instead use the corresponding proto in the xds tree.
++// No new changes will be accepted here.
++
++syntax = "proto3";
++
++package udpa.annotations;
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/annotations";
++
++// Magic number in this file derived from top 28bit of SHA256 digest of
++// "udpa.annotation.migrate".
++
++extend google.protobuf.MessageOptions {
++  MigrateAnnotation message_migrate = 171962766;
++}
++
++extend google.protobuf.FieldOptions {
++  FieldMigrateAnnotation field_migrate = 171962766;
++}
++
++extend google.protobuf.EnumOptions {
++  MigrateAnnotation enum_migrate = 171962766;
++}
++
++extend google.protobuf.EnumValueOptions {
++  MigrateAnnotation enum_value_migrate = 171962766;
++}
++
++extend google.protobuf.FileOptions {
++  FileMigrateAnnotation file_migrate = 171962766;
++}
++
++message MigrateAnnotation {
++  // Rename the message/enum/enum value in next version.
++  string rename = 1;
++}
++
++message FieldMigrateAnnotation {
++  // Rename the field in next version.
++  string rename = 1;
++
++  // Add the field to a named oneof in next version. If this already exists, the
++  // field will join its siblings under the oneof, otherwise a new oneof will be
++  // created with the given name.
++  string oneof_promotion = 2;
++}
++
++message FileMigrateAnnotation {
++  // Move all types in the file to another package, this implies changing proto
++  // file path.
++  string move_to_package = 2;
++}
+diff --git a/third_party/xds/udpa/annotations/security.proto b/third_party/xds/udpa/annotations/security.proto
+new file mode 100644
+index 00000000..52801d30
+--- /dev/null
++++ b/third_party/xds/udpa/annotations/security.proto
+@@ -0,0 +1,34 @@
++// THIS FILE IS DEPRECATED
++// Users should instead use the corresponding proto in the xds tree.
++// No new changes will be accepted here.
++
++syntax = "proto3";
++
++package udpa.annotations;
++
++import "udpa/annotations/status.proto";
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/annotations";
++
++// All annotations in this file are experimental and subject to change. Their
++// only consumer today is the Envoy APIs and SecuritAnnotationValidator protoc
++// plugin in this repository.
++option (udpa.annotations.file_status).work_in_progress = true;
++
++extend google.protobuf.FieldOptions {
++  // Magic number is the 28 most significant bits in the sha256sum of
++  // "udpa.annotations.security".
++  FieldSecurityAnnotation security = 11122993;
++}
++
++// These annotations indicate metadata for the purpose of understanding the
++// security significance of fields.
++message FieldSecurityAnnotation {
++  // Field should be set in the presence of untrusted downstreams.
++  bool configure_for_untrusted_downstream = 1;
++
++  // Field should be set in the presence of untrusted upstreams.
++  bool configure_for_untrusted_upstream = 2;
++}
+diff --git a/third_party/xds/udpa/annotations/sensitive.proto b/third_party/xds/udpa/annotations/sensitive.proto
+new file mode 100644
+index 00000000..ab822fb4
+--- /dev/null
++++ b/third_party/xds/udpa/annotations/sensitive.proto
+@@ -0,0 +1,20 @@
++// THIS FILE IS DEPRECATED
++// Users should instead use the corresponding proto in the xds tree.
++// No new changes will be accepted here.
++
++syntax = "proto3";
++
++package udpa.annotations;
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/annotations";
++
++extend google.protobuf.FieldOptions {
++  // Magic number is the 28 most significant bits in the sha256sum of "udpa.annotations.sensitive".
++  // When set to true, `sensitive` indicates that this field contains sensitive data, such as
++  // personally identifiable information, passwords, or private keys, and should be redacted for
++  // display by tools aware of this annotation. Note that that this has no effect on standard
++  // Protobuf functions such as `TextFormat::PrintToString`.
++  bool sensitive = 76569463;
++}
+diff --git a/third_party/xds/udpa/annotations/status.proto b/third_party/xds/udpa/annotations/status.proto
+new file mode 100644
+index 00000000..76cfd4dc
+--- /dev/null
++++ b/third_party/xds/udpa/annotations/status.proto
+@@ -0,0 +1,40 @@
++// THIS FILE IS DEPRECATED
++// Users should instead use the corresponding proto in the xds tree.
++// No new changes will be accepted here.
++
++syntax = "proto3";
++
++package udpa.annotations;
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/annotations";
++
++// Magic number in this file derived from top 28bit of SHA256 digest of
++// "udpa.annotation.status".
++extend google.protobuf.FileOptions {
++  StatusAnnotation file_status = 222707719;
++}
++
++enum PackageVersionStatus {
++  // Unknown package version status.
++  UNKNOWN = 0;
++
++  // This version of the package is frozen.
++  FROZEN = 1;
++
++  // This version of the package is the active development version.
++  ACTIVE = 2;
++
++  // This version of the package is the candidate for the next major version. It
++  // is typically machine generated from the active development version.
++  NEXT_MAJOR_VERSION_CANDIDATE = 3;
++}
++
++message StatusAnnotation {
++  // The entity is work-in-progress and subject to breaking changes.
++  bool work_in_progress = 1;
++
++  // The entity belongs to a package with the given version status.
++  PackageVersionStatus package_version_status = 2;
++}
+diff --git a/third_party/xds/udpa/annotations/versioning.proto b/third_party/xds/udpa/annotations/versioning.proto
+new file mode 100644
+index 00000000..dcb7c85f
+--- /dev/null
++++ b/third_party/xds/udpa/annotations/versioning.proto
+@@ -0,0 +1,23 @@
++// THIS FILE IS DEPRECATED
++// Users should instead use the corresponding proto in the xds tree.
++// No new changes will be accepted here.
++
++syntax = "proto3";
++
++package udpa.annotations;
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/annotations";
++
++extend google.protobuf.MessageOptions {
++  // Magic number derived from 0x78 ('x') 0x44 ('D') 0x53 ('S')
++  VersioningAnnotation versioning = 7881811;
++}
++
++message VersioningAnnotation {
++  // Track the previous message type. E.g. this message might be
++  // udpa.foo.v3alpha.Foo and it was previously udpa.bar.v2.Bar. This
++  // information is consumed by UDPA via proto descriptors.
++  string previous_message_type = 1;
++}
+diff --git a/third_party/xds/udpa/data/orca/v1/orca_load_report.proto b/third_party/xds/udpa/data/orca/v1/orca_load_report.proto
+new file mode 100644
+index 00000000..5d364498
+--- /dev/null
++++ b/third_party/xds/udpa/data/orca/v1/orca_load_report.proto
+@@ -0,0 +1,40 @@
++// THIS FILE IS DEPRECATED
++// Users should instead use the corresponding proto in the xds tree.
++// No new changes will be accepted here.
++
++syntax = "proto3";
++
++package udpa.data.orca.v1;
++
++option java_outer_classname = "OrcaLoadReportProto";
++option java_multiple_files = true;
++option java_package = "com.github.udpa.udpa.data.orca.v1";
++option go_package = "github.com/cncf/xds/go/udpa/data/orca/v1";
++
++import "validate/validate.proto";
++
++// See section `ORCA load report format` of the design document in
++// :ref:`https://github.com/envoyproxy/envoy/issues/6614`.
++
++message OrcaLoadReport {
++  // CPU utilization expressed as a fraction of available CPU resources. This
++  // should be derived from the latest sample or measurement.
++  double cpu_utilization = 1 [(validate.rules).double.gte = 0, (validate.rules).double.lte = 1];
++
++  // Memory utilization expressed as a fraction of available memory
++  // resources. This should be derived from the latest sample or measurement.
++  double mem_utilization = 2 [(validate.rules).double.gte = 0, (validate.rules).double.lte = 1];
++
++  // Total RPS being served by an endpoint. This should cover all services that an endpoint is
++  // responsible for.
++  uint64 rps = 3;
++
++  // Application specific requests costs. Each value is an absolute cost (e.g. 3487 bytes of
++  // storage) associated with the request.
++  map<string, double> request_cost = 4;
++
++  // Resource utilization values. Each value is expressed as a fraction of total resources
++  // available, derived from the latest sample or measurement.
++  map<string, double> utilization = 5
++      [(validate.rules).map.values.double.gte = 0, (validate.rules).map.values.double.lte = 1];
++}
+diff --git a/third_party/xds/udpa/service/orca/v1/orca.proto b/third_party/xds/udpa/service/orca/v1/orca.proto
+new file mode 100644
+index 00000000..1ce67615
+--- /dev/null
++++ b/third_party/xds/udpa/service/orca/v1/orca.proto
+@@ -0,0 +1,40 @@
++// THIS FILE IS DEPRECATED
++// Users should instead use the corresponding proto in the xds tree.
++// No new changes will be accepted here.
++
++syntax = "proto3";
++
++package udpa.service.orca.v1;
++
++option java_outer_classname = "OrcaProto";
++option java_multiple_files = true;
++option java_package = "com.github.udpa.udpa.service.orca.v1";
++option go_package = "github.com/cncf/xds/go/udpa/service/orca/v1";
++
++import "udpa/data/orca/v1/orca_load_report.proto";
++
++import "google/protobuf/duration.proto";
++
++// See section `Out-of-band (OOB) reporting` of the design document in
++// :ref:`https://github.com/envoyproxy/envoy/issues/6614`.
++
++// Out-of-band (OOB) load reporting service for the additional load reporting
++// agent that does not sit in the request path. Reports are periodically sampled
++// with sufficient frequency to provide temporal association with requests.
++// OOB reporting compensates the limitation of in-band reporting in revealing
++// costs for backends that do not provide a steady stream of telemetry such as
++// long running stream operations and zero QPS services. This is a server
++// streaming service, client needs to terminate current RPC and initiate
++// a new call to change backend reporting frequency.
++service OpenRcaService {
++  rpc StreamCoreMetrics(OrcaLoadReportRequest) returns (stream udpa.data.orca.v1.OrcaLoadReport);
++}
++
++message OrcaLoadReportRequest {
++  // Interval for generating Open RCA core metric responses.
++  google.protobuf.Duration report_interval = 1;
++  // Request costs to collect. If this is empty, all known requests costs tracked by
++  // the load reporting agent will be returned. This provides an opportunity for
++  // the client to selectively obtain a subset of tracked costs.
++  repeated string request_cost_names = 2;
++}
+diff --git a/third_party/xds/udpa/type/v1/typed_struct.proto b/third_party/xds/udpa/type/v1/typed_struct.proto
+new file mode 100644
+index 00000000..10eaef1a
+--- /dev/null
++++ b/third_party/xds/udpa/type/v1/typed_struct.proto
+@@ -0,0 +1,46 @@
++// THIS FILE IS DEPRECATED
++// Users should instead use the corresponding proto in the xds tree.
++// No new changes will be accepted here.
++
++syntax = "proto3";
++
++package udpa.type.v1;
++
++option java_outer_classname = "TypedStructProto";
++option java_multiple_files = true;
++option java_package = "com.github.udpa.udpa.type.v1";
++option go_package = "github.com/cncf/xds/go/udpa/type/v1";
++
++import "google/protobuf/struct.proto";
++
++// A TypedStruct contains an arbitrary JSON serialized protocol buffer message with a URL that
++// describes the type of the serialized message. This is very similar to google.protobuf.Any,
++// instead of having protocol buffer binary, this employs google.protobuf.Struct as value.
++//
++// This message is intended to be embedded inside Any, so it shouldn't be directly referred
++// from other UDPA messages.
++//
++// When packing an opaque extension config, packing the expected type into Any is preferred
++// wherever possible for its efficiency. TypedStruct should be used only if a proto descriptor
++// is not available, for example if:
++// - A control plane sends opaque message that is originally from external source in human readable
++//   format such as JSON or YAML.
++// - The control plane doesn't have the knowledge of the protocol buffer schema hence it cannot
++//   serialize the message in protocol buffer binary format.
++// - The DPLB doesn't have have the knowledge of the protocol buffer schema its plugin or extension
++//   uses. This has to be indicated in the DPLB capability negotiation.
++//
++// When a DPLB receives a TypedStruct in Any, it should:
++// - Check if the type_url of the TypedStruct matches the type the extension expects.
++// - Convert value to the type described in type_url and perform validation.
++// TODO(lizan): Figure out how TypeStruct should be used with DPLB extensions that doesn't link
++// protobuf descriptor with DPLB itself, (e.g. gRPC LB Plugin, Envoy WASM extensions).
++message TypedStruct {
++  // A URL that uniquely identifies the type of the serialize protocol buffer message.
++  // This has same semantics and format described in google.protobuf.Any:
++  // https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/any.proto
++  string type_url = 1;
++
++  // A JSON representation of the above specified type.
++  google.protobuf.Struct value = 2;
++}
+diff --git a/third_party/xds/xds/annotations/v3/migrate.proto b/third_party/xds/xds/annotations/v3/migrate.proto
+new file mode 100644
+index 00000000..13859274
+--- /dev/null
++++ b/third_party/xds/xds/annotations/v3/migrate.proto
+@@ -0,0 +1,46 @@
++syntax = "proto3";
++
++package xds.annotations.v3;
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/xds/annotations/v3";
++
++// Magic number in this file derived from top 28bit of SHA256 digest of
++// "xds.annotation.v3.migrate".
++extend google.protobuf.MessageOptions {
++  MigrateAnnotation message_migrate = 112948430;
++}
++extend google.protobuf.FieldOptions {
++  FieldMigrateAnnotation field_migrate = 112948430;
++}
++extend google.protobuf.EnumOptions {
++  MigrateAnnotation enum_migrate = 112948430;
++}
++extend google.protobuf.EnumValueOptions {
++  MigrateAnnotation enum_value_migrate = 112948430;
++}
++extend google.protobuf.FileOptions {
++  FileMigrateAnnotation file_migrate = 112948430;
++}
++
++message MigrateAnnotation {
++  // Rename the message/enum/enum value in next version.
++  string rename = 1;
++}
++
++message FieldMigrateAnnotation {
++  // Rename the field in next version.
++  string rename = 1;
++
++  // Add the field to a named oneof in next version. If this already exists, the
++  // field will join its siblings under the oneof, otherwise a new oneof will be
++  // created with the given name.
++  string oneof_promotion = 2;
++}
++
++message FileMigrateAnnotation {
++  // Move all types in the file to another package, this implies changing proto
++  // file path.
++  string move_to_package = 2;
++}
+diff --git a/third_party/xds/xds/annotations/v3/security.proto b/third_party/xds/xds/annotations/v3/security.proto
+new file mode 100644
+index 00000000..f1f9f40d
+--- /dev/null
++++ b/third_party/xds/xds/annotations/v3/security.proto
+@@ -0,0 +1,30 @@
++syntax = "proto3";
++
++package xds.annotations.v3;
++
++import "xds/annotations/v3/status.proto";
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/xds/annotations/v3";
++
++// All annotations in this file are experimental and subject to change. Their
++// only consumer today is the Envoy APIs and SecuritAnnotationValidator protoc
++// plugin in this repository.
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++extend google.protobuf.FieldOptions {
++  // Magic number is the 28 most significant bits in the sha256sum of
++  // "xds.annotations.v3.security".
++  FieldSecurityAnnotation security = 99044135;
++}
++
++// These annotations indicate metadata for the purpose of understanding the
++// security significance of fields.
++message FieldSecurityAnnotation {
++  // Field should be set in the presence of untrusted downstreams.
++  bool configure_for_untrusted_downstream = 1;
++
++  // Field should be set in the presence of untrusted upstreams.
++  bool configure_for_untrusted_upstream = 2;
++}
+diff --git a/third_party/xds/xds/annotations/v3/sensitive.proto b/third_party/xds/xds/annotations/v3/sensitive.proto
+new file mode 100644
+index 00000000..e2cc0b79
+--- /dev/null
++++ b/third_party/xds/xds/annotations/v3/sensitive.proto
+@@ -0,0 +1,16 @@
++syntax = "proto3";
++
++package xds.annotations.v3;
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/xds/annotations/v3";
++
++extend google.protobuf.FieldOptions {
++  // Magic number is the 28 most significant bits in the sha256sum of "xds.annotations.v3.sensitive".
++  // When set to true, `sensitive` indicates that this field contains sensitive data, such as
++  // personally identifiable information, passwords, or private keys, and should be redacted for
++  // display by tools aware of this annotation. Note that that this has no effect on standard
++  // Protobuf functions such as `TextFormat::PrintToString`.
++  bool sensitive = 61008053;
++}
+diff --git a/third_party/xds/xds/annotations/v3/status.proto b/third_party/xds/xds/annotations/v3/status.proto
+new file mode 100644
+index 00000000..367e784f
+--- /dev/null
++++ b/third_party/xds/xds/annotations/v3/status.proto
+@@ -0,0 +1,59 @@
++syntax = "proto3";
++
++package xds.annotations.v3;
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/xds/annotations/v3";
++
++// Magic number in this file derived from top 28bit of SHA256 digest of
++// "xds.annotations.v3.status".
++extend google.protobuf.FileOptions {
++  FileStatusAnnotation file_status = 226829418;
++}
++
++extend google.protobuf.MessageOptions {
++  MessageStatusAnnotation message_status = 226829418;
++}
++
++extend google.protobuf.FieldOptions {
++  FieldStatusAnnotation field_status = 226829418;
++}
++
++message FileStatusAnnotation {
++  // The entity is work-in-progress and subject to breaking changes.
++  bool work_in_progress = 1;
++}
++
++message MessageStatusAnnotation {
++  // The entity is work-in-progress and subject to breaking changes.
++  bool work_in_progress = 1;
++}
++
++message FieldStatusAnnotation {
++  // The entity is work-in-progress and subject to breaking changes.
++  bool work_in_progress = 1;
++}
++
++enum PackageVersionStatus {
++  // Unknown package version status.
++  UNKNOWN = 0;
++
++  // This version of the package is frozen.
++  FROZEN = 1;
++
++  // This version of the package is the active development version.
++  ACTIVE = 2;
++
++  // This version of the package is the candidate for the next major version. It
++  // is typically machine generated from the active development version.
++  NEXT_MAJOR_VERSION_CANDIDATE = 3;
++}
++
++message StatusAnnotation {
++  // The entity is work-in-progress and subject to breaking changes.
++  bool work_in_progress = 1;
++
++  // The entity belongs to a package with the given version status.
++  PackageVersionStatus package_version_status = 2;
++}
+diff --git a/third_party/xds/xds/annotations/v3/versioning.proto b/third_party/xds/xds/annotations/v3/versioning.proto
+new file mode 100644
+index 00000000..b6440f19
+--- /dev/null
++++ b/third_party/xds/xds/annotations/v3/versioning.proto
+@@ -0,0 +1,20 @@
++syntax = "proto3";
++
++package xds.annotations.v3;
++
++import "google/protobuf/descriptor.proto";
++
++option go_package = "github.com/cncf/xds/go/xds/annotations/v3";
++
++extend google.protobuf.MessageOptions {
++  // Magic number is the 28 most significant bits in the sha256sum of
++  // "xds.annotations.v3.versioning".
++  VersioningAnnotation versioning = 92389011;
++}
++
++message VersioningAnnotation {
++  // Track the previous message type. E.g. this message might be
++  // xds.foo.v3alpha.Foo and it was previously xds.bar.v2.Bar. This
++  // information is consumed by UDPA via proto descriptors.
++  string previous_message_type = 1;
++}
+diff --git a/third_party/xds/xds/core/v3/authority.proto b/third_party/xds/xds/core/v3/authority.proto
+new file mode 100644
+index 00000000..d666c38e
+--- /dev/null
++++ b/third_party/xds/xds/core/v3/authority.proto
+@@ -0,0 +1,22 @@
++syntax = "proto3";
++
++package xds.core.v3;
++
++import "xds/annotations/v3/status.proto";
++
++import "validate/validate.proto";
++
++option java_outer_classname = "AuthorityProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.core.v3";
++option go_package = "github.com/cncf/xds/go/xds/core/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// xDS authority information.
++message Authority {
++  string name = 1 [(validate.rules).string = {min_len: 1}];
++
++  // .. space reserved for additional authority addressing information, e.g. for
++  // resource signing, items such as CA trust chain, cert pinning may be added.
++}
+diff --git a/third_party/xds/xds/core/v3/cidr.proto b/third_party/xds/xds/core/v3/cidr.proto
+new file mode 100644
+index 00000000..c40dab2f
+--- /dev/null
++++ b/third_party/xds/xds/core/v3/cidr.proto
+@@ -0,0 +1,25 @@
++syntax = "proto3";
++
++package xds.core.v3;
++
++import "xds/annotations/v3/status.proto";
++import "google/protobuf/wrappers.proto";
++
++import "validate/validate.proto";
++
++option java_outer_classname = "CidrRangeProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.core.v3";
++option go_package = "github.com/cncf/xds/go/xds/core/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// CidrRange specifies an IP Address and a prefix length to construct
++// the subnet mask for a `CIDR <https://tools.ietf.org/html/rfc4632>`_ range.
++message CidrRange {
++  // IPv4 or IPv6 address, e.g. ``192.0.0.0`` or ``2001:db8::``.
++  string address_prefix = 1 [(validate.rules).string = {min_len: 1}];
++
++  // Length of prefix, e.g. 0, 32. Defaults to 0 when unset.
++  google.protobuf.UInt32Value prefix_len = 2 [(validate.rules).uint32 = {lte: 128}];
++}
+diff --git a/third_party/xds/xds/core/v3/collection_entry.proto b/third_party/xds/xds/core/v3/collection_entry.proto
+new file mode 100644
+index 00000000..c844d614
+--- /dev/null
++++ b/third_party/xds/xds/core/v3/collection_entry.proto
+@@ -0,0 +1,55 @@
++syntax = "proto3";
++
++package xds.core.v3;
++
++import "google/protobuf/any.proto";
++
++import "xds/annotations/v3/status.proto";
++import "xds/core/v3/resource_locator.proto";
++
++import "validate/validate.proto";
++
++option java_outer_classname = "CollectionEntryProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.core.v3";
++option go_package = "github.com/cncf/xds/go/xds/core/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// xDS collection resource wrapper. This encapsulates a xDS resource when
++// appearing inside a list collection resource. List collection resources are
++// regular Resource messages of type:
++//
++// .. code-block:: proto
++//
++//   message <T>Collection {
++//     repeated CollectionEntry resources = 1;
++//   }
++//
++message CollectionEntry {
++  // Inlined resource entry.
++  message InlineEntry {
++    // Optional name to describe the inlined resource. Resource names must match
++    // ``[a-zA-Z0-9_-\./]+`` (TODO(htuch): turn this into a PGV constraint once
++    // finalized, probably should be a RFC3986 pchar). This name allows
++    // reference via the #entry directive in ResourceLocator.
++    string name = 1 [(validate.rules).string.pattern = "^[0-9a-zA-Z_\\-\\.~:]+$"];
++
++    // The resource's logical version. It is illegal to have the same named xDS
++    // resource name at a given version with different resource payloads.
++    string version = 2;
++
++    // The resource payload, including type URL.
++    google.protobuf.Any resource = 3;
++  }
++
++  oneof resource_specifier {
++    option (validate.required) = true;
++
++    // A resource locator describing how the member resource is to be located.
++    ResourceLocator locator = 1;
++
++    // The resource is inlined in the list collection.
++    InlineEntry inline_entry = 2;
++  }
++}
+diff --git a/third_party/xds/xds/core/v3/context_params.proto b/third_party/xds/xds/core/v3/context_params.proto
+new file mode 100644
+index 00000000..a42c7a85
+--- /dev/null
++++ b/third_party/xds/xds/core/v3/context_params.proto
+@@ -0,0 +1,23 @@
++syntax = "proto3";
++
++package xds.core.v3;
++
++import "xds/annotations/v3/status.proto";
++
++option java_outer_classname = "ContextParamsProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.core.v3";
++option go_package = "github.com/cncf/xds/go/xds/core/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// Additional parameters that can be used to select resource variants. These include any
++// global context parameters, per-resource type client feature capabilities and per-resource
++// type functional attributes. All per-resource type attributes will be `xds.resource.`
++// prefixed and some of these are documented below:
++//
++// `xds.resource.listening_address`: The value is "IP:port" (e.g. "10.1.1.3:8080") which is
++//   the listening address of a Listener. Used in a Listener resource query.
++message ContextParams {
++    map<string, string> params = 1;
++}
+diff --git a/third_party/xds/xds/core/v3/extension.proto b/third_party/xds/xds/core/v3/extension.proto
+new file mode 100644
+index 00000000..dd489eb9
+--- /dev/null
++++ b/third_party/xds/xds/core/v3/extension.proto
+@@ -0,0 +1,26 @@
++syntax = "proto3";
++
++package xds.core.v3;
++
++option java_outer_classname = "ExtensionProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.core.v3";
++option go_package = "github.com/cncf/xds/go/xds/core/v3";
++
++import "validate/validate.proto";
++import "google/protobuf/any.proto";
++
++// Message type for extension configuration.
++message TypedExtensionConfig {
++  // The name of an extension. This is not used to select the extension, instead
++  // it serves the role of an opaque identifier.
++  string name = 1 [(validate.rules).string = {min_len: 1}];
++
++  // The typed config for the extension. The type URL will be used to identify
++  // the extension. In the case that the type URL is *xds.type.v3.TypedStruct*
++  // (or, for historical reasons, *udpa.type.v1.TypedStruct*), the inner type
++  // URL of *TypedStruct* will be utilized. See the
++  // :ref:`extension configuration overview
++  // <config_overview_extension_configuration>` for further details.
++  google.protobuf.Any typed_config = 2 [(validate.rules).any = {required: true}];
++}
+diff --git a/third_party/xds/xds/core/v3/resource.proto b/third_party/xds/xds/core/v3/resource.proto
+new file mode 100644
+index 00000000..dc062790
+--- /dev/null
++++ b/third_party/xds/xds/core/v3/resource.proto
+@@ -0,0 +1,29 @@
++syntax = "proto3";
++
++package xds.core.v3;
++
++import "google/protobuf/any.proto";
++
++import "xds/annotations/v3/status.proto";
++import "xds/core/v3/resource_name.proto";
++
++option java_outer_classname = "ResourceProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.core.v3";
++option go_package = "github.com/cncf/xds/go/xds/core/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// xDS resource wrapper. This encapsulates a xDS resource when appearing in an
++// xDS transport discovery response or when accessed as a filesystem object.
++message Resource {
++  // Resource name. This may be omitted for filesystem resources.
++  ResourceName name = 1;
++
++  // The resource's logical version. It is illegal to have the same named xDS
++  // resource name at a given version with different resource payloads.
++  string version = 2;
++
++  // The resource payload, including type URL.
++  google.protobuf.Any resource = 3;
++}
+diff --git a/third_party/xds/xds/core/v3/resource_locator.proto b/third_party/xds/xds/core/v3/resource_locator.proto
+new file mode 100644
+index 00000000..9b40d52f
+--- /dev/null
++++ b/third_party/xds/xds/core/v3/resource_locator.proto
+@@ -0,0 +1,118 @@
++syntax = "proto3";
++
++package xds.core.v3;
++
++import "xds/annotations/v3/status.proto";
++import "xds/core/v3/context_params.proto";
++
++import "validate/validate.proto";
++
++option java_outer_classname = "ResourceLocatorProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.core.v3";
++option go_package = "github.com/cncf/xds/go/xds/core/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// xDS resource locators identify a xDS resource name and instruct the
++// data-plane load balancer on how the resource may be located.
++//
++// Resource locators have a canonical xdstp:// URI representation:
++//
++//   xdstp://{authority}/{type_url}/{id}?{context_params}{#directive,*}
++//
++// where context_params take the form of URI query parameters.
++//
++// Resource locators have a similar canonical http:// URI representation:
++//
++//   http://{authority}/{type_url}/{id}?{context_params}{#directive,*}
++//
++// Resource locators also have a simplified file:// URI representation:
++//
++//   file:///{id}{#directive,*}
++//
++message ResourceLocator {
++  enum Scheme {
++    XDSTP = 0;
++    HTTP = 1;
++    FILE = 2;
++  }
++
++  // URI scheme.
++  Scheme scheme = 1 [(validate.rules).enum = {defined_only: true}];
++
++  // Opaque identifier for the resource. Any '/' will not be escaped during URI
++  // encoding and will form part of the URI path. This may end
++  // with ‘*’ for glob collection references.
++  string id = 2;
++
++  // Logical authority for resource (not necessarily transport network address).
++  // Authorities are opaque in the xDS API, data-plane load balancers will map
++  // them to concrete network transports such as an xDS management server, e.g.
++  // via envoy.config.core.v3.ConfigSource.
++  string authority = 3;
++
++  // Fully qualified resource type (as in type URL without types.googleapis.com/
++  // prefix).
++  string resource_type = 4 [(validate.rules).string = {min_len: 1}];
++
++  oneof context_param_specifier {
++    // Additional parameters that can be used to select resource variants.
++    // Matches must be exact, i.e. all context parameters must match exactly and
++    // there must be no additional context parameters set on the matched
++    // resource.
++    ContextParams exact_context = 5;
++
++    // .. space reserved for future potential matchers, e.g. CEL expressions.
++  }
++
++  // Directives provide information to data-plane load balancers on how xDS
++  // resource names are to be interpreted and potentially further resolved. For
++  // example, they may provide alternative resource locators for when primary
++  // resolution fails. Directives are not part of resource names and do not
++  // appear in a xDS transport discovery request.
++  //
++  // When encoding to URIs, directives take the form:
++  //
++  // <directive name>=<string representation of directive value>
++  //
++  // For example, we can have alt=xdstp://foo/bar or entry=some%20thing. Each
++  // directive value type may have its own string encoding, in the case of
++  // ResourceLocator there is a recursive URI encoding.
++  //
++  // Percent encoding applies to the URI encoding of the directive value.
++  // Multiple directives are comma-separated, so the reserved characters that
++  // require percent encoding in a directive value are [',', '#', '[', ']',
++  // '%']. These are the RFC3986 fragment reserved characters with the addition
++  // of the xDS scheme specific ','. See
++  // https://tools.ietf.org/html/rfc3986#page-49 for further details on URI ABNF
++  // and reserved characters.
++  message Directive {
++    oneof directive {
++      option (validate.required) = true;
++
++      // An alternative resource locator for fallback if the resource is
++      // unavailable. For example, take the resource locator:
++      //
++      //   xdstp://foo/some-type/some-route-table#alt=xdstp://bar/some-type/another-route-table
++      //
++      // If the data-plane load balancer is unable to reach `foo` to fetch the
++      // resource, it will fallback to `bar`. Alternative resources do not need
++      // to have equivalent content, but they should be functional substitutes.
++      ResourceLocator alt = 1;
++
++      // List collections support inlining of resources via the entry field in
++      // Resource. These inlined Resource objects may have an optional name
++      // field specified. When specified, the entry directive allows
++      // ResourceLocator to directly reference these inlined resources, e.g.
++      // xdstp://.../foo#entry=bar.
++      string entry = 2 [(validate.rules).string = {min_len: 1, pattern: "^[0-9a-zA-Z_\\-\\./~:]+$"}];
++    }
++  }
++
++  // A list of directives that appear in the xDS resource locator #fragment.
++  //
++  // When encoding to URI form, directives are percent encoded with comma
++  // separation.
++  repeated Directive directives = 6;
++}
+diff --git a/third_party/xds/xds/core/v3/resource_name.proto b/third_party/xds/xds/core/v3/resource_name.proto
+new file mode 100644
+index 00000000..0f3d9974
+--- /dev/null
++++ b/third_party/xds/xds/core/v3/resource_name.proto
+@@ -0,0 +1,42 @@
++syntax = "proto3";
++
++package xds.core.v3;
++
++import "xds/annotations/v3/status.proto";
++import "xds/core/v3/context_params.proto";
++
++import "validate/validate.proto";
++
++option java_outer_classname = "ResourceNameProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.core.v3";
++option go_package = "github.com/cncf/xds/go/xds/core/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// xDS resource name. This has a canonical xdstp:// URI representation:
++//
++//   xdstp://{authority}/{type_url}/{id}?{context_params}
++//
++// where context_params take the form of URI query parameters.
++//
++// A xDS resource name fully identifies a network resource for transport
++// purposes. xDS resource names in this form appear only in discovery
++// request/response messages used with the xDS transport.
++message ResourceName {
++  // Opaque identifier for the resource. Any '/' will not be escaped during URI
++  // encoding and will form part of the URI path.
++  string id = 1;
++
++  // Logical authority for resource (not necessarily transport network address).
++  // Authorities are opaque in the xDS API, data-plane load balancers will map
++  // them to concrete network transports such as an xDS management server.
++  string authority = 2;
++
++  // Fully qualified resource type (as in type URL without types.googleapis.com/
++  // prefix).
++  string resource_type = 3 [(validate.rules).string = {min_len: 1}];
++
++  // Additional parameters that can be used to select resource variants.
++  ContextParams context = 4;
++}
+diff --git a/third_party/xds/xds/data/orca/v3/orca_load_report.proto b/third_party/xds/xds/data/orca/v3/orca_load_report.proto
+new file mode 100644
+index 00000000..53da75f7
+--- /dev/null
++++ b/third_party/xds/xds/data/orca/v3/orca_load_report.proto
+@@ -0,0 +1,58 @@
++syntax = "proto3";
++
++package xds.data.orca.v3;
++
++option java_outer_classname = "OrcaLoadReportProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.data.orca.v3";
++option go_package = "github.com/cncf/xds/go/xds/data/orca/v3";
++
++import "validate/validate.proto";
++
++// See section `ORCA load report format` of the design document in
++// :ref:`https://github.com/envoyproxy/envoy/issues/6614`.
++
++message OrcaLoadReport {
++  // CPU utilization expressed as a fraction of available CPU resources. This
++  // should be derived from the latest sample or measurement. The value may be
++  // larger than 1.0 when the usage exceeds the reporter dependent notion of
++  // soft limits.
++  double cpu_utilization = 1 [(validate.rules).double.gte = 0];
++
++  // Memory utilization expressed as a fraction of available memory
++  // resources. This should be derived from the latest sample or measurement.
++  double mem_utilization = 2 [(validate.rules).double.gte = 0, (validate.rules).double.lte = 1];
++
++  // Total RPS being served by an endpoint. This should cover all services that an endpoint is
++  // responsible for.
++  // Deprecated -- use ``rps_fractional`` field instead.
++  uint64 rps = 3 [deprecated = true];
++
++  // Application specific requests costs. Each value is an absolute cost (e.g. 3487 bytes of
++  // storage) associated with the request.
++  map<string, double> request_cost = 4;
++
++  // Resource utilization values. Each value is expressed as a fraction of total resources
++  // available, derived from the latest sample or measurement.
++  map<string, double> utilization = 5
++      [(validate.rules).map.values.double.gte = 0, (validate.rules).map.values.double.lte = 1];
++
++  // Total RPS being served by an endpoint. This should cover all services that an endpoint is
++  // responsible for.
++  double rps_fractional = 6 [(validate.rules).double.gte = 0];
++
++  // Total EPS (errors/second) being served by an endpoint. This should cover
++  // all services that an endpoint is responsible for.
++  double eps = 7 [(validate.rules).double.gte = 0];
++
++  // Application specific opaque metrics.
++  map<string, double> named_metrics = 8;
++
++  // Application specific utilization expressed as a fraction of available
++  // resources. For example, an application may report the max of CPU and memory
++  // utilization for better load balancing if it is both CPU and memory bound.
++  // This should be derived from the latest sample or measurement.
++  // The value may be larger than 1.0 when the usage exceeds the reporter
++  // dependent notion of soft limits.
++  double application_utilization = 9 [(validate.rules).double.gte = 0];
++}
+diff --git a/third_party/xds/xds/service/orca/v3/orca.proto b/third_party/xds/xds/service/orca/v3/orca.proto
+new file mode 100644
+index 00000000..03126cdc
+--- /dev/null
++++ b/third_party/xds/xds/service/orca/v3/orca.proto
+@@ -0,0 +1,36 @@
++syntax = "proto3";
++
++package xds.service.orca.v3;
++
++option java_outer_classname = "OrcaProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.service.orca.v3";
++option go_package = "github.com/cncf/xds/go/xds/service/orca/v3";
++
++import "xds/data/orca/v3/orca_load_report.proto";
++
++import "google/protobuf/duration.proto";
++
++// See section `Out-of-band (OOB) reporting` of the design document in
++// :ref:`https://github.com/envoyproxy/envoy/issues/6614`.
++
++// Out-of-band (OOB) load reporting service for the additional load reporting
++// agent that does not sit in the request path. Reports are periodically sampled
++// with sufficient frequency to provide temporal association with requests.
++// OOB reporting compensates the limitation of in-band reporting in revealing
++// costs for backends that do not provide a steady stream of telemetry such as
++// long running stream operations and zero QPS services. This is a server
++// streaming service, client needs to terminate current RPC and initiate
++// a new call to change backend reporting frequency.
++service OpenRcaService {
++  rpc StreamCoreMetrics(OrcaLoadReportRequest) returns (stream xds.data.orca.v3.OrcaLoadReport);
++}
++
++message OrcaLoadReportRequest {
++  // Interval for generating Open RCA core metric responses.
++  google.protobuf.Duration report_interval = 1;
++  // Request costs to collect. If this is empty, all known requests costs tracked by
++  // the load reporting agent will be returned. This provides an opportunity for
++  // the client to selectively obtain a subset of tracked costs.
++  repeated string request_cost_names = 2;
++}
+diff --git a/third_party/xds/xds/type/matcher/v3/cel.proto b/third_party/xds/xds/type/matcher/v3/cel.proto
+new file mode 100644
+index 00000000..b1ad1faa
+--- /dev/null
++++ b/third_party/xds/xds/type/matcher/v3/cel.proto
+@@ -0,0 +1,42 @@
++syntax = "proto3";
++
++package xds.type.matcher.v3;
++
++import "xds/annotations/v3/status.proto";
++import "xds/type/v3/cel.proto";
++
++import "validate/validate.proto";
++
++option java_package = "com.github.xds.type.matcher.v3";
++option java_outer_classname = "CelProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/matcher/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// [#protodoc-title: Common Expression Language (CEL) matchers]
++
++// Performs a match by evaluating a `Common Expression Language
++// <https://github.com/google/cel-spec>`_ (CEL) expression against the standardized set of
++// :ref:`HTTP attributes <arch_overview_attributes>` specified via ``HttpAttributesCelMatchInput``.
++//
++// .. attention::
++//
++//   The match is ``true``, iff the result of the evaluation is a bool AND true.
++//   In all other cases, the match is ``false``, including but not limited to: non-bool types,
++//   ``false``, ``null``,`` int(1)``, etc.
++//   In case CEL expression raises an error, the result of the evaluation is interpreted "no match".
++//
++// Refer to :ref:`Unified Matcher API <envoy_v3_api_msg_.xds.type.matcher.v3.Matcher>` documentation
++// for usage details.
++//
++// [#comment:TODO(sergiitk): Link HttpAttributesMatchInput + usage example.]
++// [#comment:TODO(sergiitk): When implemented, add the extension tag.]
++message CelMatcher {
++  // Either parsed or checked representation of the CEL program.
++  type.v3.CelExpression expr_match = 1 [(validate.rules).message = {required: true}];
++
++  // Free-form description of the CEL AST, e.g. the original expression text, to be
++  // used for debugging assistance.
++  string description = 2;
++}
+diff --git a/third_party/xds/xds/type/matcher/v3/domain.proto b/third_party/xds/xds/type/matcher/v3/domain.proto
+new file mode 100644
+index 00000000..06f11d70
+--- /dev/null
++++ b/third_party/xds/xds/type/matcher/v3/domain.proto
+@@ -0,0 +1,46 @@
++syntax = "proto3";
++
++package xds.type.matcher.v3;
++
++import "xds/annotations/v3/status.proto";
++import "xds/type/matcher/v3/matcher.proto";
++
++import "validate/validate.proto";
++
++option java_package = "com.github.xds.type.matcher.v3";
++option java_outer_classname = "ServerNameMatcherProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/matcher/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// [#protodoc-title: Server name matcher]
++
++// Matches a fully qualified server name against a set of domain
++// names with optional wildcards.
++message ServerNameMatcher {
++  // Specifies a set of exact and wildcard domains and a match action. The
++  // wildcard symbol ``*`` must appear at most once as the left-most part of
++  // the domain on a dot border. The wildcard matches one or more non-empty
++  // domain parts.
++  message DomainMatcher {
++    // A non-empty set of domain names with optional wildcards, e.g.
++    // ``www.example.com``, ``*.com``, or ``*``.
++    repeated string domains = 1 [ (validate.rules).repeated = {min_items : 1} ];
++
++    // Match action to apply when the server name matches any of the domain
++    // names in the matcher.
++    Matcher.OnMatch on_match = 2;
++  }
++
++  // Match a server name by multiple domain matchers. Each domain, exact or
++  // wildcard, must appear at most once across all the domain matchers.
++  //
++  // The server name will be matched against all wildcard domains starting from
++  // the longest suffix, i.e. ``www.example.com`` input will be first matched
++  // against ``www.example.com``, then ``*.example.com``, then ``*.com``, then
++  // ``*``, until the associated matcher action accepts the input. Note that
++  // wildcards must be on a dot border, and values like ``*w.example.com`` are
++  // invalid.
++  repeated DomainMatcher domain_matchers = 1;
++}
+diff --git a/third_party/xds/xds/type/matcher/v3/http_inputs.proto b/third_party/xds/xds/type/matcher/v3/http_inputs.proto
+new file mode 100644
+index 00000000..0dd80cd6
+--- /dev/null
++++ b/third_party/xds/xds/type/matcher/v3/http_inputs.proto
+@@ -0,0 +1,27 @@
++syntax = "proto3";
++
++package xds.type.matcher.v3;
++
++import "xds/annotations/v3/status.proto";
++
++option java_package = "com.github.xds.type.matcher.v3";
++option java_outer_classname = "HttpInputsProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/matcher/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// [#protodoc-title: Common HTTP Inputs]
++
++// Specifies that matching should be performed on the set of :ref:`HTTP attributes
++// <arch_overview_attributes>`.
++//
++// The attributes will be exposed via `Common Expression Language
++// <https://github.com/google/cel-spec>`_ runtime to associated CEL matcher.
++//
++// Refer to :ref:`Unified Matcher API <envoy_v3_api_msg_.xds.type.matcher.v3.Matcher>` documentation
++// for usage details.
++//
++// [#comment:TODO(sergiitk): When implemented, add the extension tag.]
++message HttpAttributesCelMatchInput {
++}
+diff --git a/third_party/xds/xds/type/matcher/v3/ip.proto b/third_party/xds/xds/type/matcher/v3/ip.proto
+new file mode 100644
+index 00000000..ad3ab065
+--- /dev/null
++++ b/third_party/xds/xds/type/matcher/v3/ip.proto
+@@ -0,0 +1,53 @@
++syntax = "proto3";
++
++package xds.type.matcher.v3;
++
++import "xds/annotations/v3/status.proto";
++import "xds/core/v3/cidr.proto";
++import "xds/type/matcher/v3/matcher.proto";
++
++import "validate/validate.proto";
++
++option java_package = "com.github.xds.type.matcher.v3";
++option java_outer_classname = "IPMatcherProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/matcher/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// [#protodoc-title: IP matcher]
++
++// Matches a specific IP address against a set of possibly overlapping subnets using a trie.
++message IPMatcher {
++  // Specifies a list of IP address ranges and a match action.
++  message IPRangeMatcher {
++    // A non-empty set of CIDR ranges.
++    repeated core.v3.CidrRange ranges = 1 [(validate.rules).repeated = {min_items: 1}];
++
++    // Match action to apply when the IP address is within one of the CIDR ranges.
++    Matcher.OnMatch on_match = 2;
++
++    // Indicates whether this match option should be considered if there is a
++    // more specific matcher. Exclusive matchers are not selected whenever a
++    // more specific matcher exists (e.g. matcher with a longer prefix) even
++    // when the more specific matcher fails its nested match condition.
++    // Non-exclusive matchers are considered if the more specific matcher
++    // exists but its nested match condition does not entirely match.
++    // Non-exclusive matchers are selected in the order of their specificity
++    // first (longest prefix first), then the order of declaration next.
++    //
++    // For example, consider two range matchers: an exclusive matcher *X* on
++    // ``0.0.0.0/0`` and a matcher *Y* on ``192.0.0.0/2`` with a nested match
++    // condition *Z*. For the input IP ``192.168.0.1`` matcher *Y* is the most
++    // specific. If its nested match condition *Z* does not accept the input,
++    // then the less specific matcher *X* does not apply either despite the
++    // input being within the range, because matcher *X* is exclusive.
++    //
++    // The opposite is true if matcher *X* is not marked as exclusive. In that
++    // case matcher *X* always matches whenever matcher "*Y* rejects the input.
++    bool exclusive = 3;
++  }
++
++  // Match IP address by CIDR ranges.
++  repeated IPRangeMatcher range_matchers = 1;
++}
+diff --git a/third_party/xds/xds/type/matcher/v3/matcher.proto b/third_party/xds/xds/type/matcher/v3/matcher.proto
+new file mode 100644
+index 00000000..4966b456
+--- /dev/null
++++ b/third_party/xds/xds/type/matcher/v3/matcher.proto
+@@ -0,0 +1,139 @@
++syntax = "proto3";
++
++package xds.type.matcher.v3;
++
++import "xds/annotations/v3/status.proto";
++import "xds/core/v3/extension.proto";
++import "xds/type/matcher/v3/string.proto";
++
++import "validate/validate.proto";
++
++option java_package = "com.github.xds.type.matcher.v3";
++option java_outer_classname = "MatcherProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/matcher/v3";
++
++// [#protodoc-title: Unified Matcher API]
++
++// A matcher, which may traverse a matching tree in order to result in a match action.
++// During matching, the tree will be traversed until a match is found, or if no match
++// is found the action specified by the most specific on_no_match will be evaluated.
++// As an on_no_match might result in another matching tree being evaluated, this process
++// might repeat several times until the final OnMatch (or no match) is decided.
++message Matcher {
++  option (xds.annotations.v3.message_status).work_in_progress = true;
++
++  // What to do if a match is successful.
++  message OnMatch {
++    oneof on_match {
++      option (validate.required) = true;
++
++      // Nested matcher to evaluate.
++      // If the nested matcher does not match and does not specify
++      // on_no_match, then this matcher is considered not to have
++      // matched, even if a predicate at this level or above returned
++      // true.
++      Matcher matcher = 1;
++
++      // Protocol-specific action to take.
++      core.v3.TypedExtensionConfig action = 2;
++    }
++  }
++
++  // A linear list of field matchers.
++  // The field matchers are evaluated in order, and the first match
++  // wins.
++  message MatcherList {
++    // Predicate to determine if a match is successful.
++    message Predicate {
++      // Predicate for a single input field.
++      message SinglePredicate {
++        // Protocol-specific specification of input field to match on.
++        // [#extension-category: envoy.matching.common_inputs]
++        core.v3.TypedExtensionConfig input = 1 [(validate.rules).message = {required: true}];
++
++        oneof matcher {
++          option (validate.required) = true;
++
++          // Built-in string matcher.
++          type.matcher.v3.StringMatcher value_match = 2;
++
++          // Extension for custom matching logic.
++          // [#extension-category: envoy.matching.input_matchers]
++          core.v3.TypedExtensionConfig custom_match = 3;
++        }
++      }
++
++      // A list of two or more matchers. Used to allow using a list within a oneof.
++      message PredicateList {
++        repeated Predicate predicate = 1 [(validate.rules).repeated = {min_items: 2}];
++      }
++
++      oneof match_type {
++        option (validate.required) = true;
++
++        // A single predicate to evaluate.
++        SinglePredicate single_predicate = 1;
++
++        // A list of predicates to be OR-ed together.
++        PredicateList or_matcher = 2;
++
++        // A list of predicates to be AND-ed together.
++        PredicateList and_matcher = 3;
++
++        // The invert of a predicate
++        Predicate not_matcher = 4;
++      }
++    }
++
++    // An individual matcher.
++    message FieldMatcher {
++      // Determines if the match succeeds.
++      Predicate predicate = 1 [(validate.rules).message = {required: true}];
++
++      // What to do if the match succeeds.
++      OnMatch on_match = 2 [(validate.rules).message = {required: true}];
++    }
++
++    // A list of matchers. First match wins.
++    repeated FieldMatcher matchers = 1 [(validate.rules).repeated = {min_items: 1}];
++  }
++
++  message MatcherTree {
++    // A map of configured matchers. Used to allow using a map within a oneof.
++    message MatchMap {
++      map<string, OnMatch> map = 1 [(validate.rules).map = {min_pairs: 1}];
++    }
++
++    // Protocol-specific specification of input field to match on.
++    core.v3.TypedExtensionConfig input = 1 [(validate.rules).message = {required: true}];
++
++    // Exact or prefix match maps in which to look up the input value.
++    // If the lookup succeeds, the match is considered successful, and
++    // the corresponding OnMatch is used.
++    oneof tree_type {
++      option (validate.required) = true;
++
++      MatchMap exact_match_map = 2;
++
++      // Longest matching prefix wins.
++      MatchMap prefix_match_map = 3;
++
++      // Extension for custom matching logic.
++      core.v3.TypedExtensionConfig custom_match = 4;
++    }
++  }
++
++  oneof matcher_type {
++    // A linear list of matchers to evaluate.
++    MatcherList matcher_list = 1;
++
++    // A match tree to evaluate.
++    MatcherTree matcher_tree = 2;
++  }
++
++  // Optional OnMatch to use if no matcher above matched (e.g., if there are no matchers specified
++  // above, or if none of the matches specified above succeeded).
++  // If no matcher above matched and this field is not populated, the match will be considered unsuccessful.
++  OnMatch on_no_match = 3;
++}
+diff --git a/third_party/xds/xds/type/matcher/v3/range.proto b/third_party/xds/xds/type/matcher/v3/range.proto
+new file mode 100644
+index 00000000..58340097
+--- /dev/null
++++ b/third_party/xds/xds/type/matcher/v3/range.proto
+@@ -0,0 +1,69 @@
++syntax = "proto3";
++
++package xds.type.matcher.v3;
++
++import "xds/type/v3/range.proto";
++import "xds/type/matcher/v3/matcher.proto";
++
++import "validate/validate.proto";
++
++option java_package = "com.github.xds.type.matcher.v3";
++option java_outer_classname = "RangeProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/matcher/v3";
++
++// [#protodoc-title: Range matcher]
++
++// Specifies a set of ranges for matching an int64 number and the associated
++// match actions.
++message Int64RangeMatcher {
++  // Specifies a list of number ranges and a match action.
++  message RangeMatcher {
++    // A non-empty set of int64 ranges.
++    repeated xds.type.v3.Int64Range ranges = 1
++        [(validate.rules).repeated = { min_items: 1 }];
++
++    // Match action to apply when the input number is within one of the ranges.
++    Matcher.OnMatch on_match = 2;
++  }
++
++  // Match a number by a list of number ranges. If multiple ranges contain the
++  // input number, then the first action in this list is taken.
++  repeated RangeMatcher range_matchers = 1;
++}
++
++// Specifies a set of ranges for matching an int32 number and the associated
++// match actions.
++message Int32RangeMatcher {
++  // Specifies a list of number ranges and a match action.
++  message RangeMatcher {
++    // A non-empty set of int32 ranges.
++    repeated xds.type.v3.Int32Range ranges = 1
++        [(validate.rules).repeated = { min_items: 1 }];
++
++    // Match action to apply when the input number is within one of the ranges.
++    Matcher.OnMatch on_match = 2;
++  }
++
++  // Match a number by a list of number ranges. If multiple ranges contain the
++  // input number, then the first action in this list is taken.
++  repeated RangeMatcher range_matchers = 1;
++}
++
++// Specifies a set of ranges for matching a double number and the associated
++// match actions.
++message DoubleRangeMatcher {
++  // Specifies a list of number ranges and a match action.
++  message RangeMatcher {
++    // A non-empty set of double ranges.
++    repeated xds.type.v3.DoubleRange ranges = 1
++        [(validate.rules).repeated = { min_items: 1 }];
++
++    // Match action to apply when the input number is within one of the ranges.
++    Matcher.OnMatch on_match = 2;
++  }
++
++  // Match a number by a list of number ranges. If multiple ranges contain the
++  // input number, then the first action in this list is taken.
++  repeated RangeMatcher range_matchers = 1;
++}
+diff --git a/third_party/xds/xds/type/matcher/v3/regex.proto b/third_party/xds/xds/type/matcher/v3/regex.proto
+new file mode 100644
+index 00000000..3ff4ca95
+--- /dev/null
++++ b/third_party/xds/xds/type/matcher/v3/regex.proto
+@@ -0,0 +1,46 @@
++syntax = "proto3";
++
++package xds.type.matcher.v3;
++
++import "validate/validate.proto";
++
++option java_package = "com.github.xds.type.matcher.v3";
++option java_outer_classname = "RegexProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/matcher/v3";
++
++// [#protodoc-title: Regex matcher]
++
++// A regex matcher designed for safety when used with untrusted input.
++message RegexMatcher {
++  // Google's `RE2 <https://github.com/google/re2>`_ regex engine. The regex
++  // string must adhere to the documented `syntax
++  // <https://github.com/google/re2/wiki/Syntax>`_. The engine is designed to
++  // complete execution in linear time as well as limit the amount of memory
++  // used.
++  //
++  // Envoy supports program size checking via runtime. The runtime keys
++  // `re2.max_program_size.error_level` and `re2.max_program_size.warn_level`
++  // can be set to integers as the maximum program size or complexity that a
++  // compiled regex can have before an exception is thrown or a warning is
++  // logged, respectively. `re2.max_program_size.error_level` defaults to 100,
++  // and `re2.max_program_size.warn_level` has no default if unset (will not
++  // check/log a warning).
++  //
++  // Envoy emits two stats for tracking the program size of regexes: the
++  // histogram `re2.program_size`, which records the program size, and the
++  // counter `re2.exceeded_warn_level`, which is incremented each time the
++  // program size exceeds the warn level threshold.
++  message GoogleRE2 {}
++
++  oneof engine_type {
++    option (validate.required) = true;
++
++    // Google's RE2 regex engine.
++    GoogleRE2 google_re2 = 1 [ (validate.rules).message = {required : true} ];
++  }
++
++  // The regex match string. The string must be supported by the configured
++  // engine.
++  string regex = 2 [ (validate.rules).string = {min_len : 1} ];
++}
+diff --git a/third_party/xds/xds/type/matcher/v3/string.proto b/third_party/xds/xds/type/matcher/v3/string.proto
+new file mode 100644
+index 00000000..fdc598e1
+--- /dev/null
++++ b/third_party/xds/xds/type/matcher/v3/string.proto
+@@ -0,0 +1,66 @@
++syntax = "proto3";
++
++package xds.type.matcher.v3;
++
++import "xds/type/matcher/v3/regex.proto";
++
++import "validate/validate.proto";
++
++option java_package = "com.github.xds.type.matcher.v3";
++option java_outer_classname = "StringProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/matcher/v3";
++
++// [#protodoc-title: String matcher]
++
++// Specifies the way to match a string.
++// [#next-free-field: 8]
++message StringMatcher {
++  oneof match_pattern {
++    option (validate.required) = true;
++
++    // The input string must match exactly the string specified here.
++    //
++    // Examples:
++    //
++    // * *abc* only matches the value *abc*.
++    string exact = 1;
++
++    // The input string must have the prefix specified here.
++    // Note: empty prefix is not allowed, please use regex instead.
++    //
++    // Examples:
++    //
++    // * *abc* matches the value *abc.xyz*
++    string prefix = 2 [(validate.rules).string = {min_len: 1}];
++
++    // The input string must have the suffix specified here.
++    // Note: empty prefix is not allowed, please use regex instead.
++    //
++    // Examples:
++    //
++    // * *abc* matches the value *xyz.abc*
++    string suffix = 3 [(validate.rules).string = {min_len: 1}];
++
++    // The input string must match the regular expression specified here.
++    RegexMatcher safe_regex = 5 [(validate.rules).message = {required: true}];
++
++    // The input string must have the substring specified here.
++    // Note: empty contains match is not allowed, please use regex instead.
++    //
++    // Examples:
++    //
++    // * *abc* matches the value *xyz.abc.def*
++    string contains = 7 [(validate.rules).string = {min_len: 1}];
++  }
++
++  // If true, indicates the exact/prefix/suffix matching should be case insensitive. This has no
++  // effect for the safe_regex match.
++  // For example, the matcher *data* will match both input string *Data* and *data* if set to true.
++  bool ignore_case = 6;
++}
++
++// Specifies a list of ways to match a string.
++message ListStringMatcher {
++  repeated StringMatcher patterns = 1 [(validate.rules).repeated = {min_items: 1}];
++}
+diff --git a/third_party/xds/xds/type/v3/cel.proto b/third_party/xds/xds/type/v3/cel.proto
+new file mode 100644
+index 00000000..71f6cbaf
+--- /dev/null
++++ b/third_party/xds/xds/type/v3/cel.proto
+@@ -0,0 +1,54 @@
++syntax = "proto3";
++
++package xds.type.v3;
++
++import "google/api/expr/v1alpha1/checked.proto";
++import "google/api/expr/v1alpha1/syntax.proto";
++import "google/protobuf/wrappers.proto";
++
++import "xds/annotations/v3/status.proto";
++
++import "validate/validate.proto";
++
++option java_package = "com.github.xds.type.v3";
++option java_outer_classname = "CelProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/v3";
++
++option (xds.annotations.v3.file_status).work_in_progress = true;
++
++// [#protodoc-title: Common Expression Language (CEL)]
++
++// Either parsed or checked representation of the `Common Expression Language
++// <https://github.com/google/cel-spec>`_ (CEL) program.
++message CelExpression {
++  oneof expr_specifier {
++    option (validate.required) = true;
++
++    // Parsed expression in abstract syntax tree (AST) form.
++    google.api.expr.v1alpha1.ParsedExpr parsed_expr = 1;
++
++    // Parsed expression in abstract syntax tree (AST) form that has been successfully type checked.
++    google.api.expr.v1alpha1.CheckedExpr checked_expr = 2;
++  }
++}
++
++// Extracts a string by evaluating a `Common Expression Language
++// <https://github.com/google/cel-spec>`_ (CEL) expression against the standardized set of
++// :ref:`HTTP attributes <arch_overview_attributes>`.
++//
++// .. attention::
++//
++//   Besides CEL evaluation raising an error explicitly, CEL program returning a type other than
++//   the ``string``, or not returning anything, are considered an error as well.
++//
++// [#comment:TODO(sergiitk): When implemented, add the extension tag.]
++message CelExtractString {
++  // The CEL expression used to extract a string from the CEL environment.
++  // the "subject string") that should be replaced.
++  CelExpression expr_extract = 1 [(validate.rules).message = {required: true}];
++
++  // If CEL expression evaluates to an error, this value is be returned to the caller.
++  // If not set, the error is propagated to the caller.
++  google.protobuf.StringValue default_value = 2;
++}
+diff --git a/third_party/xds/xds/type/v3/range.proto b/third_party/xds/xds/type/v3/range.proto
+new file mode 100644
+index 00000000..8fc97ab2
+--- /dev/null
++++ b/third_party/xds/xds/type/v3/range.proto
+@@ -0,0 +1,40 @@
++syntax = "proto3";
++
++package xds.type.v3;
++
++option java_package = "com.github.xds.type.v3";
++option java_outer_classname = "RangeProto";
++option java_multiple_files = true;
++option go_package = "github.com/cncf/xds/go/xds/type/v3";
++
++// [#protodoc-title: Number range]
++
++// Specifies the int64 start and end of the range using half-open interval
++// semantics [start, end).
++message Int64Range {
++  // start of the range (inclusive)
++  int64 start = 1;
++
++  // end of the range (exclusive)
++  int64 end = 2;
++}
++
++// Specifies the int32 start and end of the range using half-open interval
++// semantics [start, end).
++message Int32Range {
++  // start of the range (inclusive)
++  int32 start = 1;
++
++  // end of the range (exclusive)
++  int32 end = 2;
++}
++
++// Specifies the double start and end of the range using half-open interval
++// semantics [start, end).
++message DoubleRange {
++  // start of the range (inclusive)
++  double start = 1;
++
++  // end of the range (exclusive)
++  double end = 2;
++}
+diff --git a/third_party/xds/xds/type/v3/typed_struct.proto b/third_party/xds/xds/type/v3/typed_struct.proto
+new file mode 100644
+index 00000000..40d0a8da
+--- /dev/null
++++ b/third_party/xds/xds/type/v3/typed_struct.proto
+@@ -0,0 +1,44 @@
++syntax = "proto3";
++
++package xds.type.v3;
++
++option java_outer_classname = "TypedStructProto";
++option java_multiple_files = true;
++option java_package = "com.github.xds.type.v3";
++option go_package = "github.com/cncf/xds/go/xds/type/v3";
++
++import "google/protobuf/struct.proto";
++
++// A TypedStruct contains an arbitrary JSON serialized protocol buffer message with a URL that
++// describes the type of the serialized message. This is very similar to google.protobuf.Any,
++// instead of having protocol buffer binary, this employs google.protobuf.Struct as value.
++//
++// This message is intended to be embedded inside Any, so it shouldn't be directly referred
++// from other UDPA messages.
++//
++// When packing an opaque extension config, packing the expected type into Any is preferred
++// wherever possible for its efficiency. TypedStruct should be used only if a proto descriptor
++// is not available, for example if:
++//
++// - A control plane sends opaque message that is originally from external source in human readable
++//   format such as JSON or YAML.
++// - The control plane doesn't have the knowledge of the protocol buffer schema hence it cannot
++//   serialize the message in protocol buffer binary format.
++// - The DPLB doesn't have have the knowledge of the protocol buffer schema its plugin or extension
++//   uses. This has to be indicated in the DPLB capability negotiation.
++//
++// When a DPLB receives a TypedStruct in Any, it should:
++// - Check if the type_url of the TypedStruct matches the type the extension expects.
++// - Convert value to the type described in type_url and perform validation.
++//
++// TODO(lizan): Figure out how TypeStruct should be used with DPLB extensions that doesn't link
++// protobuf descriptor with DPLB itself, (e.g. gRPC LB Plugin, Envoy WASM extensions).
++message TypedStruct {
++  // A URL that uniquely identifies the type of the serialize protocol buffer message.
++  // This has same semantics and format described in google.protobuf.Any:
++  // https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/any.proto
++  string type_url = 1;
++
++  // A JSON representation of the above specified type.
++  google.protobuf.Struct value = 2;
++}
