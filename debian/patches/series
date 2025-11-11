@@ -19,3 +19,4 @@ ruby_no-incompatible-pointer-types.patch
 999_pexip_third_party_protos_envoy_api.patch
 999_pexip_third_party_protos_googleapis.patch
 999_pexip_third_party_protos_xds.patch
+999_pexip_third_party_protos_protoc_gen_validate.patch
