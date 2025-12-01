@@ -23,7 +23,7 @@ Index: grpc/tools/distrib/python/grpcio_tools/setup.py
 +if BUILD_WITH_SYSTEM_PROTOBUF:
 +    CC_FILES = [x for x in CC_FILES if "third_party/protobuf" not in x]
 +    CC_INCLUDES = [x for x in CC_INCLUDES if "third_party/protobuf" not in x]
-+    EXTRA_LINK_ARGS.append("-lprotobuf")
++    EXTRA_LINK_ARGS.extend(["-lprotoc", "-lprotobuf"])
 +    PROTO_INCLUDE = "/usr/include"
 +
  DEFINE_MACROS = ()
