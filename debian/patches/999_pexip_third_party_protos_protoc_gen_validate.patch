@@ -1,3 +1,4 @@
+Add missing protoc-gen-validate proto files into build tree.
 diff --git a/third_party/protoc-gen-validate/example-workspace/foo/bar.proto b/third_party/protoc-gen-validate/example-workspace/foo/bar.proto
 new file mode 100644
 index 00000000..e63eea85

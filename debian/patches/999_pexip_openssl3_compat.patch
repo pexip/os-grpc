@@ -1,3 +1,4 @@
+Patch GRPC upstream to use only non-deprecated OpenSSL3 APIs.
 Index: grpc/test/core/handshake/client_ssl.cc
 ===================================================================
 --- grpc.orig/test/core/handshake/client_ssl.cc

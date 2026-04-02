@@ -1,3 +1,5 @@
+Compile the python grpc bindings against the shared library instead of
+recompiling and statically linking all of the code into the module.
 Index: grpc/setup.py
 ===================================================================
 --- grpc.orig/setup.py

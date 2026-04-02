@@ -1,3 +1,5 @@
+Remove unnecessary C file compilation from grpcio_observability.
+Replaced by dynamic linking.
 Index: grpc/src/python/grpcio_observability/setup.py
 ===================================================================
 --- grpc.orig/src/python/grpcio_observability/setup.py

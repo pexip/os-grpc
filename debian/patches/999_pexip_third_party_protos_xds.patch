@@ -1,3 +1,4 @@
+Add missing XDS proto files into build tree.
 diff --git a/third_party/xds/udpa/annotations/migrate.proto b/third_party/xds/udpa/annotations/migrate.proto
 new file mode 100644
 index 00000000..5289cb8a

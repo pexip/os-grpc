@@ -1,3 +1,7 @@
+Compile grpcio_tools against system ABSL and protobuf instead
+of statically linking another copy.
+
+Improves our security posture by reducing duplicate code.
 Index: grpc/tools/distrib/python/grpcio_tools/setup.py
 ===================================================================
 --- grpc.orig/tools/distrib/python/grpcio_tools/setup.py

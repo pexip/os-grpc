@@ -1,3 +1,4 @@
+Add missing envoy API proto files into build tree.
 diff --git a/third_party/envoy-api/bazel/cc_proto_descriptor_library/testdata/test-extension.proto b/third_party/envoy-api/bazel/cc_proto_descriptor_library/testdata/test-extension.proto
 new file mode 100644
 index 00000000..f2fd7d79
