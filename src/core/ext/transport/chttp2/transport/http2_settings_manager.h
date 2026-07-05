@@ -22,14 +22,13 @@
 
 #include <cstdint>
 #include <optional>
+#include <vector>
 
-#include "absl/functional/function_ref.h"
-#include "absl/strings/string_view.h"
 #include "src/core/channelz/property_list.h"
 #include "src/core/ext/transport/chttp2/transport/frame.h"
 #include "src/core/ext/transport/chttp2/transport/http2_settings.h"
 #include "src/core/ext/transport/chttp2/transport/http2_status.h"
-#include "src/core/util/useful.h"
+#include "absl/strings/string_view.h"
 
 namespace grpc_core {
 
@@ -53,7 +52,7 @@ class Http2SettingsManager {
         .SetColumn("acked", acked_.ChannelzProperties());
   }
 
-  // Returns nullopt if we don't need to send a SETTINGS frame to the peer.
+  // Returns std::nullopt if we don't need to send a SETTINGS frame to the peer.
   // Returns Http2SettingsFrame if we need to send a SETTINGS frame to the
   // peer. Transport MUST send a frame returned by this function to the peer.
   // This function is not idempotent.
@@ -61,7 +60,7 @@ class Http2SettingsManager {
 
   // To be called from a promise based HTTP2 transport only
   http2::Http2ErrorCode ApplyIncomingSettings(
-      std::vector<Http2SettingsFrame::Setting>& settings) {
+      const std::vector<Http2SettingsFrame::Setting>& settings) {
     for (const auto& setting : settings) {
       http2::Http2ErrorCode error1 =
           count_updates_.IsUpdatePermitted(setting.id, setting.value, peer_);

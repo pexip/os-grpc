@@ -23,11 +23,11 @@
 #include <cstdint>
 #include <optional>
 
-#include "absl/functional/function_ref.h"
-#include "absl/strings/string_view.h"
 #include "src/core/channelz/property_list.h"
 #include "src/core/ext/transport/chttp2/transport/http2_status.h"
 #include "src/core/util/useful.h"
+#include "absl/functional/function_ref.h"
+#include "absl/strings/string_view.h"
 
 namespace grpc_core {
 
@@ -48,6 +48,8 @@ class Http2Settings {
     kGrpcAllowSecurityFrameWireId = 65029,
   };
 
+  constexpr static uint8_t kNumSettings = 9u;
+
   void Diff(bool is_first_send, const Http2Settings& old_setting,
             absl::FunctionRef<void(uint16_t key, uint32_t value)> cb) const;
   GRPC_MUST_USE_RESULT http2::Http2ErrorCode Apply(uint16_t key,
@@ -67,7 +69,13 @@ class Http2Settings {
   bool allow_security_frame() const { return allow_security_frame_; }
 
   void SetHeaderTableSize(uint32_t x) { header_table_size_ = x; }
-  void SetMaxConcurrentStreams(uint32_t x) { max_concurrent_streams_ = x; }
+  void SetMaxConcurrentStreams(uint32_t x) {
+    initial_max_concurrent_streams_ = x;
+    max_concurrent_streams_ = x;
+  }
+  void UpdateMaxConcurrentStreams(uint32_t x) {
+    max_concurrent_streams_ = std::min(x, initial_max_concurrent_streams_);
+  }
   void SetInitialWindowSize(uint32_t x) {
     initial_window_size_ = std::min(x, max_initial_window_size());
   }
@@ -118,6 +126,23 @@ class Http2Settings {
     return 2147483647u;
   }
 
+  static bool IsKnownSettingId(const uint16_t id) {
+    switch (id) {
+      case kHeaderTableSizeWireId:
+      case kEnablePushWireId:
+      case kMaxConcurrentStreamsWireId:
+      case kInitialWindowSizeWireId:
+      case kMaxFrameSizeWireId:
+      case kMaxHeaderListSizeWireId:
+      case kGrpcAllowTrueBinaryMetadataWireId:
+      case kGrpcPreferredReceiveCryptoFrameSizeWireId:
+      case kGrpcAllowSecurityFrameWireId:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   static std::string WireIdToName(uint16_t wire_id);
 
   bool operator==(const Http2Settings& rhs) const {
@@ -155,12 +180,11 @@ class Http2Settings {
   // We plan to change that in the future.
   uint32_t header_table_size_ = 4096u;
 
-  // TODO(tjagtap) [PH2][P4] : Get the history of why this default was decided
-  // and write it here.
   // CLIENT : Set only once in the lifetime of a client transport. This is set
   // to 0 for client.
   // SERVER : This setting can change for the server. This is usually changed to
   // handle memory pressure.
+  uint32_t initial_max_concurrent_streams_ = 4294967295u;
   uint32_t max_concurrent_streams_ = 4294967295u;
 
   // RFC9113 states the default for SETTINGS_INITIAL_WINDOW_SIZE
@@ -173,8 +197,6 @@ class Http2Settings {
   // handle memory pressure.
   uint32_t max_frame_size_ = 16384u;
 
-  // TODO(tjagtap) [PH2][P4] : Get the history of why this default was decided
-  // and write it here.
   // This is an advisory but we currently enforce it.
   // Set only once in the lifetime of a transport currently.
   // When a peer that updates this more than once, that may indicate either an
@@ -193,10 +215,12 @@ class Http2Settings {
   bool enable_push_ = true;
 
   // gRPC defined setting
-  // Unlike most other SETTINGS, this setting is negotiated between the client
-  // and the server.
   // Currently this is set only once in the lifetime of a transport.
   // Disconnect if it is received more than once from the peer.
+  // Non-Binary Metadata (usually UTF-8) is ALWAYS valid irrespective of this
+  // flag. Both peers can send each other the default non-binary METADATA
+  // irrespective of this flag. This flag says if we are willing to accept
+  // Binary-Metadata from the peer or not.
   bool allow_true_binary_metadata_ = false;
 
   // gRPC defined setting

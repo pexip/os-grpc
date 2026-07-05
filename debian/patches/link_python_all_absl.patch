@@ -3,7 +3,7 @@ Description: link Python gRPC module with all needed Abseil libraries
 Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
 Bug-Debian: https://bugs.debian.org/1026937
 Forwarded: no
-Last-Update: 2024-08-11
+Last-Update: 2026-07-11
 
 ---
 
@@ -13,8 +13,8 @@ Last-Update: 2024-08-11
              EXTRA_ENV_LINK_ARGS += " -latomic"
      if "linux" in sys.platform:
          EXTRA_ENV_LINK_ARGS += " -static-libgcc"
--        EXTRA_ENV_LINK_ARGS += ' -labsl_str_format_internal -labsl_time -labsl_bad_optional_access'
-+        EXTRA_ENV_LINK_ARGS += ' -labsl_str_format_internal -labsl_time -labsl_bad_optional_access -labsl_hash -labsl_raw_hash_set -labsl_status -labsl_statusor -labsl_random_internal_randen_slow -labsl_random_internal_randen_hwaes_impl -labsl_random_internal_randen -labsl_random_internal_pool_urbg -labsl_bad_variant_access'
+-        EXTRA_ENV_LINK_ARGS += ' -labsl_str_format_internal -labsl_time'
++        EXTRA_ENV_LINK_ARGS += ' -labsl_str_format_internal -labsl_time -labsl_hash -labsl_raw_hash_set -labsl_status -labsl_statusor -labsl_random_internal_randen_slow -labsl_random_internal_randen_hwaes_impl -labsl_random_internal_randen -labsl_random_internal_entropy_pool'
  
- EXTRA_COMPILE_ARGS = shlex.split(EXTRA_ENV_COMPILE_ARGS)
- EXTRA_LINK_ARGS = shlex.split(EXTRA_ENV_LINK_ARGS)
+ # Explicitly link Core Foundation framework for MacOS to ensure no symbol is
+ # missing when compiled using package managers like Conda.

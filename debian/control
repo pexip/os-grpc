@@ -2,26 +2,25 @@ Source: grpc
 Priority: optional
 Maintainer: Laszlo Boszormenyi (GCS) <gcs@debian.org>
 Build-Depends: dpkg-dev (>= 1.22.5), debhelper-compat (= 13), cmake, pkgconf,
- googletest (>= 1.12~), zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1),
- libprotobuf-dev, protobuf-compiler (>= 3.25.3~),
+ googletest (>= 1.12~), zlib1g-dev, libssl-dev, libabsl-dev (>= 20260107.0),
+ libprotobuf-dev, protobuf-compiler (>= 35.1~),
  libgflags-dev, libgtest-dev, libbenchmark-dev,
- libgoogle-perftools-dev, libprotoc-dev (>= 3.25.3~), libc-ares-dev,
- libre2-dev,
- gem2deb (>= 1.6~), ruby-google-protobuf (>= 3.25.3~),
- ruby-googleauth, ruby-googleapis-common-protos-types,
+ libgoogle-perftools-dev, libprotoc-dev (>= 35.1~), libc-ares-dev,
+ libre2-dev, libutf8-range-dev,
+ gem2deb (>= 1.6~), ruby-google-protobuf (>= 35.1~),
+# ruby-googleauth,
+ ruby-googleapis-common-protos-types,
  ruby-rspec, ruby-simplecov,
  dh-python,
  python3-all-dev,
- cython3-legacy,
+ cython3,
  python3-six,
  python3-setuptools,
- python3-pkg-resources,
  python3-sphinx,
  python3-sphinx-rtd-theme
-Standards-Version: 4.6.1
+Standards-Version: 4.7.2
 Section: libs
 Homepage: https://www.grpc.io/
-Rules-Requires-Root: no
 Testsuite: autopkgtest-pkg-ruby
 XS-Ruby-Versions: all
 Vcs-Git: https://salsa.debian.org/debian/grpc.git
@@ -31,49 +30,68 @@ Package: libgrpc-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libgrpc36 (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
-Conflicts: libgpr1-dev, libgpr2-dev, libgpr3-dev, libupb-dev
-Description: high performance general RPC framework (development)
+Depends: libgrpc55 (= ${binary:Version}), libupb-dev (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20260107.0), libc-ares-dev, libre2-dev, ${misc:Depends}
+Conflicts: libgpr1-dev, libgpr2-dev, libgpr3-dev
+Description: high performance general RPC framework (C development)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
- This package contains the headers and the static library for libgrpc36 .
+ This package contains the headers and the static library for libgrpc55 .
 
-Package: libgrpc36
-Provides: ${t64:Provides}
+Package: libgrpc55
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Breaks: libgrpc29 (<< ${source:Version}), libgrpc9, libgrpc10, libgrpc28, libgrpc22
 Replaces: libgrpc29, libgrpc9, libgrpc10, libgrpc28, libgrpc22
-Description: high performance general RPC framework
+Description: high performance general RPC framework, C libs
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
  This package provides the gRPC C bindings.
 
-Package: libgrpc++-dev
+Package: libupb-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libgrpc++1.59 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20220623.1), libc-ares-dev, libre2-dev, ${misc:Depends}
-Description: high performance general RPC framework (development)
+Depends: libupb55 (= ${binary:Version}), ${misc:Depends}
+Description: high performance general RPC framework (upb development)
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
  .
- This package contains the headers and the static library for libgrpc++1.59 .
+ This package contains the static library for libupb55 .
 
-Package: libgrpc++1.59
-Provides: ${t64:Provides}
-Replaces: libgrpc++1.51
-Breaks: libgrpc++1.51 (<< ${source:Version})
+Package: libupb55
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: high performance general RPC framework
+Description: high performance general RPC framework, upb libs
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package provides the gRPC upb dependency.
+
+Package: libgrpc++-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libgrpc++1.82 (= ${binary:Version}), libgrpc-dev (= ${binary:Version}), pkgconf, zlib1g-dev, libssl-dev, libabsl-dev (>= 20260107.0), libc-ares-dev, libre2-dev, ${misc:Depends}
+Description: high performance general RPC framework (C++ development)
+ A modern, open source remote procedure call (RPC) framework that can
+ run anywhere. It enables client and server applications to communicate
+ transparently, and makes it easier to build connected systems.
+ .
+ This package contains the headers and the static library for libgrpc++1.82 .
+
+Package: libgrpc++1.82
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: high performance general RPC framework, C++ libs
  A modern, open source remote procedure call (RPC) framework that can
  run anywhere. It enables client and server applications to communicate
  transparently, and makes it easier to build connected systems.
@@ -95,11 +113,11 @@ Description: high performance general RPC framework - protobuf plugin
 Package: ruby-grpc
 Section: ruby
 Architecture: any
-X-DhRuby-Root: .
+X-Dhruby-Root: .
 XB-Ruby-Versions: ${ruby:Versions}
 Depends: ${ruby:Depends},
-         ruby-google-protobuf (>= 3.25.3~),
-         ruby-googleauth,
+         ruby-google-protobuf (>= 35.1~),
+#         ruby-googleauth,
          ruby-googleapis-common-protos-types,
          ${misc:Depends},
          ${shlibs:Depends}
@@ -133,7 +151,7 @@ Architecture: any
 Depends:
  ${misc:Depends},
  ${python3:Depends},
- python3-protobuf (>= 3.25.3~),
+ python3-protobuf (>= 35.1~),
  ${shlibs:Depends},
 Description: GRPC system (Python 3)
  A modern, open source remote procedure call (RPC) framework that can

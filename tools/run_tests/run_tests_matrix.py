@@ -17,6 +17,7 @@
 from __future__ import print_function
 
 import argparse
+import datetime
 import multiprocessing
 import os
 import sys
@@ -28,6 +29,7 @@ import python_utils.report_utils as report_utils
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "../.."))
 os.chdir(_ROOT)
 
+# TODO(sergiitk): convert these constants to timedelta to improve readability.
 _DEFAULT_RUNTESTS_TIMEOUT = 1 * 60 * 60
 
 # C/C++ tests can take long time
@@ -241,6 +243,10 @@ def _create_test_jobs(extra_args=[], inner_jobs=_DEFAULT_INNER_JOBS):
         labels=["basictests"],
         extra_args=extra_args + ["--report_multi_target"],
         inner_jobs=inner_jobs,
+        # Important! When changing the timeout, verify individual test timeouts
+        # in run_tests.py Sanity are less than this.
+        # TODO(ac-patel): decrease when the job is optimized to only consider code diff.
+        timeout_seconds=datetime.timedelta(hours=1, minutes=25).total_seconds(),
     )
 
     # supported on all platforms.
@@ -365,6 +371,7 @@ def _create_portability_test_jobs(
     # portability C and C++ on x64
     for compiler in [
         "gcc8",
+        "gcc10",
         # TODO(b/283304471): Tests using OpenSSL's engine APIs were broken and removed
         "gcc10.2_openssl102",
         "gcc10.2_openssl111",
@@ -467,7 +474,7 @@ if __name__ == "__main__":
     argp.add_argument(
         "-j",
         "--jobs",
-        default=multiprocessing.cpu_count() / _DEFAULT_INNER_JOBS,
+        default=None,
         type=int,
         help="Number of concurrent run_tests.py instances.",
     )
@@ -480,6 +487,7 @@ if __name__ == "__main__":
         help="Filter targets to run by label with AND semantics.",
     )
     argp.add_argument(
+        "-e",
         "--exclude",
         choices=_allowed_labels(),
         nargs="+",
@@ -549,6 +557,12 @@ if __name__ == "__main__":
         help="Upload test results to a specified BQ table.",
     )
     argp.add_argument(
+        "--inner_jobs_extra_args",
+        default=[],
+        action="append",
+        help="Extra args passed down to the underlying scripts by run_tests.py",
+    )
+    argp.add_argument(
         "--extra_args",
         default="",
         type=str,
@@ -556,6 +570,11 @@ if __name__ == "__main__":
         help="Extra test args passed to each sub-script.",
     )
     args = argp.parse_args()
+
+    if args.jobs is None:
+        args.jobs = int(multiprocessing.cpu_count() / args.inner_jobs)
+        if args.jobs < 1:
+            args.jobs = 1
 
     extra_args = []
     if args.build_only:
@@ -572,6 +591,9 @@ if __name__ == "__main__":
         extra_args.append("--bq_result_table")
         extra_args.append("%s" % args.bq_result_table)
         extra_args.append("--measure_cpu_costs")
+    extra_args.extend(
+        f"--script_args={inner_arg}" for inner_arg in args.inner_jobs_extra_args
+    )
     if args.extra_args:
         extra_args.extend(args.extra_args)
 

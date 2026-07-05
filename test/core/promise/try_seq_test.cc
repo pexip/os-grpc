@@ -20,10 +20,10 @@
 #include <string>
 #include <vector>
 
-#include "gtest/gtest.h"
 #include "src/proto/grpc/channelz/v2/promise.upb.h"
 #include "test/core/promise/poll_matcher.h"
 #include "upb/mem/arena.hpp"
+#include "gtest/gtest.h"
 
 namespace grpc_core {
 
@@ -96,7 +96,8 @@ TEST(TrySeqTestBasic, ThreeTypedPendingThens) {
     };
   };
 
-  auto try_seq_combinator = TrySeq(initial, next1, next2, next3);
+  auto try_seq_combinator = TrySeq(std::move(initial), std::move(next1),
+                                   std::move(next2), std::move(next3));
 
   auto retval = try_seq_combinator();
   EXPECT_TRUE(retval.pending());

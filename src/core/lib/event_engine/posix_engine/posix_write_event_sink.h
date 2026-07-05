@@ -17,9 +17,9 @@
 
 #include <grpc/event_engine/event_engine.h>
 
+#include "src/core/util/bitset.h"
 #include "absl/base/no_destructor.h"
 #include "absl/functional/any_invocable.h"
-#include "src/core/util/bitset.h"
 
 namespace grpc_event_engine::experimental {
 
@@ -57,7 +57,7 @@ class PosixWriteEventSink {
     std::optional<uint32_t> congestion_window;
     // Slow start threshold in packets.
     std::optional<uint32_t> snd_ssthresh;
-    // Maximum degree of reordering (i.e., maximum number of packets reodered)
+    // Maximum degree of reordering (i.e., maximum number of packets reordered)
     // on the connection.
     std::optional<uint32_t> reordering;
     // Represents the number of recurring retransmissions of the first sequence

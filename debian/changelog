@@ -1,11 +1,57 @@
-grpc (1.59.5-1) experimental; urgency=medium
+grpc (1.82.0-1) experimental; urgency=medium
 
   * New major upstream release.
-  * Update patches.
+  * Add upb library package.
   * Update copyright file.
-  * Library transition from libgrpc29 to libgrpc36 .
+  * Library transition from libgrpc29 to libgrpc55 .
 
- -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sat, 10 Aug 2024 07:13:45 +0200
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Sun, 05 Jul 2026 15:18:20 +0200
+
+grpc (1.51.1-9) unstable; urgency=medium
+
+  [ John Chittum <john.chittum@canonical.com> ]
+  * d/p/link_python_all_absl.patch add -labsl_random_internal_entropy_pool
+    for new abseil ABI (closes: #1127106).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Wed, 22 Apr 2026 16:09:23 +0200
+
+grpc (1.51.1-8) unstable; urgency=medium
+
+  [ Sudip Mukherjee <sudipm.mukherjee@gmail.com> ]
+  * Update list of abseil libraries to link with (closes: #1126175).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Tue, 03 Feb 2026 16:06:01 +0100
+
+grpc (1.51.1-7) unstable; urgency=medium
+
+  * Compile with C++17 standard (closes: #1114139).
+  * Set minimal CMake version to 3.25 (closes: #1112980).
+  * Remove python3-pkg-resources build dependency (closes: #1083428).
+  * Remove all dependency on ruby-googleauth for being unmaintained
+    and buggy.
+  * Fix Ruby autopkgtest (closes: #1111901).
+  * Override import name for autodep8-python3.
+  * Remove now redundant Rules-Requires-Root value.
+  * Update watch file.
+  * Update Standards-Version to 4.7.2 .
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Fri, 16 Jan 2026 17:07:10 +0100
+
+grpc (1.51.1-6) unstable; urgency=medium
+
+  [ Stefano Rivera <stefanor@debian.org> ]
+  * Patch: support abseil 20240722.0 (closes: #1100044).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 10 Mar 2025 20:47:04 +0100
+
+grpc (1.51.1-5) unstable; urgency=medium
+
+  [ Stefano Rivera <stefanor@debian.org> ]
+  * Patch: Cython 3 support.
+  * Patch: Python 3.13 support (closes: #1084603).
+  * Patch: GCC-14 support (closes: #1075045).
+
+ -- Laszlo Boszormenyi (GCS) <gcs@debian.org>  Mon, 11 Nov 2024 18:25:37 +0100
 
 grpc (1.51.1-4.1) unstable; urgency=medium
 

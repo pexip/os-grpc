@@ -1,17 +1,19 @@
 unversion_sphinx.patch
-no_embedded_abseil.patch
+no-utf8-range.patch
+correct-utf8_range-link.patch
+unprefix_upb_libraries.patch
+# Python
 link_external_abseil.patch
 no-boringssl.patch
+
 #add-pkgconfig-installdir.patch
 #system-upb.patch
-no-opencensus.patch
 # Ruby patches
 no-embed-libs.patch
 remove-missing-files-in-gemspec.patch
+remove_max_google-protobuf_dependency.patch
 no-make-in-extconf.patch
 use-system-grpc.patch
 fix-protoc-path.patch
 add_grpc_libdir.patch
 link_python_all_absl.patch
-fix-run_poll_channels_loop-FTBFS.patch
-ruby_no-incompatible-pointer-types.patch

@@ -32,13 +32,6 @@
 #include <string>
 #include <utility>
 
-#include "absl/container/inlined_vector.h"
-#include "absl/log/log.h"
-#include "absl/status/status.h"
-#include "absl/strings/ascii.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"
 #include "opencensus/stats/stats.h"
 #include "opencensus/tags/tag_key.h"
 #include "src/core/call/call_finalization.h"
@@ -61,6 +54,13 @@
 #include "src/core/util/latent_see.h"
 #include "src/core/util/uri.h"
 #include "src/cpp/server/load_reporter/constants.h"
+#include "absl/container/inlined_vector.h"
+#include "absl/log/log.h"
+#include "absl/status/status.h"
+#include "absl/strings/ascii.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 
 // IWYU pragma: no_include "opencensus/stats/recording.h"
 
@@ -131,7 +131,11 @@ std::string GetCensusSafeClientIpString(
     }
     return client_ip;
   } else {
-    GPR_UNREACHABLE_CODE(abort());
+    LOG(INFO) << "Unsupported address family for load reporting: "
+              << addr->sa_family << ". Using empty client IP.";
+    // Return empty string for unsupported address families (e.g. UDS, VSOCK).
+    // The caller handles empty strings gracefully.
+    return "";
   }
 }
 

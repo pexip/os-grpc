@@ -1,0 +1,28 @@
+Description: do not build and install bundled utf8-range library
+ The utf8-range library is packaged, that will be used.
+Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Forwarded: not-needed
+Last-Update: 2026-07-12
+
+---
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -4801,7 +4801,7 @@ if(gRPC_INSTALL)
+   )
+ endif()
+ 
+-
++#[===[
+ add_library(utf8_range_lib
+   third_party/utf8_range/utf8_range.c
+ )
+@@ -4851,7 +4851,7 @@ if(gRPC_INSTALL)
+     ARCHIVE DESTINATION ${gRPC_INSTALL_LIBDIR}
+   )
+ endif()
+-
++]===]
+ if(gRPC_BUILD_TESTS)
+ 
+ if(gRPC_BUILD_CODEGEN)
