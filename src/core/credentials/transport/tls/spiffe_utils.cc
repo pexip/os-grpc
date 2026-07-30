@@ -22,20 +22,21 @@
 
 #include <string>
 
-#include "absl/strings/match.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
-#include "absl/strings/str_split.h"
 #include "src/core/tsi/ssl_transport_security_utils.h"
 #include "src/core/util/json/json_object_loader.h"
 #include "src/core/util/json/json_reader.h"
 #include "src/core/util/load_file.h"
 #include "src/core/util/status_helper.h"
+#include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
 
 namespace grpc_core {
 namespace {
 constexpr absl::string_view kAllowedUse = "x509-svid";
-constexpr absl::string_view kAllowedKty = "RSA";
+constexpr absl::string_view kRsaKty = "RSA";
+constexpr absl::string_view kEcKty = "EC";
 constexpr absl::string_view kCertificatePrefix =
     "-----BEGIN CERTIFICATE-----\n";
 constexpr absl::string_view kCertificateSuffix = "\n-----END CERTIFICATE-----";
@@ -192,9 +193,10 @@ void SpiffeBundleKey::JsonPostLoad(const Json& json, const JsonArgs& args,
       LoadJsonObjectField<std::string>(json.object(), args, "kty", errors);
   {
     ValidationErrors::ScopedField field(errors, ".kty");
-    if (kty.has_value() && *kty != kAllowedKty) {
-      errors->AddError(absl::StrFormat("value must be \"%s\", got \"%s\"",
-                                       kAllowedKty, *kty));
+    if (kty.has_value() && *kty != kRsaKty && *kty != kEcKty) {
+      errors->AddError(
+          absl::StrFormat("value must be one of \"%s\", \"%s\", got \"%s\"",
+                          kEcKty, kRsaKty, *kty));
     }
   }
   auto x5c = LoadJsonObjectField<std::vector<std::string>>(json.object(), args,
@@ -208,7 +210,7 @@ void SpiffeBundleKey::JsonPostLoad(const Json& json, const JsonArgs& args,
     if (!x5c->empty()) {
       ValidationErrors::ScopedField field(errors, "[0]");
       std::string pem_cert = AddPemBlockWrapping((*x5c)[0]);
-      auto certs = ParsePemCertificateChain(pem_cert);
+      auto certs = tsi::ParsePemCertificateChain(pem_cert);
       if (!certs.ok()) {
         errors->AddError(certs.status().ToString());
       } else {
@@ -308,7 +310,7 @@ absl::Status SpiffeBundle::CreateX509Stack() {
   root_stack_ = std::make_unique<STACK_OF(X509)*>(sk_X509_new_null());
   absl::Status status = absl::OkStatus();
   for (const auto& pem_cert : roots_) {
-    auto cert = ParsePemCertificateChain(AddPemBlockWrapping(pem_cert));
+    auto cert = tsi::ParsePemCertificateChain(AddPemBlockWrapping(pem_cert));
     if (!cert.status().ok()) {
       status = cert.status();
       break;

@@ -23,13 +23,14 @@
 #include "src/core/channelz/ztrace_collector.h"
 #include "src/core/ext/transport/chaotic_good/tcp_frame_header.h"
 #include "src/core/lib/event_engine/utils.h"
+#include "absl/strings/str_join.h"
 
 namespace grpc_core::chaotic_good {
 namespace tcp_ztrace_collector_detail {
 
 class Config {
  public:
-  explicit Config(std::map<std::string, std::string>) {}
+  explicit Config(const channelz::ZTrace::Args&) {}
 
   template <typename T>
   bool Finishes(const T&) {
@@ -37,10 +38,6 @@ class Config {
   }
 };
 
-void TcpFrameHeaderToJsonObject(const TcpFrameHeader& header,
-                                Json::Object& object);
-void TcpDataFrameHeaderToJsonObject(const TcpDataFrameHeader& header,
-                                    Json::Object& object);
 void MarkRead(bool read, Json::Object& object);
 
 }  // namespace tcp_ztrace_collector_detail
@@ -48,27 +45,30 @@ void MarkRead(bool read, Json::Object& object);
 struct ReadFrameHeaderTrace {
   TcpFrameHeader header;
 
-  void RenderJson(Json::Object& object) const {
-    tcp_ztrace_collector_detail::MarkRead(true, object);
-    tcp_ztrace_collector_detail::TcpFrameHeaderToJsonObject(header, object);
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("read", true)
+        .Merge(header.ChannelzProperties());
   }
 };
 
 struct ReadDataHeaderTrace {
   TcpDataFrameHeader header;
 
-  void RenderJson(Json::Object& object) const {
-    tcp_ztrace_collector_detail::MarkRead(true, object);
-    tcp_ztrace_collector_detail::TcpDataFrameHeaderToJsonObject(header, object);
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("read", false)
+        .Merge(header.ChannelzProperties());
   }
 };
 
 struct WriteFrameHeaderTrace {
   TcpFrameHeader header;
 
-  void RenderJson(Json::Object& object) const {
-    tcp_ztrace_collector_detail::MarkRead(false, object);
-    tcp_ztrace_collector_detail::TcpFrameHeaderToJsonObject(header, object);
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("read", false)
+        .Merge(header.ChannelzProperties());
   }
 };
 
@@ -78,6 +78,21 @@ struct EndpointWriteMetricsTrace {
       write_event;
   std::vector<std::pair<absl::string_view, int64_t>> metrics;
   size_t endpoint_id;
+
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type",
+             grpc_event_engine::experimental::WriteEventToString(write_event))
+        .Set("fathom_timestamp", absl::FormatTime(timestamp))
+        .Merge([this]() {
+          channelz::PropertyList props;
+          for (const auto& [name, value] : metrics) {
+            props.Set(name, value);
+          }
+          return props;
+        }())
+        .Set("endpoint_id", endpoint_id);
+  }
 
   void RenderJson(Json::Object& object) const {
     object["metadata_type"] = Json::FromString(absl::StrCat(
@@ -97,14 +112,14 @@ struct TraceScheduledChannel {
   double start_time;
   double bytes_per_second;
   double allowed_bytes;
-  Json ToJson() const {
-    return Json::FromObject({
-        {"id", Json::FromNumber(id)},
-        {"ready", Json::FromBool(ready)},
-        {"start_time", Json::FromNumber(start_time)},
-        {"bytes_per_second", Json::FromNumber(bytes_per_second)},
-        {"allowed_bytes", Json::FromNumber(allowed_bytes)},
-    });
+
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("id", id)
+        .Set("ready", ready)
+        .Set("start_time", start_time)
+        .Set("bytes_per_second", bytes_per_second)
+        .Set("allowed_bytes", allowed_bytes);
   }
 };
 
@@ -118,17 +133,21 @@ struct TraceWriteSchedule {
   size_t MemoryUsage() const {
     return sizeof(*this) + sizeof(channels[0]) * channels.size();
   }
-  void RenderJson(Json::Object& object) const {
-    Json::Array channels;
-    for (const auto& c : this->channels) {
-      channels.emplace_back(c.ToJson());
-    }
-    object["channels"] = Json::FromArray(std::move(channels));
-    object["end_time_requested"] = Json::FromNumber(end_time_requested);
-    object["end_time_adjusted"] = Json::FromNumber(end_time_adjusted);
-    object["min_tokens"] = Json::FromNumber(min_tokens);
-    object["outstanding_bytes"] = Json::FromNumber(outstanding_bytes);
-    object["num_ready"] = Json::FromNumber(num_ready);
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("channels",
+             [this]() {
+               channelz::PropertyTable table;
+               for (const auto& channel : channels) {
+                 table.AppendRow(channel.ChannelzProperties());
+               }
+               return table;
+             }())
+        .Set("end_time_requested", end_time_requested)
+        .Set("end_time_adjusted", end_time_adjusted)
+        .Set("min_tokens", min_tokens)
+        .Set("outstanding_bytes", outstanding_bytes)
+        .Set("num_ready", num_ready);
   }
 };
 
@@ -136,13 +155,15 @@ struct WriteLargeFrameHeaderTrace {
   uint64_t payload_tag;
   uint64_t payload_size;
   uint32_t chosen_endpoint;
+  uint32_t stream_id;
 
-  void RenderJson(Json::Object& object) const {
-    object["metadata_type"] = Json::FromString("WRITE_LARGE_HEADER");
-    tcp_ztrace_collector_detail::MarkRead(false, object);
-    object["payload_tag"] = Json::FromNumber(payload_tag);
-    object["payload_size"] = Json::FromNumber(payload_size);
-    object["chosen_endpoint"] = Json::FromNumber(chosen_endpoint);
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type", "WRITE_LARGE_HEADER")
+        .Set("payload_tag", payload_tag)
+        .Set("payload_size", payload_size)
+        .Set("chosen_endpoint", chosen_endpoint)
+        .Set("stream_id", stream_id);
   }
 };
 
@@ -150,10 +171,11 @@ struct WriteBytesToEndpointTrace {
   size_t bytes;
   size_t endpoint_id;
 
-  void RenderJson(Json::Object& object) const {
-    object["metadata_type"] = Json::FromString("WRITE_BYTES");
-    object["bytes"] = Json::FromNumber(bytes);
-    object["endpoint_id"] = Json::FromNumber(endpoint_id);
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type", "WRITE_BYTES")
+        .Set("bytes", bytes)
+        .Set("endpoint_id", endpoint_id);
   }
 };
 
@@ -161,28 +183,43 @@ struct FinishWriteBytesToEndpointTrace {
   size_t endpoint_id;
   absl::Status status;
 
-  void RenderJson(Json::Object& object) const {
-    object["metadata_type"] = Json::FromString("FINISH_WRITE");
-    object["endpoint_id"] = Json::FromNumber(endpoint_id);
-    object["status"] = Json::FromString(status.ToString());
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type", "FINISH_WRITE")
+        .Set("endpoint_id", endpoint_id)
+        .Set("status", status);
   }
 };
 
 struct WriteBytesToControlChannelTrace {
   size_t bytes;
 
-  void RenderJson(Json::Object& object) const {
-    object["metadata_type"] = Json::FromString("WRITE_CTL_BYTES");
-    object["bytes"] = Json::FromNumber(bytes);
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type", "WRITE_CTL_BYTES")
+        .Set("bytes", bytes);
+  }
+};
+
+struct ChunkStreamAssociationTrace {
+  int64_t stream_id;
+  uint64_t flow_id;
+
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type", "CHUNK_STREAM_ASSOCIATION")
+        .Set("stream_id", stream_id)
+        .Set("flow_id", flow_id);
   }
 };
 
 struct FinishWriteBytesToControlChannelTrace {
   absl::Status status;
 
-  void RenderJson(Json::Object& object) const {
-    object["metadata_type"] = Json::FromString("FINISH_WRITE_CTL");
-    object["status"] = Json::FromString(status.ToString());
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type", "FINISH_WRITE_CTL")
+        .Set("status", status);
   }
 };
 
@@ -190,25 +227,26 @@ template <bool read>
 struct TransportError {
   absl::Status status;
 
-  void RenderJson(Json::Object& object) const {
-    object["metadata_type"] =
-        Json::FromString(read ? "READ_ERROR" : "WRITE_ERROR");
-    object["status"] = Json::FromString(status.ToString());
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type", read ? "READ_ERROR" : "WRITE_ERROR")
+        .Set("status", status);
   }
 };
 
 struct OrphanTrace {
-  void RenderJson(Json::Object& object) const {
-    object["metadata_type"] = Json::FromString("ORPHAN");
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList().Set("metadata_type", "ORPHAN");
   }
 };
 
 struct EndpointCloseTrace {
   uint32_t id;
 
-  void RenderJson(Json::Object& object) const {
-    object["metadata_type"] = Json::FromString("ENDPOINT_CLOSE");
-    object["endpoint_id"] = Json::FromNumber(id);
+  channelz::PropertyList ChannelzProperties() const {
+    return channelz::PropertyList()
+        .Set("metadata_type", "ENDPOINT_CLOSE")
+        .Set("endpoint_id", id);
   }
 };
 
@@ -218,8 +256,8 @@ using TcpZTraceCollector = channelz::ZTraceCollector<
     WriteLargeFrameHeaderTrace, EndpointWriteMetricsTrace,
     WriteBytesToEndpointTrace, FinishWriteBytesToEndpointTrace,
     WriteBytesToControlChannelTrace, FinishWriteBytesToControlChannelTrace,
-    TransportError<true>, TransportError<false>, OrphanTrace,
-    EndpointCloseTrace>;
+    ChunkStreamAssociationTrace, TransportError<true>, TransportError<false>,
+    OrphanTrace, EndpointCloseTrace>;
 
 }  // namespace grpc_core::chaotic_good
 

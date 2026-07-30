@@ -26,13 +26,9 @@
 #include <memory>
 #include <optional>
 
-#include "absl/strings/str_cat.h"
-#include "absl/time/time.h"
 #include "envoy/config/listener/v3/listener.pb.h"
 #include "envoy/config/route/v3/route.pb.h"
 #include "envoy/extensions/filters/network/http_connection_manager/v3/http_connection_manager.pb.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "src/core/config/config_vars.h"
 #include "src/core/util/env.h"
 #include "src/core/util/time.h"
@@ -42,6 +38,10 @@
 #include "test/core/test_util/scoped_env_var.h"
 #include "test/core/test_util/test_config.h"
 #include "test/cpp/end2end/xds/xds_end2end_test_lib.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "absl/strings/str_cat.h"
+#include "absl/time/time.h"
 
 namespace grpc {
 namespace testing {
@@ -887,7 +887,8 @@ TEST_P(XdsServerRdsTest, FailsRouteMatchesOtherThanNonForwardingAction) {
   // The server should be ready to serve but RPCs should fail.
   ASSERT_TRUE(backends_[0]->WaitOnServingStatusChange(grpc::StatusCode::OK));
   CheckRpcSendFailure(DEBUG_LOCATION, StatusCode::UNAVAILABLE,
-                      "UNAVAILABLE:matching route has unsupported action");
+                      "UNAVAILABLE:matching route has unsupported action",
+                      RpcOptions().set_wait_for_ready(true));
 }
 
 // Test that non-inline route configuration also works for non-default filter
@@ -928,7 +929,8 @@ TEST_P(XdsServerRdsTest, NonInlineRouteConfigurationNotAvailable) {
   ASSERT_TRUE(backends_[0]->WaitOnServingStatusChange(grpc::StatusCode::OK));
   CheckRpcSendFailure(DEBUG_LOCATION, StatusCode::UNAVAILABLE,
                       "RDS resource unknown_server_route_config: "
-                      "does not exist \\(node ID:xds_end2end_test\\)");
+                      "does not exist \\(node ID:xds_end2end_test\\)",
+                      RpcOptions().set_wait_for_ready(true));
 }
 
 // TODO(yashykt): Once https://github.com/grpc/grpc/issues/24035 is fixed, we
@@ -996,10 +998,6 @@ int main(int argc, char** argv) {
       "call,channel,client_channel,client_channel_call,client_channel_lb_call,"
       "handshaker";
   grpc_core::ConfigVars::SetOverrides(overrides);
-#if TARGET_OS_IPHONE
-  // Workaround Apple CFStream bug
-  grpc_core::SetEnv("grpc_cfstream", "0");
-#endif
   grpc_init();
   const auto result = RUN_ALL_TESTS();
   grpc_shutdown();

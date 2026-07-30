@@ -37,9 +37,6 @@
 #include <cstdint>
 #include <string>
 
-#include "absl/status/status.h"
-#include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"
 #include "src/core/call/metadata.h"
 #include "src/core/lib/promise/status_flag.h"
 #include "src/core/lib/resource_quota/arena.h"
@@ -49,6 +46,9 @@
 #include "src/core/util/ref_counted.h"
 #include "src/core/util/ref_counted_ptr.h"
 #include "src/core/util/single_set_ptr.h"
+#include "absl/status/status.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 
 namespace grpc_core {
 
@@ -56,6 +56,8 @@ class ClientCall final
     : public Call,
       public DualRefCounted<ClientCall, NonPolymorphicRefCount,
                             UnrefCallDestroy> {
+  friend class VirtualChannel;
+
  public:
   ClientCall(grpc_call* parent_call, uint32_t propagation_mask,
              grpc_completion_queue* cq, Slice path,
@@ -71,6 +73,10 @@ class ClientCall final
   }
   grpc_call_error StartBatch(const grpc_op* ops, size_t nops, void* notify_tag,
                              bool is_notify_tag_closure) override;
+  void FailBatchImmediately(void* notify_tag, bool is_notify_tag_closure,
+                            grpc_error_handle error) override {
+    EndOpImmediately(cq_, notify_tag, is_notify_tag_closure, std::move(error));
+  }
 
   void ExternalRef() override { Ref().release(); }
   void ExternalUnref() override { Unref(); }
@@ -78,6 +84,7 @@ class ClientCall final
   void InternalUnref(const char*) override { WeakUnref(); }
 
   void Orphaned() override {
+    SourceDestructing();
     if (!saw_trailing_metadata_.load(std::memory_order_relaxed)) {
       CancelWithError(absl::CancelledError());
     }
@@ -118,6 +125,8 @@ class ClientCall final
     this->~ClientCall();
   }
 
+  void AddData(channelz::DataSink sink) override;
+
  private:
   struct UnorderedStart {
     absl::AnyInvocable<void()> start_pending_batch;
@@ -127,7 +136,7 @@ class ClientCall final
   void CommitBatch(const grpc_op* ops, size_t nops, void* notify_tag,
                    bool is_notify_tag_closure);
   template <typename Batch>
-  void ScheduleCommittedBatch(Batch batch);
+  void ScheduleCommittedBatch(Batch&& batch);
   Party::WakeupHold StartCall(const grpc_op& send_initial_metadata_op);
   // Attempt to start the call and send handler down the stack; returns true if
   // state was updated, false otherwise (with cur_state updated to the new

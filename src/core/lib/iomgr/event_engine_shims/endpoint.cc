@@ -24,12 +24,6 @@
 #include <memory>
 #include <utility>
 
-#include "absl/functional/any_invocable.h"
-#include "absl/log/check.h"
-#include "absl/log/log.h"
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "src/core/lib/debug/trace.h"
 #include "src/core/lib/event_engine/extensions/can_track_errors.h"
 #include "src/core/lib/event_engine/extensions/supports_fd.h"
@@ -45,8 +39,14 @@
 #include "src/core/lib/transport/error_utils.h"
 #include "src/core/util/construct_destruct.h"
 #include "src/core/util/debug_location.h"
+#include "src/core/util/grpc_check.h"
 #include "src/core/util/string.h"
 #include "src/core/util/sync.h"
+#include "absl/functional/any_invocable.h"
+#include "absl/log/log.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 
 namespace grpc_event_engine {
 namespace experimental {
@@ -108,7 +108,7 @@ class EventEngineEndpointWrapper {
     read_buffer->Clear();
     return endpoint_->Read(
         [this](absl::Status status) { FinishPendingRead(status); }, read_buffer,
-        std::move(args));
+        args);
   }
 
   void FinishPendingRead(absl::Status status) {
@@ -212,7 +212,7 @@ class EventEngineEndpointWrapper {
         kShutdownBit + 1) {
       auto* supports_fd =
           QueryExtension<EndpointSupportsFdExtension>(endpoint_.get());
-      if (supports_fd != nullptr && fd_ > 0 && on_release_fd_) {
+      if (supports_fd != nullptr && fd_ >= 0 && on_release_fd_) {
         supports_fd->Shutdown(std::move(on_release_fd_));
       }
       OnShutdownInternal();
@@ -241,7 +241,7 @@ class EventEngineEndpointWrapper {
         Ref();
         if (shutdown_ref_.fetch_sub(1, std::memory_order_acq_rel) ==
             kShutdownBit + 1) {
-          if (supports_fd != nullptr && fd_ > 0 && on_release_fd_) {
+          if (supports_fd != nullptr && fd_ >= 0 && on_release_fd_) {
             supports_fd->Shutdown(std::move(on_release_fd_));
           }
           OnShutdownInternal();
@@ -302,7 +302,7 @@ void EndpointRead(grpc_endpoint* ep, grpc_slice_buffer* slices,
 
   EventEngine::Endpoint::ReadArgs read_args;
   read_args.set_read_hint_bytes(min_progress_size);
-  if (eeep->wrapper->Read(cb, slices, std::move(read_args))) {
+  if (eeep->wrapper->Read(cb, slices, read_args)) {
     // Read succeeded immediately. Run the callback inline.
     eeep->wrapper->FinishPendingRead(absl::OkStatus());
   }
@@ -412,9 +412,10 @@ EventEngineEndpointWrapper::EventEngineEndpointWrapper(
 }  // namespace
 
 grpc_endpoint* grpc_event_engine_endpoint_create(
-    std::unique_ptr<EventEngine::Endpoint> ee_endpoint) {
-  DCHECK(ee_endpoint != nullptr);
-  auto wrapper = new EventEngineEndpointWrapper(std::move(ee_endpoint));
+    absl::StatusOr<std::unique_ptr<EventEngine::Endpoint>> ee_endpoint) {
+  GRPC_DCHECK(ee_endpoint.ok()) << ee_endpoint.status();
+  GRPC_DCHECK(ee_endpoint.value() != nullptr);
+  auto wrapper = new EventEngineEndpointWrapper(std::move(ee_endpoint).value());
   return wrapper->GetGrpcEndpoint();
 }
 

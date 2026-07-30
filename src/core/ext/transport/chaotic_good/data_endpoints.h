@@ -27,11 +27,13 @@
 #include "src/core/ext/transport/chaotic_good/frame_transport.h"
 #include "src/core/ext/transport/chaotic_good/pending_connection.h"
 #include "src/core/ext/transport/chaotic_good/scheduler.h"
+#include "src/core/ext/transport/chaotic_good/send_rate.h"
 #include "src/core/ext/transport/chaotic_good/tcp_ztrace_collector.h"
 #include "src/core/ext/transport/chaotic_good/transport_context.h"
 #include "src/core/lib/promise/loop.h"
 #include "src/core/lib/promise/mpsc.h"
 #include "src/core/lib/promise/party.h"
+#include "src/core/lib/promise/race.h"
 #include "src/core/lib/slice/slice_buffer.h"
 #include "src/core/lib/transport/promise_endpoint.h"
 #include "src/core/util/seq_bit_set.h"
@@ -47,44 +49,6 @@ class Clock {
 
  protected:
   ~Clock() = default;
-};
-
-class SendRate {
- public:
-  explicit SendRate(
-      double initial_rate = 0 /* <=0 ==> not set, bytes per nanosecond */)
-      : current_rate_(initial_rate) {}
-
-  struct NetworkSend {
-    uint64_t start_time;
-    uint64_t bytes;
-  };
-  struct NetworkMetrics {
-    std::optional<uint64_t> rtt_usec;
-    std::optional<double> bytes_per_nanosecond;
-  };
-  void StartSend(uint64_t bytes) { last_send_bytes_outstanding_ += bytes; }
-  void SetNetworkMetrics(const std::optional<NetworkSend>& network_send,
-                         const NetworkMetrics& metrics);
-  bool IsRateMeasurementStale() const;
-  channelz::PropertyList ChannelzProperties() const;
-  void PerformRateProbe() { last_rate_measurement_ = Timestamp::Now(); }
-
-  struct DeliveryData {
-    // Time in seconds of the time that a byte sent now would be received at the
-    // peer.
-    double start_time;
-    // The rate of bytes per second that a channel is expected to send.
-    double bytes_per_second;
-  };
-  DeliveryData GetDeliveryData(uint64_t current_time) const;
-
- private:
-  uint64_t last_send_started_time_ = 0;
-  uint64_t last_send_bytes_outstanding_ = 0;
-  double current_rate_;      // bytes per nanosecond
-  uint64_t rtt_usec_ = 0.0;  // nanoseconds
-  Timestamp last_rate_measurement_ = Timestamp::ProcessEpoch();
 };
 
 // The set of output buffers for all connected data endpoints
@@ -152,6 +116,10 @@ class OutputBuffers final
       CHECK(!dropped_);
       dropped_ = true;
       output_buffers_->DestroyReader(id_);
+    }
+    void FinishEndpointWrite() {
+      MutexLock lock(&mu_);
+      send_rate_.FinishEndpointWrite();
     }
 
    private:
@@ -230,7 +198,7 @@ class OutputBuffers final
 
   void DestroyReader(uint32_t id) ABSL_LOCKS_EXCLUDED(mu_reader_data_);
 
-  void WakeupScheduler();
+  void WakeupScheduler(bool async = false);
   Poll<Empty> SchedulerPollForWork();
   void Schedule() ABSL_LOCKS_EXCLUDED(mu_reader_data_);
 
@@ -447,7 +415,8 @@ class SecureFrameQueue
 class Endpoint final {
  public:
   Endpoint(uint32_t id, uint32_t encode_alignment, uint32_t decode_alignment,
-           Clock* clock, RefCountedPtr<OutputBuffers> output_buffers,
+           uint32_t max_receive_message_length, Clock* clock,
+           RefCountedPtr<OutputBuffers> output_buffers,
            RefCountedPtr<InputQueue> input_queues,
            PendingConnection pending_connection, bool enable_tracing,
            TransportContextPtr ctx,
@@ -468,6 +437,7 @@ class Endpoint final {
     uint32_t id;
     uint32_t encode_alignment;
     uint32_t decode_alignment;
+    uint32_t max_receive_message_length;
     bool enable_tracing;
     // TODO(ctiller): Inline members into EndpointContext.
     RefCountedPtr<OutputBuffers> output_buffers;
@@ -501,6 +471,7 @@ class DataEndpoints final : public channelz::DataSource {
   explicit DataEndpoints(std::vector<PendingConnection> endpoints,
                          TransportContextPtr ctx, uint32_t encode_alignment,
                          uint32_t decode_alignment,
+                         uint32_t max_receive_message_length,
                          std::shared_ptr<TcpZTraceCollector> ztrace_collector,
                          bool enable_tracing, std::string scheduler_config,
                          data_endpoints_detail::Clock* clock = DefaultClock());

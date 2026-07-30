@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <thread>
 
+#include "src/core/util/notification.h"
 #include "absl/cleanup/cleanup.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
@@ -35,7 +36,6 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/substitute.h"
-#include "src/core/util/notification.h"
 
 namespace grpc_event_engine::experimental {
 
@@ -309,7 +309,7 @@ void DnsServer::ServerLoop(int sockfd) {
 absl::StatusOr<DnsServer> DnsServer::Start(int port) {
   bool success = false;
   int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-  if (sockfd > 0) {
+  if (sockfd >= 0) {
     int flags = fcntl(sockfd, F_GETFL, 0);
     if (flags >= 0) {
       success = fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) == 0;

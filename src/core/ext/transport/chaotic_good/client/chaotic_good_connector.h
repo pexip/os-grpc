@@ -22,9 +22,6 @@
 #include <cstdint>
 #include <memory>
 
-#include "absl/random/random.h"
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
 #include "src/core/client_channel/connector.h"
 #include "src/core/ext/transport/chaotic_good/config.h"
 #include "src/core/handshaker/handshaker.h"
@@ -44,6 +41,9 @@
 #include "src/core/util/notification.h"
 #include "src/core/util/ref_counted_ptr.h"
 #include "src/core/util/sync.h"
+#include "absl/random/random.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 
 namespace grpc_core {
 namespace chaotic_good {
@@ -62,14 +62,17 @@ class ChaoticGoodConnector final : public SubchannelConnector {
    public:
     ConnectionCreator(
         grpc_event_engine::experimental::EventEngine::ResolvedAddress address,
-        const ChannelArgs& args)
-        : address_(address), args_(args) {}
+        const ChannelArgs& args, uint32_t max_receive_message_length)
+        : address_(address),
+          args_(args),
+          max_receive_message_length_(max_receive_message_length) {}
     PendingConnection Connect(absl::string_view id) override;
     void Orphaned() override {};
 
    private:
     grpc_event_engine::experimental::EventEngine::ResolvedAddress address_;
     ChannelArgs args_;
+    uint32_t max_receive_message_length_;
   };
 
   struct ResultNotifier {
@@ -85,7 +88,9 @@ class ChaoticGoodConnector final : public SubchannelConnector {
     grpc_closure* notify;
 
     void Run(absl::Status status, DebugLocation location = {}) {
-      ExecCtx::Run(location, std::exchange(notify, nullptr), status);
+      if (notify == nullptr) return;
+      grpc_closure* cl = std::exchange(notify, nullptr);
+      EnsureRunInExecCtx([&]() { ExecCtx::Run(location, cl, status); });
     }
   };
 

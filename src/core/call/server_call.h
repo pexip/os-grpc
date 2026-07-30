@@ -39,10 +39,6 @@
 #include <string>
 #include <utility>
 
-#include "absl/log/check.h"
-#include "absl/status/status.h"
-#include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"
 #include "src/core/call/metadata.h"
 #include "src/core/call/metadata_batch.h"
 #include "src/core/lib/promise/poll.h"
@@ -53,8 +49,12 @@
 #include "src/core/telemetry/stats.h"
 #include "src/core/telemetry/stats_data.h"
 #include "src/core/util/crash.h"
+#include "src/core/util/grpc_check.h"
 #include "src/core/util/ref_counted.h"
 #include "src/core/util/ref_counted_ptr.h"
+#include "absl/status/status.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 
 namespace grpc_core {
 
@@ -62,7 +62,8 @@ class ServerCall final : public Call, public DualRefCounted<ServerCall> {
  public:
   ServerCall(ClientMetadataHandle client_initial_metadata,
              CallHandler call_handler, ServerInterface* server,
-             grpc_completion_queue* cq)
+             grpc_completion_queue* cq,
+             RefCountedPtr<Arena> parent_arena = nullptr)
       : Call(false,
              client_initial_metadata->get(GrpcTimeoutMetadata())
                  .value_or(Timestamp::InfFuture()),
@@ -72,6 +73,12 @@ class ServerCall final : public Call, public DualRefCounted<ServerCall> {
         cq_(cq),
         server_(server) {
     global_stats().IncrementServerCallsCreated();
+    if (parent_arena != nullptr) {
+      auto* parent_ctx = arena()->New<ParentCallContext>();
+      parent_ctx->arena = std::move(parent_arena);
+      arena()->SetContext<ParentCallContext>(parent_ctx);
+    }
+    SourceConstructed();
   }
 
   void CancelWithError(grpc_error_handle error) override {
@@ -90,6 +97,10 @@ class ServerCall final : public Call, public DualRefCounted<ServerCall> {
   }
   grpc_call_error StartBatch(const grpc_op* ops, size_t nops, void* notify_tag,
                              bool is_notify_tag_closure) override;
+  void FailBatchImmediately(void* notify_tag, bool is_notify_tag_closure,
+                            grpc_error_handle error) override {
+    EndOpImmediately(cq_, notify_tag, is_notify_tag_closure, std::move(error));
+  }
 
   void ExternalRef() override { Ref().release(); }
   void ExternalUnref() override { Unref(); }
@@ -97,6 +108,7 @@ class ServerCall final : public Call, public DualRefCounted<ServerCall> {
   void InternalUnref(const char*) override { WeakUnref(); }
 
   void Orphaned() override {
+    SourceDestructing();
     if (!saw_was_cancelled_.load(std::memory_order_relaxed)) {
       CancelWithError(absl::CancelledError());
     }
@@ -162,7 +174,8 @@ class ServerCall final : public Call, public DualRefCounted<ServerCall> {
 grpc_call* MakeServerCall(CallHandler call_handler,
                           ClientMetadataHandle client_initial_metadata,
                           ServerInterface* server, grpc_completion_queue* cq,
-                          grpc_metadata_array* publish_initial_metadata);
+                          grpc_metadata_array* publish_initial_metadata,
+                          RefCountedPtr<Arena> parent_arena);
 
 }  // namespace grpc_core
 

@@ -17,7 +17,10 @@
 #include <random>
 #include <thread>
 
+#include "src/core/ext/transport/chttp2/transport/http2_ztrace_collector.h"
 #include "src/core/util/latent_see.h"
+#include "absl/base/log_severity.h"
+#include "absl/log/globals.h"
 
 namespace grpc_core {
 
@@ -42,6 +45,35 @@ static void BM_EmptyEnabledScoped(benchmark::State& state) {
 }
 BENCHMARK(BM_EmptyEnabledScoped)->MinWarmUpTime(0.5);
 
+static void BM_EmptyEnabledMark(benchmark::State& state) {
+  Notification n;
+  std::thread collector([&n]() {
+    latent_see::DiscardOutput output;
+    latent_see::Collect(&n, absl::Hours(24), 1024 * 1024 * 1024, &output);
+  });
+  for (auto _ : state) {
+    GRPC_LATENT_SEE_ALWAYS_ON_MARK("EmptyMark");
+  }
+  n.Notify();
+  collector.join();
+}
+BENCHMARK(BM_EmptyEnabledMark)->MinWarmUpTime(0.5);
+
+static void BM_EmptyEnabledMarkExtraEvent(benchmark::State& state) {
+  Notification n;
+  std::thread collector([&n]() {
+    latent_see::DiscardOutput output;
+    latent_see::Collect(&n, absl::Hours(24), 1024 * 1024 * 1024, &output);
+  });
+  H2HeaderTrace<false> trace = {1, false, false, false, 1024};
+  for (auto _ : state) {
+    GRPC_LATENT_SEE_ALWAYS_ON_MARK_EXTRA_EVENT(H2HeaderTrace<false>, trace);
+  }
+  n.Notify();
+  collector.join();
+}
+BENCHMARK(BM_EmptyEnabledMarkExtraEvent)->MinWarmUpTime(0.5);
+
 }  // namespace grpc_core
 
 // Some distros have RunSpecifiedBenchmarks under the benchmark namespace,
@@ -51,6 +83,7 @@ void RunTheBenchmarksNamespaced() { RunSpecifiedBenchmarks(); }
 }  // namespace benchmark
 
 int main(int argc, char** argv) {
+  absl::SetMinLogLevel(absl::LogSeverityAtLeast::kError);
   ::benchmark::Initialize(&argc, argv);
   benchmark::RunTheBenchmarksNamespaced();
   return 0;

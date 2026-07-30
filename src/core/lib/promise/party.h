@@ -25,10 +25,6 @@
 #include <string>
 #include <utility>
 
-#include "absl/base/attributes.h"
-#include "absl/functional/any_invocable.h"
-#include "absl/log/check.h"
-#include "absl/strings/string_view.h"
 #include "src/core/channelz/channelz.h"
 #include "src/core/channelz/property_list.h"
 #include "src/core/lib/debug/trace.h"
@@ -41,9 +37,13 @@
 #include "src/core/util/check_class_size.h"
 #include "src/core/util/construct_destruct.h"
 #include "src/core/util/crash.h"
+#include "src/core/util/grpc_check.h"
 #include "src/core/util/json/json_writer.h"
 #include "src/core/util/ref_counted.h"
 #include "src/core/util/ref_counted_ptr.h"
+#include "absl/base/attributes.h"
+#include "absl/functional/any_invocable.h"
+#include "absl/strings/string_view.h"
 
 namespace grpc_core {
 
@@ -211,7 +211,7 @@ class Party : public Activity, private Wakeable {
           party->state_.compare_exchange_weak(prev_state_,
                                               (prev_state_ | kLocked) + kOneRef,
                                               std::memory_order_relaxed)) {
-        DCHECK_EQ(prev_state_ & ~(kRefMask | kAllocatedMask), 0u)
+        GRPC_DCHECK_EQ(prev_state_ & ~(kRefMask | kAllocatedMask), 0u)
             << "Party should have contained no wakeups on lock";
         // If we win, record that fact for the destructor
         party->LogStateChange("WakeupHold", prev_state_,
@@ -280,10 +280,12 @@ class Party : public Activity, private Wakeable {
     // spawning of promises is expected to be serialized by some external entity
     // (usually this is a Seq running on a different party).
     template <class Factory>
-    void Spawn(Factory factory) {
+    void Spawn(Factory&& factory) {
       auto empty_completion = [](Empty) {};
-      next_.Push(new ParticipantImpl<Factory, decltype(empty_completion)>(
-          "SpawnSerializer", std::move(factory), empty_completion));
+      next_.Push(new ParticipantImpl<std::decay_t<Factory>,
+                                     decltype(empty_completion)>(
+          "SpawnSerializer", std::forward<Factory>(factory),
+          std::move(empty_completion)));
       party_->WakeupFromState<false>(
           party_->state_.load(std::memory_order_relaxed), wakeup_mask_);
     }
@@ -338,18 +340,18 @@ class Party : public Activity, private Wakeable {
   // A party can hold upto 16 unresolved promises at a time. However, this
   // number might change in the future.
   template <typename Factory, typename OnComplete>
-  void Spawn(absl::string_view name, Factory promise_factory,
-             OnComplete on_complete);
+  void Spawn(absl::string_view name, Factory&& promise_factory,
+             OnComplete&& on_complete);
 
   template <typename Factory>
-  auto SpawnWaitable(absl::string_view name, Factory factory);
+  auto SpawnWaitable(absl::string_view name, Factory&& factory);
 
   void Orphan() final { Crash("unused"); }
 
   // Activity implementation: not allowed to be overridden by derived types.
   void ForceImmediateRepoll(WakeupMask mask) final;
   WakeupMask CurrentParticipant() const final {
-    DCHECK(currently_polling_ != kNotPolling);
+    GRPC_DCHECK(currently_polling_ != kNotPolling);
     return 1u << currently_polling_;
   }
   Waker MakeOwningWaker() final;
@@ -383,7 +385,7 @@ class Party : public Activity, private Wakeable {
   SpawnSerializer* MakeSpawnSerializer() {
     auto* const serializer = arena_->New<SpawnSerializer>(this);
     const size_t slot = AddParticipant(serializer);
-    DCHECK_NE(slot, std::numeric_limits<size_t>::max());
+    GRPC_DCHECK_NE(slot, std::numeric_limits<size_t>::max());
     serializer->wakeup_mask_ = 1ull << slot;
     return serializer;
   }
@@ -394,15 +396,23 @@ class Party : public Activity, private Wakeable {
   void ToJson(absl::AnyInvocable<void(Json::Object)>);
 
   // Export the party to channelz.
-  void ExportToChannelz(std::string name, channelz::DataSink sink);
+  // The final argument is called whilst the party is locked, and so can be used
+  // to export contextual data alongside the party.
+  void ExportToChannelz(
+      std::string name, channelz::DataSink sink,
+      absl::AnyInvocable<channelz::PropertyList()> export_context = []() {
+        // The default implementation does nothing.
+        return channelz::PropertyList();
+      });
 
  protected:
   friend class Arena;
 
   // Derived types should be constructed upon `arena`.
   explicit Party(RefCountedPtr<Arena> arena) : arena_(std::move(arena)) {
-    CHECK(arena_->GetContext<grpc_event_engine::experimental::EventEngine>() !=
-          nullptr);
+    GRPC_CHECK(
+        arena_->GetContext<grpc_event_engine::experimental::EventEngine>() !=
+        nullptr);
   }
   ~Party() override;
 
@@ -422,10 +432,10 @@ class Party : public Activity, private Wakeable {
     using Promise = typename Factory::Promise;
 
    public:
-    ParticipantImpl(absl::string_view, SuppliedFactory promise_factory,
-                    OnComplete on_complete)
-        : on_complete_(std::move(on_complete)) {
-      Construct(&factory_, std::move(promise_factory));
+    ParticipantImpl(absl::string_view, SuppliedFactory&& promise_factory,
+                    OnComplete&& on_complete)
+        : on_complete_(std::forward<OnComplete>(on_complete)) {
+      Construct(&factory_, std::forward<SuppliedFactory>(promise_factory));
     }
     ~ParticipantImpl() {
       if (!started_) {
@@ -455,15 +465,11 @@ class Party : public Activity, private Wakeable {
     channelz::PropertyList ChannelzProperties() override {
       return channelz::PropertyList()
           .Set("on_complete", TypeName<OnComplete>())
-          .Set("factory", [this]() {
-            channelz::PropertyList factory;
-            if (started_) {
-              factory.Set("promise", PromiseProperty(&promise_));
-            } else {
-              factory.Set("factory",
-                          TypeName<typename Factory::UnderlyingFactory>());
-            }
-            return factory;
+          .Set("factory", TypeName<typename Factory::UnderlyingFactory>())
+          .Merge([this]() {
+            channelz::PropertyList p;
+            if (started_) p.Set("promise", PromiseProperty(&promise_));
+            return p;
           }());
     }
 
@@ -488,8 +494,9 @@ class Party : public Activity, private Wakeable {
     using Result = typename Promise::Result;
 
    public:
-    PromiseParticipantImpl(absl::string_view, SuppliedFactory promise_factory) {
-      Construct(&factory_, std::move(promise_factory));
+    PromiseParticipantImpl(absl::string_view,
+                           SuppliedFactory&& promise_factory) {
+      Construct(&factory_, std::forward<SuppliedFactory>(promise_factory));
     }
 
     ~PromiseParticipantImpl() {
@@ -636,7 +643,7 @@ class Party : public Activity, private Wakeable {
   GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION void WakeupFromState(
       uint64_t cur_state, WakeupMask wakeup_mask) {
     GRPC_LATENT_SEE_SCOPE("Party::WakeupFromState");
-    DCHECK_NE(wakeup_mask & kWakeupMask, 0u)
+    GRPC_DCHECK_NE(wakeup_mask & kWakeupMask, 0u)
         << "Wakeup mask must be non-zero: " << wakeup_mask;
     while (true) {
       if (cur_state & kLocked) {
@@ -644,9 +651,9 @@ class Party : public Activity, private Wakeable {
         // we'll immediately unref. Since something is running this should never
         // bring the refcount to zero.
         if constexpr (kReffed) {
-          DCHECK_GT(cur_state & kRefMask, kOneRef);
+          GRPC_DCHECK_GT(cur_state & kRefMask, kOneRef);
         } else {
-          DCHECK_GE(cur_state & kRefMask, kOneRef);
+          GRPC_DCHECK_GE(cur_state & kRefMask, kOneRef);
         }
         const uint64_t new_state =
             (cur_state | wakeup_mask) - (kReffed ? kOneRef : 0);
@@ -657,7 +664,7 @@ class Party : public Activity, private Wakeable {
         }
       } else {
         // If the party is not locked, we need to lock it and run.
-        DCHECK_EQ(cur_state & kWakeupMask, 0u);
+        GRPC_DCHECK_EQ(cur_state & kWakeupMask, 0u);
         const uint64_t new_state =
             (cur_state | kLocked) + (kReffed ? 0 : kOneRef);
         if (state_.compare_exchange_weak(cur_state, new_state,
@@ -712,18 +719,21 @@ struct ContextSubclass<Party> {
 };
 
 template <typename Factory, typename OnComplete>
-void Party::Spawn(absl::string_view name, Factory promise_factory,
-                  OnComplete on_complete) {
+void Party::Spawn(absl::string_view name, Factory&& promise_factory,
+                  OnComplete&& on_complete) {
   GRPC_TRACE_LOG(party_state, INFO) << "PARTY[" << this << "]: spawn " << name;
-  MaybeAsyncAddParticipant(new ParticipantImpl<Factory, OnComplete>(
-      name, std::move(promise_factory), std::move(on_complete)));
+  MaybeAsyncAddParticipant(
+      new ParticipantImpl<std::decay_t<Factory>, std::decay_t<OnComplete>>(
+          name, std::forward<Factory>(promise_factory),
+          std::forward<OnComplete>(on_complete)));
 }
 
 template <typename Factory>
-auto Party::SpawnWaitable(absl::string_view name, Factory promise_factory) {
+auto Party::SpawnWaitable(absl::string_view name, Factory&& promise_factory) {
   GRPC_TRACE_LOG(party_state, INFO) << "PARTY[" << this << "]: spawn " << name;
-  auto participant = MakeRefCounted<PromiseParticipantImpl<Factory>>(
-      name, std::move(promise_factory));
+  auto participant =
+      MakeRefCounted<PromiseParticipantImpl<std::decay_t<Factory>>>(
+          name, std::forward<Factory>(promise_factory));
   Participant* p = participant->Ref().release();
   MaybeAsyncAddParticipant(p);
   return [participant = std::move(participant)]() mutable {

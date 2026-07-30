@@ -26,19 +26,19 @@
 #include <string>
 #include <vector>
 
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/strings/match.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/string_view.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "src/core/lib/slice/slice.h"
 #include "src/core/tsi/transport_security.h"
 #include "src/core/tsi/transport_security_interface.h"
 #include "src/core/util/load_file.h"
 #include "test/core/test_util/test_config.h"
 #include "test/core/tsi/transport_security_test_lib.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 
 namespace grpc_core {
 namespace testing {
@@ -47,6 +47,18 @@ using ::testing::ContainerEq;
 using ::testing::NotNull;
 using ::testing::TestWithParam;
 using ::testing::ValuesIn;
+using tsi::AkidFromCertificate;
+using tsi::AkidFromCrl;
+using tsi::HasCrlSignBit;
+using tsi::IssuerFromCert;
+using tsi::ParsePemCertificateChain;
+using tsi::ParsePemPrivateKey;
+using tsi::ParseUriString;
+using tsi::SslProtectorProtect;
+using tsi::SslProtectorProtectFlush;
+using tsi::SslProtectorUnprotect;
+using tsi::VerifyCrlCertIssuerNamesMatch;
+using tsi::VerifyCrlSignature;
 
 const char* kValidCrl = "test/core/tsi/test_creds/crl_data/crls/current.crl";
 const char* kCrlIssuer = "test/core/tsi/test_creds/crl_data/ca.pem";
@@ -489,6 +501,30 @@ INSTANTIATE_TEST_SUITE_P(FrameProtectorUtil, FlowTest,
                          ValuesIn(GenerateTestData()));
 
 #endif  // OPENSSL_IS_BORINGSSL
+
+TEST(ConvertKeyExchangeGroupToStringTest, ValidCases) {
+  EXPECT_EQ(*tsi::ConvertKeyExchangeGroupToString(GRPC_TLS_GROUP_SECP256R1),
+            "P-256");
+  EXPECT_EQ(*tsi::ConvertKeyExchangeGroupToString(GRPC_TLS_GROUP_X25519),
+            "X25519");
+#if defined(OPENSSL_IS_BORINGSSL)
+  EXPECT_EQ(
+      *tsi::ConvertKeyExchangeGroupToString(GRPC_TLS_GROUP_X25519_MLKEM768),
+      "X25519MLKEM768");
+#else
+  EXPECT_EQ(tsi::ConvertKeyExchangeGroupToString(GRPC_TLS_GROUP_X25519_MLKEM768)
+                .status()
+                .code(),
+            absl::StatusCode::kInvalidArgument);
+#endif
+}
+
+TEST(ConvertKeyExchangeGroupToStringTest, InvalidCases) {
+  EXPECT_EQ(tsi::ConvertKeyExchangeGroupToString(GRPC_TLS_GROUP_UNSPECIFIED)
+                .status()
+                .code(),
+            absl::StatusCode::kInvalidArgument);
+}
 
 class CrlUtils : public ::testing::Test {
  public:

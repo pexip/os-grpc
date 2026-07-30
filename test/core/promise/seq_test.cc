@@ -16,12 +16,13 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "absl/strings/str_cat.h"
-#include "gtest/gtest.h"
 #include "src/proto/grpc/channelz/v2/promise.upb.h"
 #include "upb/mem/arena.hpp"
+#include "gtest/gtest.h"
+#include "absl/strings/str_cat.h"
 
 namespace grpc_core {
 
@@ -161,7 +162,8 @@ TEST(SeqTest, ThreeTypedPendingThens) {
     };
   };
 
-  auto seq_combinator = Seq(initial, next1, next2, next3);
+  auto seq_combinator = Seq(std::move(initial), std::move(next1),
+                            std::move(next2), std::move(next3));
 
   auto retval = seq_combinator();
   EXPECT_TRUE(retval.pending());
@@ -207,7 +209,8 @@ TEST(SeqTest, TwoThens) {
   auto initial = [] { return std::string("a"); };
   auto next1 = [](std::string i) { return [i]() { return i + "b"; }; };
   auto next2 = [](std::string i) { return [i]() { return i + "c"; }; };
-  EXPECT_EQ(Seq(initial, next1, next2)(), Poll<std::string>("abc"));
+  EXPECT_EQ(Seq(std::move(initial), std::move(next1), std::move(next2))(),
+            Poll<std::string>("abc"));
 }
 
 TEST(SeqTest, ThreeThens) {

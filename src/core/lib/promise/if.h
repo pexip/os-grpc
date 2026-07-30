@@ -21,11 +21,11 @@
 #include <utility>
 #include <variant>
 
-#include "absl/status/statusor.h"
 #include "src/core/lib/promise/detail/promise_factory.h"
 #include "src/core/lib/promise/detail/promise_like.h"
 #include "src/core/lib/promise/poll.h"
 #include "src/core/util/construct_destruct.h"
+#include "absl/status/statusor.h"
 
 namespace grpc_core {
 
@@ -113,10 +113,11 @@ class If {
       typename PollTraits<decltype(std::declval<TruePromise>()())>::Type;
 
  public:
-  GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION If(C condition, T if_true, F if_false)
-      : state_(Evaluating{ConditionPromise(std::move(condition)),
-                          TrueFactory(std::move(if_true)),
-                          FalseFactory(std::move(if_false))}) {}
+  GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION If(C&& condition, T&& if_true,
+                                          F&& if_false)
+      : state_(Evaluating{ConditionPromise(std::forward<C>(condition)),
+                          TrueFactory(std::forward<T>(if_true)),
+                          FalseFactory(std::forward<F>(if_false))}) {}
 
   GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION Poll<Result> operator()() {
     return std::visit(CallPoll<false>{this}, state_);
@@ -173,10 +174,11 @@ class If<bool, T, F> {
       typename PollTraits<decltype(std::declval<TruePromise>()())>::Type;
 
  public:
-  GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION If(bool condition, T if_true, F if_false)
+  GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION If(bool condition, T&& if_true,
+                                          F&& if_false)
       : condition_(condition) {
-    TrueFactory true_factory(std::move(if_true));
-    FalseFactory false_factory(std::move(if_false));
+    TrueFactory true_factory(std::forward<T>(if_true));
+    FalseFactory false_factory(std::forward<F>(if_false));
     if (condition_) {
       Construct(&if_true_, true_factory.Make());
     } else {
