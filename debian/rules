@@ -76,9 +76,9 @@ override_dh_auto_clean:
 
 override_dh_auto_configure:
 	mkdir -p $(CURDIR)/third_party/googletest/
-	ln -sfn /usr/src/googletest/googlemock/ \
+	ln -s /usr/src/googletest/googlemock/ \
 		$(CURDIR)/third_party/googletest/
-	ln -sfn /usr/src/googletest/googletest/ \
+	ln -s /usr/src/googletest/googletest/ \
 		$(CURDIR)/third_party/googletest/
 
 	dh_auto_configure -O--buildsystem=cmake \
