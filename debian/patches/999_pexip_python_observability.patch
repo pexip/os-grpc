@@ -1,10 +1,8 @@
 Remove unnecessary C file compilation from grpcio_observability.
 Replaced by dynamic linking.
-Index: grpc/src/python/grpcio_observability/setup.py
-===================================================================
---- grpc.orig/src/python/grpcio_observability/setup.py
-+++ grpc/src/python/grpcio_observability/setup.py
-@@ -197,7 +196,7 @@ if BUILD_WITH_STATIC_LIBSTDCXX:
+--- a/src/python/grpcio_observability/setup.py
++++ b/src/python/grpcio_observability/setup.py
+@@ -219,7 +219,7 @@
      EXTRA_LINK_ARGS.append("-static-libstdc++")
  
  CC_FILES = [

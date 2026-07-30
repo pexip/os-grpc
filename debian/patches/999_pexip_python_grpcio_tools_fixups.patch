@@ -2,13 +2,11 @@ Compile grpcio_tools against system ABSL and protobuf instead
 of statically linking another copy.
 
 Improves our security posture by reducing duplicate code.
-Index: grpc/tools/distrib/python/grpcio_tools/setup.py
-===================================================================
---- grpc.orig/tools/distrib/python/grpcio_tools/setup.py
-+++ grpc/tools/distrib/python/grpcio_tools/setup.py
-@@ -49,6 +49,9 @@ if sys.version_info[0] == 2:
- else:
-     _EXT_INIT_SYMBOL = "PyInit__protoc_compiler"
+--- a/tools/distrib/python/grpcio_tools/setup.py
++++ b/tools/distrib/python/grpcio_tools/setup.py
+@@ -43,6 +43,9 @@
+ 
+ _EXT_INIT_SYMBOL = "PyInit__protoc_compiler"
  
 +BUILD_WITH_SYSTEM_ABSL = True
 +BUILD_WITH_SYSTEM_PROTOBUF = True
@@ -16,7 +14,7 @@ Index: grpc/tools/distrib/python/grpcio_tools/setup.py
  _parallel_compile_patch.monkeypatch_compile_maybe()
  _spawn_patch.monkeypatch_spawn()
  
-@@ -257,6 +260,16 @@ PROTO_INCLUDE = os.path.normpath(protoc_
+@@ -260,6 +263,16 @@
  GRPC_PYTHON_TOOLS_PACKAGE = "grpc_tools"
  GRPC_PYTHON_PROTO_RESOURCES_NAME = "_proto"
  

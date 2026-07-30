@@ -1,9 +1,7 @@
 Patch GRPC upstream to use only non-deprecated OpenSSL3 APIs.
-Index: grpc/test/core/handshake/client_ssl.cc
-===================================================================
---- grpc.orig/test/core/handshake/client_ssl.cc
-+++ grpc/test/core/handshake/client_ssl.cc
-@@ -193,11 +193,10 @@ static void ssl_server_info_callback(con
+--- a/test/core/handshake/client_ssl.cc
++++ b/test/core/handshake/client_ssl.cc
+@@ -193,11 +193,10 @@
  static void server_thread(void* arg) {
    const server_args* args = static_cast<server_args*>(arg);
  
@@ -17,7 +15,7 @@ Index: grpc/test/core/handshake/client_ssl.cc
    SSL_CTX* ctx = SSL_CTX_new(method);
    if (!ctx) {
      perror("Unable to create SSL context");
-@@ -232,13 +231,6 @@ static void server_thread(void* arg) {
+@@ -232,13 +231,6 @@
      grpc_core::Crash("Couldn't set server cipher list.");
    }
  
@@ -31,7 +29,7 @@ Index: grpc/test/core/handshake/client_ssl.cc
    // Register the ALPN selection callback.
    SSL_CTX_set_alpn_select_cb(ctx, alpn_select_cb, args->alpn_preferred);
  
-@@ -386,8 +378,6 @@ TEST(ClientSslTest, MainTest) {
+@@ -386,8 +378,6 @@
    // and sanity checks the client_ssl_test.
    ASSERT_FALSE(client_ssl_test(const_cast<char*>("foo")));
  #endif  // OPENSSL_IS_BORING_SSL
@@ -40,11 +38,9 @@ Index: grpc/test/core/handshake/client_ssl.cc
  }
  
  #endif  // GRPC_POSIX_SOCKET_TCP
-Index: grpc/test/core/handshake/server_ssl_common.cc
-===================================================================
---- grpc.orig/test/core/handshake/server_ssl_common.cc
-+++ grpc/test/core/handshake/server_ssl_common.cc
-@@ -187,7 +187,7 @@ bool server_ssl_test(const char* alpn_li
+--- a/test/core/handshake/server_ssl_common.cc
++++ b/test/core/handshake/server_ssl_common.cc
+@@ -187,7 +187,7 @@
    // server port.
    s.Await();
  
@@ -53,17 +49,15 @@ Index: grpc/test/core/handshake/server_ssl_common.cc
    SSL_CTX* ctx = SSL_CTX_new(method);
    if (!ctx) {
      perror("Unable to create SSL context");
-@@ -280,4 +280,4 @@ bool server_ssl_test(const char* alpn_li
+@@ -280,4 +280,4 @@
    return success;
  }
  
 -void CleanupSslLibrary() { EVP_cleanup(); }
 +void CleanupSslLibrary() { }
-Index: grpc/src/core/tsi/ssl_transport_security.cc
-===================================================================
---- grpc.orig/src/core/tsi/ssl_transport_security.cc
-+++ grpc/src/core/tsi/ssl_transport_security.cc
-@@ -1636,7 +1636,7 @@ static tsi_result ssl_handshaker_result_
+--- a/src/core/tsi/ssl_transport_security.cc
++++ b/src/core/tsi/ssl_transport_security.cc
+@@ -1908,7 +1908,7 @@
    unsigned int alpn_selected_len;
    const tsi_ssl_handshaker_result* impl =
        reinterpret_cast<const tsi_ssl_handshaker_result*>(self);

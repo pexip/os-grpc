@@ -1,10 +1,8 @@
 Compile the python grpc bindings against the shared library instead of
 recompiling and statically linking all of the code into the module.
-Index: grpc/setup.py
-===================================================================
---- grpc.orig/setup.py
-+++ grpc/setup.py
-@@ -194,7 +194,7 @@ BUILD_WITH_STATIC_LIBSTDCXX = _env_bool_
+--- a/setup.py
++++ b/setup.py
+@@ -184,7 +184,7 @@
  #
  # TODO(ericgribkoff) Respect the BUILD_WITH_SYSTEM_* flags alongside this option
  USE_PREBUILT_GRPC_CORE = _env_bool_value(
@@ -13,7 +11,7 @@ Index: grpc/setup.py
  )
  
  # Environment variable to determine whether or not to enable coverage analysis
-@@ -488,16 +488,15 @@ def cython_extensions_and_necessity():
+@@ -501,16 +501,15 @@
      config = os.environ.get("CONFIG", "opt")
      prefix = "libs/" + config + "/"
      if USE_PREBUILT_GRPC_CORE:
@@ -35,7 +33,7 @@ Index: grpc/setup.py
      extensions = [
          Extension(
              name=module_name,
-@@ -508,11 +507,11 @@ def cython_extensions_and_necessity():
+@@ -521,11 +520,11 @@
                  + asm_files
              ),
              include_dirs=list(EXTENSION_INCLUDE_DIRECTORIES),
