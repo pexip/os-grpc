@@ -20,9 +20,7 @@
 #include <optional>
 #include <string>
 
-#include "absl/log/check.h"
 #include "fuzztest/fuzztest.h"
-#include "gtest/gtest.h"
 #include "src/core/config/core_configuration.h"
 #include "src/core/credentials/transport/fake/fake_credentials.h"
 #include "src/core/ext/transport/chaotic_good/server/chaotic_good_server.h"
@@ -30,6 +28,7 @@
 #include "src/core/lib/experiments/config.h"
 #include "src/core/lib/iomgr/exec_ctx.h"
 #include "src/core/util/env.h"
+#include "src/core/util/grpc_check.h"
 #include "src/core/util/notification.h"
 #include "test/core/end2end/fuzzers/api_fuzzer.pb.h"
 #include "test/core/end2end/fuzzers/fuzzer_input.pb.h"
@@ -38,10 +37,12 @@
 #include "test/core/test_util/fuzz_config_vars.h"
 #include "test/core/test_util/fuzz_config_vars_helpers.h"
 #include "test/core/test_util/test_config.h"
+#include "gtest/gtest.h"
 
 namespace grpc_core {
 namespace testing {
 
+using grpc_event_engine::experimental::EventEngine;
 using grpc_event_engine::experimental::FuzzingEventEngine;
 
 class ServerFuzzer final : public BasicFuzzer {
@@ -51,7 +52,10 @@ class ServerFuzzer final : public BasicFuzzer {
       absl::FunctionRef<void(FuzzingEventEngine*, grpc_server*, int,
                              const ChannelArgs&)>
           server_setup)
-      : BasicFuzzer(msg.event_engine_actions()) {
+      : BasicFuzzer(msg.event_engine_actions()),
+        server_(grpc_server_create(
+            ChannelArgs().SetObject<EventEngine>(engine()).ToC().get(),
+            nullptr)) {
     ExecCtx exec_ctx;
     grpc_server_register_completion_queue(server_, cq(), nullptr);
     // TODO(ctiller): add more registered methods (one for POST, one for PUT)
@@ -64,7 +68,8 @@ class ServerFuzzer final : public BasicFuzzer {
                 CreateChannelArgsFromFuzzingConfiguration(
                     msg.channel_args(), FuzzingEnvironment{resource_quota()})
                     .ToC()
-                    .get()));
+                    .get())
+            .SetObject<EventEngine>(engine()));
     grpc_server_start(server_);
     for (const auto& input : msg.network_input()) {
       UpdateMinimumRunTime(ScheduleConnection(
@@ -72,7 +77,7 @@ class ServerFuzzer final : public BasicFuzzer {
     }
   }
 
-  ~ServerFuzzer() { CHECK_EQ(server_, nullptr); }
+  ~ServerFuzzer() { GRPC_CHECK_EQ(server_, nullptr); }
 
  private:
   Result CreateChannel(
@@ -92,7 +97,7 @@ class ServerFuzzer final : public BasicFuzzer {
   grpc_server* server() override { return server_; }
   grpc_channel* channel() override { return nullptr; }
 
-  grpc_server* server_ = grpc_server_create(nullptr, nullptr);
+  grpc_server* server_;
 };
 
 void RunServerFuzzer(const fuzzer_input::Msg& msg,
@@ -109,7 +114,7 @@ void RunServerFuzzer(const fuzzer_input::Msg& msg,
 
 auto ParseTestProto(const std::string& proto) {
   fuzzer_input::Msg msg;
-  CHECK(google::protobuf::TextFormat::ParseFromString(proto, &msg));
+  GRPC_CHECK(google::protobuf::TextFormat::ParseFromString(proto, &msg));
   return msg;
 }
 
@@ -125,8 +130,8 @@ void ChaoticGood(fuzzer_input::Msg msg) {
         listener->Bind(grpc_event_engine::experimental::URIToResolvedAddress(
                            absl::StrCat("ipv4:0.0.0.0:", port_num))
                            .value());
-    CHECK_OK(port);
-    CHECK_EQ(port.value(), port_num);
+    GRPC_CHECK_OK(port);
+    GRPC_CHECK_EQ(port.value(), port_num);
     Server::FromC(server)->AddListener(
         OrphanablePtr<chaotic_good::ChaoticGoodServerListener>(listener));
   });

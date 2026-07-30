@@ -26,11 +26,14 @@
 
 #include <functional>
 
+#include "src/core/ext/transport/chttp2/transport/http2_server_transport.h"
 #include "src/core/ext/transport/chttp2/transport/internal.h"
 #include "src/core/handshaker/handshaker.h"
 #include "src/core/lib/channel/channel_args.h"
 #include "src/core/lib/iomgr/error.h"
+#include "src/core/mitigation_engine/mitigation_engine.h"
 #include "src/core/server/server.h"
+#include "src/core/util/ref_counted_ptr.h"
 
 namespace grpc_core {
 
@@ -83,7 +86,7 @@ class NewChttp2ServerListener : public Server::ListenerInterface {
       friend class grpc_core::testing::HandshakingStateTestPeer;
 
       void OnTimeoutLocked();
-      static void OnReceiveSettings(void* arg, grpc_error_handle /* error */);
+      void OnReceiveSettings();
       void OnHandshakeDoneLocked(absl::StatusOr<HandshakerArgs*> result);
 
       RefCountedPtr<ActiveConnection> const connection_;
@@ -98,7 +101,6 @@ class NewChttp2ServerListener : public Server::ListenerInterface {
       // State for enforcing handshake timeout on receiving HTTP/2 settings.
       std::optional<grpc_event_engine::experimental::EventEngine::TaskHandle>
           timer_handle_;
-      grpc_closure on_receive_settings_;
     };
 
     ActiveConnection(RefCountedPtr<Server::ListenerState> listener_state,
@@ -132,7 +134,8 @@ class NewChttp2ServerListener : public Server::ListenerInterface {
     // Set by HandshakingState before the handshaking begins and set to a valid
     // transport when handshaking is done successfully.
     std::variant<OrphanablePtr<HandshakingState>,
-                 RefCountedPtr<grpc_chttp2_transport>>
+                 RefCountedPtr<grpc_chttp2_transport>,
+                 RefCountedPtr<http2::Http2ServerTransport>>
         state_;
     grpc_closure on_close_;
     bool shutdown_ = false;
@@ -203,6 +206,11 @@ class NewChttp2ServerListener : public Server::ListenerInterface {
     return listener_state_->server()
         ->channel_args()
         .GetObject<grpc_event_engine::experimental::EventEngine>();
+  }
+
+  RefCountedPtr<MitigationEngine> mitigation_engine() const {
+    auto* provider = args_.GetObject<MitigationEngineProvider>();
+    return provider != nullptr ? provider->GetEngine() : nullptr;
   }
 
   grpc_tcp_server* tcp_server_ = nullptr;

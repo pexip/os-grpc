@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Date: Jul, 18 2026 12:55:39 +0200
+Subject: [PATCH] do not maximalize google-protobuf version
+
+Maximum version of google-protobuf is already 36.0 at the moment.
+
+Forwarded: no
+---
+
+
+--- grpc-1.82.0.orig/grpc.gemspec
++++ grpc-1.82.0/grpc.gemspec
+@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
+   s.require_paths = %w( src/ruby/lib src/ruby/bin src/ruby/pb )
+   s.platform      = Gem::Platform::RUBY
+ 
+-  s.add_dependency 'google-protobuf', '>= 3.25', '< 5.0'
++  s.add_dependency 'google-protobuf', '>= 3.25'
+   s.add_dependency 'googleapis-common-protos-types', '~> 1.0'
+ 
+   s.add_development_dependency 'bundler',            '>= 1.9'

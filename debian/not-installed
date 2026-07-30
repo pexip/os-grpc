@@ -1,0 +1,4 @@
+# need to be packaged independently
+usr/lib/${DEB_HOST_MULTIARCH}/libupb_*.so.*
+usr/lib/${DEB_HOST_MULTIARCH}/libupb_*.a
+usr/lib/${DEB_HOST_MULTIARCH}/libupb_*.so

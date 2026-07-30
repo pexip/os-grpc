@@ -24,14 +24,14 @@
 #include <type_traits>
 #include <utility>
 
+#include "src/core/lib/slice/slice.h"
+#include "src/core/util/time.h"
 #include "absl/functional/function_ref.h"
 #include "absl/meta/type_traits.h"
 #include "absl/strings/escaping.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "src/core/lib/slice/slice.h"
-#include "src/core/util/time.h"
 
 namespace grpc_core {
 
@@ -365,8 +365,13 @@ ParsedMetadata<MetadataContainer>::SliceTraitVTable() {
       metadata_detail::DestroySliceValue,
       // set
       [](const Buffer& value, MetadataContainer* map) {
-        metadata_detail::SetSliceValue<Which::MementoToValue>(
-            map->GetOrCreatePointer(Which()), value);
+        if constexpr (Which::kRepeatable) {
+          map->GetOrCreatePointer(Which())->emplace_back(
+              Which::MementoToValue(metadata_detail::SliceFromBuffer(value)));
+        } else {
+          metadata_detail::SetSliceValue<Which::MementoToValue>(
+              map->GetOrCreatePointer(Which()), value);
+        }
       },
       // with_new_value
       WithNewValueSetSlice<Which::ParseMemento>,

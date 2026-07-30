@@ -27,14 +27,14 @@
 #include <utility>
 #include <vector>
 
+#include "src/core/lib/event_engine/posix_engine/native_posix_dns_resolver.h"
+#include "src/core/util/host_port.h"
+#include "src/core/util/useful.h"
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "src/core/lib/event_engine/posix_engine/native_posix_dns_resolver.h"
-#include "src/core/util/host_port.h"
-#include "src/core/util/useful.h"
 
 namespace grpc_event_engine::experimental {
 
@@ -95,7 +95,8 @@ NativePosixDNSResolver::NativePosixDNSResolver(
 void NativePosixDNSResolver::LookupHostname(
     EventEngine::DNSResolver::LookupHostnameCallback on_resolved,
     absl::string_view name, absl::string_view default_port) {
-  event_engine_->Run([name = std::string(name), default_port,
+  event_engine_->Run([name = std::string(name),
+                      default_port = std::string(default_port),
                       on_resolved = std::move(on_resolved)]() mutable {
     on_resolved(LookupHostnameBlocking(name, default_port));
   });

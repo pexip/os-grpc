@@ -30,11 +30,6 @@
 #include <variant>
 #include <vector>
 
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
-#include "absl/strings/string_view.h"
 #include "envoy/config/core/v3/base.pb.h"
 #include "envoy/config/core/v3/extension.pb.h"
 #include "envoy/config/route/v3/route.pb.h"
@@ -43,8 +38,6 @@
 #include "envoy/type/matcher/v3/string.pb.h"
 #include "envoy/type/v3/percent.pb.h"
 #include "envoy/type/v3/range.pb.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "re2/re2.h"
 #include "src/core/call/status_util.h"
 #include "src/core/lib/debug/trace.h"
@@ -66,6 +59,13 @@
 #include "upb/mem/arena.hpp"
 #include "upb/reflection/def.hpp"
 #include "xds/type/v3/typed_struct.pb.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 
 using envoy::config::route::v3::RouteConfiguration;
 using grpc::lookup::v1::RouteLookupClusterSpecifier;
@@ -417,10 +417,12 @@ TEST_P(TypedPerFilterConfigTest, Basic) {
   ASSERT_NE(it, typed_per_filter_config.end());
   EXPECT_EQ("fault", it->first);
   const auto& filter_config = it->second;
-  EXPECT_EQ(filter_config.config_proto_type_name,
+  EXPECT_EQ(filter_config.config_proto_type,
             "envoy.extensions.filters.http.fault.v3.HTTPFault");
-  EXPECT_EQ(JsonDump(filter_config.config),
-            "{\"abortCode\":\"PERMISSION_DENIED\"}");
+  ASSERT_NE(filter_config.filter_config, nullptr);
+  EXPECT_EQ(filter_config.filter_config->ToString(),
+            "{abort_code=PERMISSION_DENIED, abort_message=\"Fault injected\", "
+            "max_faults=4294967295}");
 }
 
 TEST_P(TypedPerFilterConfigTest, EmptyName) {
@@ -528,10 +530,12 @@ TEST_P(TypedPerFilterConfigTest, FilterConfigWrapper) {
   ASSERT_NE(it, typed_per_filter_config.end());
   EXPECT_EQ("fault", it->first);
   const auto& filter_config = it->second;
-  EXPECT_EQ(filter_config.config_proto_type_name,
+  EXPECT_EQ(filter_config.config_proto_type,
             "envoy.extensions.filters.http.fault.v3.HTTPFault");
-  EXPECT_EQ(JsonDump(filter_config.config),
-            "{\"abortCode\":\"PERMISSION_DENIED\"}");
+  ASSERT_NE(filter_config.filter_config, nullptr);
+  EXPECT_EQ(filter_config.filter_config->ToString(),
+            "{abort_code=PERMISSION_DENIED, abort_message=\"Fault injected\", "
+            "max_faults=4294967295}");
 }
 
 TEST_P(TypedPerFilterConfigTest, FilterConfigWrapperInTypedStruct) {
@@ -748,7 +752,7 @@ TEST_P(RetryPolicyTest, Empty) {
   ASSERT_TRUE(action->retry_policy.has_value());
   const auto& retry_policy = *action->retry_policy;
   // Defaults.
-  auto expected_codes = internal::StatusCodeSet();
+  auto expected_codes = StatusCodeSet();
   EXPECT_EQ(retry_policy.retry_on, expected_codes)
       << "Actual: " << retry_policy.retry_on.ToString()
       << "\nExpected: " << expected_codes.ToString();
@@ -786,7 +790,7 @@ TEST_P(RetryPolicyTest, AllFields) {
   ASSERT_NE(action, nullptr);
   ASSERT_TRUE(action->retry_policy.has_value());
   const auto& retry_policy = *action->retry_policy;
-  auto expected_codes = internal::StatusCodeSet()
+  auto expected_codes = StatusCodeSet()
                             .Add(GRPC_STATUS_CANCELLED)
                             .Add(GRPC_STATUS_DEADLINE_EXCEEDED)
                             .Add(GRPC_STATUS_INTERNAL)
@@ -902,7 +906,7 @@ TEST_F(RetryPolicyOverrideTest, RoutePolicyOverridesVhostPolicy) {
       std::get_if<XdsRouteConfigResource::Route::RouteAction>(&route.action);
   ASSERT_NE(action, nullptr);
   ASSERT_TRUE(action->retry_policy.has_value());
-  auto expected_codes = internal::StatusCodeSet().Add(GRPC_STATUS_CANCELLED);
+  auto expected_codes = StatusCodeSet().Add(GRPC_STATUS_CANCELLED);
   EXPECT_EQ(action->retry_policy->retry_on, expected_codes)
       << "Actual: " << action->retry_policy->retry_on.ToString()
       << "\nExpected: " << expected_codes.ToString();

@@ -3,15 +3,13 @@ Description: all Sphinx version build docs
 Author: Laszlo Boszormenyi (GCS) <gcs@debian.org>
 Bug-Debian: https://bugs.debian.org/955064
 Forwarded: no
-Last-Update: 2024-08-11
+Last-Update: 2026-07-05
 
 ---
 
-Index: grpc/setup.py
-===================================================================
---- grpc.orig/setup.py
-+++ grpc/setup.py
-@@ -549,7 +549,7 @@ EXTRAS_REQUIRES = {
+--- a/setup.py
++++ b/setup.py
+@@ -558,7 +558,7 @@ EXTRAS_REQUIRES = {
  }
  
  SETUP_REQUIRES = (

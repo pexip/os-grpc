@@ -29,13 +29,8 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 
-#include "absl/functional/any_invocable.h"
-#include "absl/log/check.h"
-#include "absl/log/log.h"
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "absl/strings/str_cat.h"
 #include "src/core/lib/debug/trace.h"
 #include "src/core/lib/event_engine/posix_engine/event_poller.h"
 #include "src/core/lib/event_engine/posix_engine/internal_errqueue.h"
@@ -46,11 +41,16 @@
 #include "src/core/lib/slice/slice.h"
 #include "src/core/telemetry/stats.h"
 #include "src/core/util/debug_location.h"
+#include "src/core/util/grpc_check.h"
 #include "src/core/util/load_file.h"
 #include "src/core/util/ref_counted_ptr.h"
 #include "src/core/util/status_helper.h"
-#include "src/core/util/strerror.h"
 #include "src/core/util/sync.h"
+#include "absl/functional/any_invocable.h"
+#include "absl/log/log.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 
 #ifdef GRPC_POSIX_SOCKET_TCP
 #ifdef GRPC_LINUX_ERRQUEUE
@@ -136,10 +136,11 @@ uint64_t ParseUlimitMemLockFromFile(std::string file_name) {
     return 0;
   }
   // Find position of next newline after prefix.
-  size_t end = file_contents.find(start, '\n');
+  size_t end = file_contents.find('\n', start);
   // Extract substring between prefix and next newline.
+  size_t value_start = start + kHardMemlockPrefix.length() + 1;
   auto memlock_value_string = file_contents.substr(
-      start + kHardMemlockPrefix.length() + 1, end - start);
+      value_start, end == std::string::npos ? end : end - value_start);
   rtrim(memlock_value_string);
   if (memlock_value_string == "unlimited" ||
       memlock_value_string == "infinity") {
@@ -247,7 +248,7 @@ msg_iovlen_type TcpZerocopySendRecord::PopulateIovs(size_t* unwind_slice_idx,
     ++(out_offset_.slice_idx);
     out_offset_.byte_idx = 0;
   }
-  DCHECK_GT(iov_size, 0u);
+  GRPC_DCHECK_GT(iov_size, 0u);
   return iov_size;
 }
 
@@ -310,8 +311,8 @@ bool PosixEndpointImpl::TcpDoRead(absl::Status& status) {
     iov[i].iov_len = slice.length();
   }
 
-  CHECK_NE(incoming_buffer_->Length(), 0u);
-  DCHECK_GT(min_progress_size_, 0);
+  GRPC_CHECK_NE(incoming_buffer_->Length(), 0u);
+  GRPC_DCHECK_GT(min_progress_size_, 0);
 
   do {
     // Assume there is something on the queue. If we receive TCP_INQ from
@@ -370,18 +371,19 @@ bool PosixEndpointImpl::TcpDoRead(absl::Status& status) {
       } else if (read_bytes == 0) {
         status = TcpAnnotateError(absl::InternalError("Socket closed"));
       } else {
-        status = TcpAnnotateError(absl::InternalError(
-            absl::StrCat("recvmsg:", grpc_core::StrError(errno))));
+        status = TcpAnnotateError(
+            absl::InternalError(absl::StrCat("recvmsg:", res.StrError())));
       }
       return true;
     }
     grpc_core::global_stats().IncrementTcpReadSize(read_bytes);
     AddToEstimate(static_cast<size_t>(read_bytes));
-    DCHECK((size_t)read_bytes <= incoming_buffer_->Length() - total_read_bytes);
+    GRPC_DCHECK((size_t)read_bytes <=
+                incoming_buffer_->Length() - total_read_bytes);
 
 #ifdef GRPC_HAVE_TCP_INQ
     if (inq_capable_) {
-      DCHECK(!(msg.msg_flags & MSG_CTRUNC));
+      GRPC_DCHECK(!(msg.msg_flags & MSG_CTRUNC));
       struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
       for (; cmsg != nullptr; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
         if (cmsg->cmsg_level == SOL_TCP && cmsg->cmsg_type == TCP_CM_INQ &&
@@ -430,7 +432,7 @@ bool PosixEndpointImpl::TcpDoRead(absl::Status& status) {
     inq_ = 1;
   }
 
-  DCHECK_GT(total_read_bytes, 0u);
+  GRPC_DCHECK_GT(total_read_bytes, 0u);
   status = absl::OkStatus();
   if (grpc_core::IsTcpFrameSizeTuningEnabled()) {
     // Update min progress size based on the total number of bytes read in
@@ -613,7 +615,7 @@ bool PosixEndpointImpl::Read(absl::AnyInvocable<void(absl::Status)> on_read,
   grpc_core::ReleasableMutexLock lock(&read_mu_);
   GRPC_TRACE_LOG(event_engine_endpoint, INFO)
       << "Endpoint[" << this << "]: Read";
-  CHECK(read_cb_ == nullptr);
+  GRPC_CHECK(read_cb_ == nullptr);
   incoming_buffer_ = buffer;
   incoming_buffer_->Clear();
   incoming_buffer_->Swap(last_read_buffer_);
@@ -687,8 +689,8 @@ TcpZerocopySendRecord* PosixEndpointImpl::TcpGetSendZerocopyRecord(
     }
     if (zerocopy_send_record != nullptr) {
       zerocopy_send_record->PrepareForSends(buf);
-      DCHECK_EQ(buf.Count(), 0u);
-      DCHECK_EQ(buf.Length(), 0u);
+      GRPC_DCHECK_EQ(buf.Count(), 0u);
+      GRPC_DCHECK_EQ(buf.Length(), 0u);
       outgoing_byte_idx_ = 0;
       outgoing_buffer_ = nullptr;
     }
@@ -775,10 +777,10 @@ void PosixEndpointImpl::ZerocopyDisableAndWaitForRemaining() {
 
 // Reads \a cmsg to process zerocopy control messages.
 void PosixEndpointImpl::ProcessZerocopy(struct cmsghdr* cmsg) {
-  DCHECK(cmsg);
+  GRPC_DCHECK(cmsg);
   auto serr = reinterpret_cast<struct sock_extended_err*>(CMSG_DATA(cmsg));
-  DCHECK_EQ(serr->ee_errno, 0u);
-  DCHECK(serr->ee_origin == SO_EE_ORIGIN_ZEROCOPY);
+  GRPC_DCHECK_EQ(serr->ee_errno, 0u);
+  GRPC_DCHECK(serr->ee_origin == SO_EE_ORIGIN_ZEROCOPY);
   const uint32_t lo = serr->ee_info;
   const uint32_t hi = serr->ee_data;
   for (uint32_t seq = lo; seq <= hi; ++seq) {
@@ -788,7 +790,7 @@ void PosixEndpointImpl::ProcessZerocopy(struct cmsghdr* cmsg) {
     // both; if so, batch the unref/put.
     TcpZerocopySendRecord* record =
         tcp_zerocopy_send_ctx_->ReleaseSendRecord(seq);
-    DCHECK(record);
+    GRPC_DCHECK(record);
     UnrefMaybePutZerocopySendRecord(record);
   }
   if (tcp_zerocopy_send_ctx_->UpdateZeroCopyOptMemStateAfterFree()) {
@@ -891,7 +893,7 @@ bool PosixEndpointImpl::WriteWithTimestamps(struct msghdr* msg,
   traced_buffers_.AddNewEntry(
       static_cast<uint32_t>(bytes_counter_ + sending_length),
       &poller_->posix_interface(), handle_->WrappedFd(),
-      std::move(outgoing_buffer_write_event_sink_).value());
+      std::move(*outgoing_buffer_write_event_sink_));
   outgoing_buffer_write_event_sink_.reset();
 
   // If there was an error on sendmsg the logic in tcp_flush will handle it.
@@ -939,6 +941,7 @@ void PosixEndpointImpl::UnrefMaybePutZerocopySendRecord(
 void PosixEndpointImpl::TcpShutdownTracedBufferList() {
   if (outgoing_buffer_write_event_sink_.has_value()) {
     traced_buffers_.Shutdown(std::move(outgoing_buffer_write_event_sink_));
+    outgoing_buffer_write_event_sink_.reset();
   }
 }
 
@@ -1086,7 +1089,7 @@ bool PosixEndpointImpl::TcpFlush(absl::Status& status) {
       outgoing_slice_idx++;
       outgoing_byte_idx_ = 0;
     }
-    CHECK_GT(iov_size, 0u);
+    GRPC_CHECK_GT(iov_size, 0u);
 
     msg.msg_name = nullptr;
     msg.msg_namelen = 0;
@@ -1132,7 +1135,8 @@ bool PosixEndpointImpl::TcpFlush(absl::Status& status) {
       }
     }
 
-    CHECK_EQ(outgoing_byte_idx_, 0u);
+    GRPC_CHECK_EQ(outgoing_byte_idx_, 0u);
+    GRPC_CHECK_LE((static_cast<size_t>(*send_result)), sending_length);
     bytes_counter_ += *send_result;
     trailing = sending_length - static_cast<size_t>(*send_result);
     while (trailing > 0) {
@@ -1171,7 +1175,7 @@ void PosixEndpointImpl::HandleWrite(absl::Status status) {
                           ? TcpFlushZerocopy(current_zerocopy_send_, status)
                           : TcpFlush(status);
   if (!flush_result) {
-    DCHECK(status.ok());
+    GRPC_DCHECK(status.ok());
     handle_->NotifyOnWrite(on_write_);
   } else {
     GRPC_TRACE_LOG(event_engine_endpoint, INFO)
@@ -1190,9 +1194,9 @@ bool PosixEndpointImpl::Write(
   absl::Status status = absl::OkStatus();
   TcpZerocopySendRecord* zerocopy_send_record = nullptr;
 
-  CHECK(write_cb_ == nullptr);
-  DCHECK_EQ(current_zerocopy_send_, nullptr);
-  DCHECK_NE(data, nullptr);
+  GRPC_CHECK(write_cb_ == nullptr);
+  GRPC_DCHECK_EQ(current_zerocopy_send_, nullptr);
+  GRPC_DCHECK_NE(data, nullptr);
 
   GRPC_TRACE_LOG(event_engine_endpoint, INFO)
       << "Endpoint[" << this << "]: Write " << data->Length() << " bytes";
@@ -1269,7 +1273,7 @@ void PosixEndpointImpl::MaybeShutdown(
   Unref();
 }
 
-PosixEndpointImpl ::~PosixEndpointImpl() {
+PosixEndpointImpl::~PosixEndpointImpl() {
   FileDescriptor release_fd;
   handle_->OrphanHandle(on_done_,
                         on_release_fd_ == nullptr ? nullptr : &release_fd, "");
@@ -1293,7 +1297,7 @@ PosixEndpointImpl::PosixEndpointImpl(EventHandle* handle,
       poller_(handle->Poller()),
       engine_(engine) {
   FileDescriptor fd = handle_->WrappedFd();
-  CHECK(options.resource_quota != nullptr);
+  GRPC_CHECK(options.resource_quota != nullptr);
   auto& posix_interface = poller_->posix_interface();
   auto peer_addr_string = posix_interface.PeerAddressString(fd);
   mem_quota_ = options.resource_quota->memory_quota();
@@ -1326,7 +1330,7 @@ PosixEndpointImpl::PosixEndpointImpl(EventHandle* handle,
                  << "ulimit value is not set. Use ulimit -l <value> to set its "
                  << "value.";
     } else {
-      if (posix_interface.SetSockOpt(fd, SOL_SOCKET, SO_ZEROCOPY, 1).ok()) {
+      if (!posix_interface.SetSockOpt(fd, SOL_SOCKET, SO_ZEROCOPY, 1).ok()) {
         zerocopy_enabled = false;
         LOG(ERROR) << "Failed to set zerocopy options on the socket.";
       }
@@ -1405,7 +1409,7 @@ std::unique_ptr<PosixEndpoint> CreatePosixEndpoint(
     EventHandle* handle, PosixEngineClosure* on_shutdown,
     std::shared_ptr<EventEngine> engine, MemoryAllocator&& allocator,
     const PosixTcpOptions& options) {
-  DCHECK_NE(handle, nullptr);
+  GRPC_DCHECK_NE(handle, nullptr);
   return std::make_unique<PosixEndpoint>(handle, on_shutdown, std::move(engine),
                                          std::move(allocator), options);
 }

@@ -1,23 +1,28 @@
 unversion_sphinx.patch
-no_embedded_abseil.patch
+no-utf8-range.patch
+correct-utf8_range-link.patch
+unprefix_upb_libraries.patch
+# Python
 link_external_abseil.patch
 no-boringssl.patch
+
 #add-pkgconfig-installdir.patch
 #system-upb.patch
-no-opencensus.patch
 # Ruby patches
 no-embed-libs.patch
 remove-missing-files-in-gemspec.patch
+remove_max_google-protobuf_dependency.patch
 no-make-in-extconf.patch
 use-system-grpc.patch
 fix-protoc-path.patch
 add_grpc_libdir.patch
-ruby_no-incompatible-pointer-types.patch
-999_pexip_python_grpcio_tools_fixups.patch
+link_python_all_absl.patch
+
 999_pexip_openssl3_compat.patch
 999_pexip_python_grpcio_fixups.patch
+999_pexip_python_grpcio_tools_fixups.patch
+999_pexip_python_observability.patch
 999_pexip_third_party_protos_envoy_api.patch
 999_pexip_third_party_protos_googleapis.patch
-999_pexip_third_party_protos_xds.patch
 999_pexip_third_party_protos_protoc_gen_validate.patch
-999_pexip_python_observability.patch
+999_pexip_third_party_protos_xds.patch

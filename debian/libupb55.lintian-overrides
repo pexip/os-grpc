@@ -1,0 +1,2 @@
+# group of libraries
+libupb55: package-name-doesnt-match-sonames libupb-base55 libupb-descriptor55 libupb-hash55 libupb-json55 libupb-lex55 libupb-mem55 libupb-message55 libupb-mini-descriptor55 libupb-mini-table55 libupb-reflection55 libupb-textformat55 libupb-wire55

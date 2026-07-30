@@ -19,14 +19,14 @@
 #include <string>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
-#include "absl/log/check.h"
-#include "absl/strings/str_join.h"
 #include "fuzztest/fuzztest.h"
-#include "gtest/gtest.h"
 #include "src/proto/grpc/channelz/v2/channelz.pb.h"
 #include "test/core/channelz/zviz/environment_fake.h"
 #include "test/core/channelz/zviz/layout_log.h"
+#include "gtest/gtest.h"
+#include "absl/container/flat_hash_map.h"
+#include "absl/log/check.h"
+#include "absl/strings/str_join.h"
 
 namespace grpc_zviz {
 namespace {
@@ -66,6 +66,30 @@ TEST(TraceTest, ChangeDetectors) {
 [0] [0,0] APPEND_TEXT timestamp [value elided]
 [0] [1,0] APPEND_COLUMN
 [0] [1,0] APPEND_TEXT trace-description foo)");
+}
+
+TEST(TraceTest, NestedTraceEvent) {
+  ExpectTraceEventsTransformsTo(
+      R"pb(
+        description: "outer"
+        data {
+          name: "inner_event"
+          value {
+            [type.googleapis.com/grpc.channelz.v2.TraceEvent] {
+              description: "inner"
+            }
+          }
+        }
+      )pb",
+      R"([0] APPEND_TABLE trace
+[0] [0,0] APPEND_COLUMN
+[0] [0,0] APPEND_TEXT timestamp [value elided]
+[0] [1,0] APPEND_COLUMN
+[0] [1,0] APPEND_TEXT trace-description outer
+[0] [2,0] APPEND_COLUMN
+[0] [2,0] APPEND_TEXT timestamp [value elided]
+[0] [3,0] APPEND_COLUMN
+[0] [3,0] APPEND_TEXT trace-description inner)");
 }
 
 }  // namespace

@@ -1,15 +1,12 @@
-Index: grpc/src/ruby/ext/grpc/extconf.rb
-===================================================================
---- grpc.orig/src/ruby/ext/grpc/extconf.rb
-+++ grpc/src/ruby/ext/grpc/extconf.rb
-@@ -96,9 +96,9 @@ if apple_toolchain && !cross_compiling
- end
+--- a/src/ruby/ext/grpc/extconf.rb
++++ b/src/ruby/ext/grpc/extconf.rb
+@@ -97,8 +97,10 @@ end
  
  # Don't embed on TruffleRuby (constant-time crypto is unsafe with Sulong, slow build times)
--ENV['EMBED_OPENSSL'] = (RUBY_ENGINE != 'truffleruby').to_s
+ ENV['EMBED_OPENSSL'] = (RUBY_ENGINE != 'truffleruby').to_s
 +ENV['EMBED_OPENSSL'] = 'false'
  # Don't embed on TruffleRuby (the system zlib is already linked for the zlib C extension, slow build times)
--ENV['EMBED_ZLIB'] = (RUBY_ENGINE != 'truffleruby').to_s
+ ENV['EMBED_ZLIB'] = (RUBY_ENGINE != 'truffleruby').to_s
 +ENV['EMBED_ZLIB'] = 'false'
  
  ENV['ARCH_FLAGS'] = RbConfig::CONFIG['ARCH_FLAG']

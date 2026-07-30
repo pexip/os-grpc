@@ -37,7 +37,7 @@ PYTHON_TMP_DIR_PYPATH=$(PYTHON_TMP_DIR)/usr/lib/python$(PYTHON_VERSION)/dist-pac
 
 # -DCMAKE_BUILD_TYPE=Release
 COMMON_BUILD_FLAGS= \
-	-DCMAKE_CXX_STANDARD=17 \
+	-DgRPC_DOWNLOAD_ARCHIVES=OFF \
 	-DgRPC_ABSL_PROVIDER=package \
 	-DgRPC_CARES_PROVIDER=package \
 	-DgRPC_BENCHMARK_PROVIDER=package \
@@ -90,7 +90,7 @@ override_dh_auto_configure:
 	dh_auto_configure -O--buildsystem=cmake \
 		-O--builddir=$(BUILD_SHARED_DIR) -- \
 		-DBUILD_SHARED_LIBS=ON \
-		-DgRPC_BUILD_TESTS=ON \
+		-DgRPC_BUILD_TESTS=OFF \
 		$(COMMON_BUILD_FLAGS)
 
 	PYBUILD_NAME=grpcio dh_auto_configure -O--buildsystem=pybuild
@@ -152,6 +152,10 @@ override_dh_auto_install:
 	dh_auto_install -O--buildsystem=cmake \
 		-O--builddir=$(BUILD_SHARED_DIR)
 
+	#dh_auto_install -O--buildsystem=pybuild
+	#TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
+	#	dh_auto_install -O--buildsystem=ruby
+
 	PYBUILD_NAME=grpcio \
 		dh_auto_install -O--buildsystem=pybuild
 
@@ -165,11 +169,6 @@ override_dh_auto_install:
 
 	# We currently don't ship this
 	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/grpcpp_otel_plugin.pc
-
-	#TOPDIR=$(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
-	#	dh_auto_install -O--buildsystem=ruby
-	#find $(CURDIR)/debian/ruby-grpc -name ca.pem \
-	#	-o -name server1.key -o -name server1.pem | xargs chmod a-x
 
 %:
 	dh $@ --builddir=$(BUILD_SHARED_DIR) --buildsystem=cmake \

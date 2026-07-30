@@ -7,10 +7,6 @@ usr/lib/${DEB_HOST_MULTIARCH}/libgrpc_*.a
 usr/lib/${DEB_HOST_MULTIARCH}/libgrpc_*.so
 usr/lib/${DEB_HOST_MULTIARCH}/libaddress_sorting.a
 usr/lib/${DEB_HOST_MULTIARCH}/libaddress_sorting.so
-usr/lib/${DEB_HOST_MULTIARCH}/libupb_*.a
-usr/lib/${DEB_HOST_MULTIARCH}/libupb_*.so
-usr/lib/${DEB_HOST_MULTIARCH}/libutf8_range_lib.a
-usr/lib/${DEB_HOST_MULTIARCH}/libutf8_range_lib.so
 usr/lib/${DEB_HOST_MULTIARCH}/cmake/
 usr/lib/${DEB_HOST_MULTIARCH}/pkgconfig/gpr.pc
 usr/lib/${DEB_HOST_MULTIARCH}/pkgconfig/grpc.pc

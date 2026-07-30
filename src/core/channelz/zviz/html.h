@@ -20,11 +20,10 @@
 #include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
+#include "src/core/util/grpc_check.h"
+#include "absl/container/node_hash_map.h"
 #include "absl/functional/function_ref.h"
-#include "absl/log/check.h"
 #include "absl/strings/string_view.h"
-
 namespace grpc_zviz::html {
 
 std::string HtmlEscape(absl::string_view text);
@@ -53,7 +52,7 @@ class Container final : public Item {
   std::string Render() const override;
 
   Container& Attribute(std::string name, std::string value) {
-    CHECK(tag_.has_value())
+    GRPC_CHECK(tag_.has_value())
         << "Attributes can only be set on containers with a tag.";
     attributes_.emplace_back(std::move(name), std::move(value));
     return *this;
@@ -107,7 +106,7 @@ class Table final : public Item {
   int num_header_rows_ = 0;
   int num_columns_ = 0;
   int num_rows_ = 0;
-  absl::flat_hash_map<Address, Container> cells_;
+  absl::node_hash_map<Address, Container> cells_;
 };
 
 }  // namespace grpc_zviz::html

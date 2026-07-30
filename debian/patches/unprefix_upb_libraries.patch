@@ -1,0 +1,1312 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Date: Jul, 13 2026 18:37:42 +0200
+Subject: [PATCH] <short summary of the patch>
+
+TODO: Put a short summary on the line above and replace this paragraph
+with a longer explanation of this change. Complete the meta-information
+with other relevant fields (see below for details). To make it easier, the
+information below has been extracted from the changelog. Adjust it or drop
+it.
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout https://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: (upstream|backport|vendor|other), (<patch-url>|commit:<commit-id>)
+Bug: <upstream-bugtracker-url>
+Bug-<Vendor>: <vendor-bugtracker-url>
+Forwarded: (no|not-needed|<patch-forwarded-url>)
+Applied-Upstream: <version>, (<commit-url>|commit:<commid-id>)
+Reviewed-By: <name and email of someone who approved/reviewed the patch>
+
+--- grpc-1.82.0.orig/CMakeLists.txt
++++ grpc-1.82.0/CMakeLists.txt
+@@ -3183,8 +3183,8 @@ target_include_directories(grpc
+ )
+ target_link_libraries(grpc
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_json_lib
+-  upb_textformat_lib
++  upb_json
++  upb_textformat
+   ${_gRPC_RE2_LIBRARIES}
+   ${_gRPC_ZLIB_LIBRARIES}
+   absl::algorithm_container
+@@ -3925,7 +3925,7 @@ target_include_directories(grpc_unsecure
+ )
+ target_link_libraries(grpc_unsecure
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_textformat_lib
++  upb_textformat
+   ${_gRPC_ZLIB_LIBRARIES}
+   absl::algorithm_container
+   absl::no_destructor
+@@ -4093,32 +4093,32 @@ target_link_libraries(gtest
+ 
+ endif()
+ 
+-add_library(upb_base_lib
++add_library(upb_base
+   third_party/upb/upb/base/status.c
+ )
+ 
+-target_compile_features(upb_base_lib PUBLIC cxx_std_17)
++target_compile_features(upb_base PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_base_lib PROPERTIES
++set_target_properties(upb_base PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_base_lib PROPERTIES COMPILE_PDB_NAME "upb_base_lib"
++  set_target_properties(upb_base PROPERTIES COMPILE_PDB_NAME "upb_base"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_base_lib PRIVATE
++  target_compile_options(upb_base PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_base_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_base.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_base_lib
++target_include_directories(upb_base
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4131,14 +4131,14 @@ target_include_directories(upb_base_lib
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_base_lib
++target_link_libraries(upb_base
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_base_lib EXPORT gRPCTargets
++  install(TARGETS upb_base EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4147,32 +4147,32 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_descriptor_lib
++add_library(upb_descriptor
+   src/core/ext/upb-gen/google/protobuf/descriptor.upb_minitable.c
+ )
+ 
+-target_compile_features(upb_descriptor_lib PUBLIC cxx_std_17)
++target_compile_features(upb_descriptor PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_descriptor_lib PROPERTIES
++set_target_properties(upb_descriptor PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_descriptor_lib PROPERTIES COMPILE_PDB_NAME "upb_descriptor_lib"
++  set_target_properties(upb_descriptor PROPERTIES COMPILE_PDB_NAME "upb_descriptor"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_descriptor_lib PRIVATE
++  target_compile_options(upb_descriptor PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_descriptor_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_descriptor.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_descriptor_lib
++target_include_directories(upb_descriptor
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4185,14 +4185,14 @@ target_include_directories(upb_descripto
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_descriptor_lib
++target_link_libraries(upb_descriptor
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_descriptor_lib EXPORT gRPCTargets
++  install(TARGETS upb_descriptor EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4201,32 +4201,32 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_hash_lib
++add_library(upb_hash
+   third_party/upb/upb/hash/common.c
+ )
+ 
+-target_compile_features(upb_hash_lib PUBLIC cxx_std_17)
++target_compile_features(upb_hash PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_hash_lib PROPERTIES
++set_target_properties(upb_hash PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_hash_lib PROPERTIES COMPILE_PDB_NAME "upb_hash_lib"
++  set_target_properties(upb_hash PROPERTIES COMPILE_PDB_NAME "upb_hash"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_hash_lib PRIVATE
++  target_compile_options(upb_hash PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_hash_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_hash.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_hash_lib
++target_include_directories(upb_hash
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4239,16 +4239,16 @@ target_include_directories(upb_hash_lib
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_hash_lib
++target_link_libraries(upb_hash
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_base_lib
+-  upb_mem_lib
++  upb_base
++  upb_mem
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_hash_lib EXPORT gRPCTargets
++  install(TARGETS upb_hash EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4257,33 +4257,33 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_json_lib ${_gRPC_STATIC_WIN32}
++add_library(upb_json ${_gRPC_STATIC_WIN32}
+   third_party/upb/upb/json/decode.c
+   third_party/upb/upb/json/encode.c
+ )
+ 
+-target_compile_features(upb_json_lib PUBLIC cxx_std_17)
++target_compile_features(upb_json PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_json_lib PROPERTIES
++set_target_properties(upb_json PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_json_lib PROPERTIES COMPILE_PDB_NAME "upb_json_lib"
++  set_target_properties(upb_json PROPERTIES COMPILE_PDB_NAME "upb_json"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_json_lib PRIVATE
++  target_compile_options(upb_json PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_json_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_json.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_json_lib
++target_include_directories(upb_json
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4296,16 +4296,16 @@ target_include_directories(upb_json_lib
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_json_lib
++target_link_libraries(upb_json
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_lex_lib
+-  upb_reflection_lib
++  upb_lex
++  upb_reflection
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_json_lib EXPORT gRPCTargets
++  install(TARGETS upb_json EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4314,35 +4314,35 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_lex_lib
++add_library(upb_lex
+   third_party/upb/upb/lex/atoi.c
+   third_party/upb/upb/lex/round_trip.c
+   third_party/upb/upb/lex/strtod.c
+   third_party/upb/upb/lex/unicode.c
+ )
+ 
+-target_compile_features(upb_lex_lib PUBLIC cxx_std_17)
++target_compile_features(upb_lex PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_lex_lib PROPERTIES
++set_target_properties(upb_lex PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_lex_lib PROPERTIES COMPILE_PDB_NAME "upb_lex_lib"
++  set_target_properties(upb_lex PROPERTIES COMPILE_PDB_NAME "upb_lex"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_lex_lib PRIVATE
++  target_compile_options(upb_lex PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_lex_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_lex.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_lex_lib
++target_include_directories(upb_lex
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4355,14 +4355,14 @@ target_include_directories(upb_lex_lib
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_lex_lib
++target_link_libraries(upb_lex
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_lex_lib EXPORT gRPCTargets
++  install(TARGETS upb_lex EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4371,33 +4371,33 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_mem_lib
++add_library(upb_mem
+   third_party/upb/upb/mem/alloc.c
+   third_party/upb/upb/mem/arena.c
+ )
+ 
+-target_compile_features(upb_mem_lib PUBLIC cxx_std_17)
++target_compile_features(upb_mem PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_mem_lib PROPERTIES
++set_target_properties(upb_mem PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_mem_lib PROPERTIES COMPILE_PDB_NAME "upb_mem_lib"
++  set_target_properties(upb_mem PROPERTIES COMPILE_PDB_NAME "upb_mem"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_mem_lib PRIVATE
++  target_compile_options(upb_mem PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_mem_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_mem.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_mem_lib
++target_include_directories(upb_mem
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4410,14 +4410,14 @@ target_include_directories(upb_mem_lib
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_mem_lib
++target_link_libraries(upb_mem
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_mem_lib EXPORT gRPCTargets
++  install(TARGETS upb_mem EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4426,7 +4426,7 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_message_lib
++add_library(upb_message
+   third_party/upb/upb/message/accessors.c
+   third_party/upb/upb/message/array.c
+   third_party/upb/upb/message/compat.c
+@@ -4437,28 +4437,28 @@ add_library(upb_message_lib
+   third_party/upb/upb/message/message.c
+ )
+ 
+-target_compile_features(upb_message_lib PUBLIC cxx_std_17)
++target_compile_features(upb_message PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_message_lib PROPERTIES
++set_target_properties(upb_message PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_message_lib PROPERTIES COMPILE_PDB_NAME "upb_message_lib"
++  set_target_properties(upb_message PROPERTIES COMPILE_PDB_NAME "upb_message"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_message_lib PRIVATE
++  target_compile_options(upb_message PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_message_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_message.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_message_lib
++target_include_directories(upb_message
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4471,15 +4471,15 @@ target_include_directories(upb_message_l
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_message_lib
++target_link_libraries(upb_message
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_mini_table_lib
++  upb_mini_table
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_message_lib EXPORT gRPCTargets
++  install(TARGETS upb_message EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4488,7 +4488,7 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_mini_descriptor_lib
++add_library(upb_mini_descriptor
+   third_party/upb/upb/mini_descriptor/build_enum.c
+   third_party/upb/upb/mini_descriptor/decode.c
+   third_party/upb/upb/mini_descriptor/internal/base92.c
+@@ -4499,28 +4499,28 @@ add_library(upb_mini_descriptor_lib
+   third_party/upb/upb/wire/reader.c
+ )
+ 
+-target_compile_features(upb_mini_descriptor_lib PUBLIC cxx_std_17)
++target_compile_features(upb_mini_descriptor PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_mini_descriptor_lib PROPERTIES
++set_target_properties(upb_mini_descriptor PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_mini_descriptor_lib PROPERTIES COMPILE_PDB_NAME "upb_mini_descriptor_lib"
++  set_target_properties(upb_mini_descriptor PROPERTIES COMPILE_PDB_NAME "upb_mini_descriptor"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_mini_descriptor_lib PRIVATE
++  target_compile_options(upb_mini_descriptor PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_mini_descriptor_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_mini_descriptor.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_mini_descriptor_lib
++target_include_directories(upb_mini_descriptor
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4533,16 +4533,16 @@ target_include_directories(upb_mini_desc
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_mini_descriptor_lib
++target_link_libraries(upb_mini_descriptor
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_mini_table_lib
++  upb_mini_table
+   absl::strings
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_mini_descriptor_lib EXPORT gRPCTargets
++  install(TARGETS upb_mini_descriptor EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4551,35 +4551,35 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_mini_table_lib
++add_library(upb_mini_table
+   third_party/upb/upb/mini_table/extension_registry.c
+   third_party/upb/upb/mini_table/generated_registry.c
+   third_party/upb/upb/mini_table/internal/message.c
+   third_party/upb/upb/mini_table/message.c
+ )
+ 
+-target_compile_features(upb_mini_table_lib PUBLIC cxx_std_17)
++target_compile_features(upb_mini_table PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_mini_table_lib PROPERTIES
++set_target_properties(upb_mini_table PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_mini_table_lib PROPERTIES COMPILE_PDB_NAME "upb_mini_table_lib"
++  set_target_properties(upb_mini_table PROPERTIES COMPILE_PDB_NAME "upb_mini_table"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_mini_table_lib PRIVATE
++  target_compile_options(upb_mini_table PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_mini_table_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_mini_table.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_mini_table_lib
++target_include_directories(upb_mini_table
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4592,15 +4592,15 @@ target_include_directories(upb_mini_tabl
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_mini_table_lib
++target_link_libraries(upb_mini_table
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_hash_lib
++  upb_hash
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_mini_table_lib EXPORT gRPCTargets
++  install(TARGETS upb_mini_table EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4609,7 +4609,7 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_reflection_lib
++add_library(upb_reflection
+   third_party/upb/upb/message/copy.c
+   third_party/upb/upb/message/merge.c
+   third_party/upb/upb/reflection/def_pool.c
+@@ -4631,28 +4631,28 @@ add_library(upb_reflection_lib
+   third_party/upb/upb/reflection/service_def.c
+ )
+ 
+-target_compile_features(upb_reflection_lib PUBLIC cxx_std_17)
++target_compile_features(upb_reflection PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_reflection_lib PROPERTIES
++set_target_properties(upb_reflection PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_reflection_lib PROPERTIES COMPILE_PDB_NAME "upb_reflection_lib"
++  set_target_properties(upb_reflection PROPERTIES COMPILE_PDB_NAME "upb_reflection"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_reflection_lib PRIVATE
++  target_compile_options(upb_reflection PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_reflection_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_reflection.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_reflection_lib
++target_include_directories(upb_reflection
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4665,17 +4665,17 @@ target_include_directories(upb_reflectio
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_reflection_lib
++target_link_libraries(upb_reflection
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_mini_descriptor_lib
+-  upb_descriptor_lib
+-  upb_wire_lib
++  upb_mini_descriptor
++  upb_descriptor
++  upb_wire
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_reflection_lib EXPORT gRPCTargets
++  install(TARGETS upb_reflection EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4684,33 +4684,33 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_textformat_lib ${_gRPC_STATIC_WIN32}
++add_library(upb_textformat ${_gRPC_STATIC_WIN32}
+   third_party/upb/upb/text/encode.c
+   third_party/upb/upb/text/internal/encode.c
+ )
+ 
+-target_compile_features(upb_textformat_lib PUBLIC cxx_std_17)
++target_compile_features(upb_textformat PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_textformat_lib PROPERTIES
++set_target_properties(upb_textformat PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_textformat_lib PROPERTIES COMPILE_PDB_NAME "upb_textformat_lib"
++  set_target_properties(upb_textformat PROPERTIES COMPILE_PDB_NAME "upb_textformat"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_textformat_lib PRIVATE
++  target_compile_options(upb_textformat PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_textformat_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_textformat.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_textformat_lib
++target_include_directories(upb_textformat
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4723,16 +4723,16 @@ target_include_directories(upb_textforma
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_textformat_lib
++target_link_libraries(upb_textformat
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_lex_lib
+-  upb_reflection_lib
++  upb_lex
++  upb_reflection
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_textformat_lib EXPORT gRPCTargets
++  install(TARGETS upb_textformat EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -4741,7 +4741,7 @@ if(gRPC_INSTALL)
+ endif()
+ 
+ 
+-add_library(upb_wire_lib
++add_library(upb_wire
+   third_party/upb/upb/message/internal/iterator.c
+   third_party/upb/upb/wire/decode.c
+   third_party/upb/upb/wire/encode.c
+@@ -4750,28 +4750,28 @@ add_library(upb_wire_lib
+   third_party/upb/upb/wire/reader.c
+ )
+ 
+-target_compile_features(upb_wire_lib PUBLIC cxx_std_17)
++target_compile_features(upb_wire PUBLIC cxx_std_17)
+ 
+-set_target_properties(upb_wire_lib PROPERTIES
++set_target_properties(upb_wire PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+ )
+ 
+ if(WIN32 AND MSVC)
+-  set_target_properties(upb_wire_lib PROPERTIES COMPILE_PDB_NAME "upb_wire_lib"
++  set_target_properties(upb_wire PROPERTIES COMPILE_PDB_NAME "upb_wire"
+     COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+   )
+-  target_compile_options(upb_wire_lib PRIVATE
++  target_compile_options(upb_wire PRIVATE
+     /Zc:preprocessor
+   )
+   if(gRPC_INSTALL)
+-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_wire_lib.pdb
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/upb_wire.pdb
+       DESTINATION ${gRPC_INSTALL_LIBDIR} OPTIONAL
+     )
+   endif()
+ endif()
+ 
+-target_include_directories(upb_wire_lib
++target_include_directories(upb_wire
+   PUBLIC $<INSTALL_INTERFACE:${gRPC_INSTALL_INCLUDEDIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+@@ -4784,16 +4784,16 @@ target_include_directories(upb_wire_lib
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
+ )
+-target_link_libraries(upb_wire_lib
++target_link_libraries(upb_wire
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   utf8_range
+-  upb_message_lib
++  upb_message
+ )
+ 
+ 
+ 
+ if(gRPC_INSTALL)
+-  install(TARGETS upb_wire_lib EXPORT gRPCTargets
++  install(TARGETS upb_wire EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     BUNDLE DESTINATION  ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}
+@@ -6374,7 +6374,7 @@ target_include_directories(grpc_authoriz
+ )
+ target_link_libraries(grpc_authorization_provider
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+-  upb_textformat_lib
++  upb_textformat
+   ${_gRPC_RE2_LIBRARIES}
+   ${_gRPC_ZLIB_LIBRARIES}
+   absl::no_destructor
+@@ -6914,7 +6914,7 @@ target_include_directories(activity_test
+ target_link_libraries(activity_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -7751,7 +7751,7 @@ target_include_directories(all_ok_test
+ target_link_libraries(all_ok_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -9562,7 +9562,7 @@ target_include_directories(blackboard_te
+ target_link_libraries(blackboard_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -10011,7 +10011,7 @@ target_include_directories(call_filters_
+ target_link_libraries(call_filters_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::no_destructor
+   absl::btree
+   absl::flat_hash_map
+@@ -10173,7 +10173,7 @@ target_include_directories(call_state_te
+ target_link_libraries(call_state_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -10536,7 +10536,7 @@ target_include_directories(call_utils_te
+ target_link_libraries(call_utils_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   ${_gRPC_ZLIB_LIBRARIES}
+   absl::no_destructor
+   absl::btree
+@@ -10713,7 +10713,7 @@ target_include_directories(cancel_callba
+ target_link_libraries(cancel_callback_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -12358,7 +12358,7 @@ target_include_directories(chunked_vecto
+ target_link_libraries(chunked_vector_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -13836,7 +13836,7 @@ target_include_directories(context_test
+ target_link_libraries(context_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -16830,7 +16830,7 @@ target_include_directories(endpoint_conf
+ target_link_libraries(endpoint_config_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::flat_hash_map
+   absl::hash
+   absl::type_traits
+@@ -17464,7 +17464,7 @@ target_include_directories(exec_ctx_wake
+ target_link_libraries(exec_ctx_wakeup_scheduler_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -18137,7 +18137,7 @@ target_include_directories(filter_fusion
+ target_link_libraries(filter_fusion_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   ${_gRPC_ZLIB_LIBRARIES}
+   absl::no_destructor
+   absl::btree
+@@ -18396,7 +18396,7 @@ target_include_directories(flow_control_
+ target_link_libraries(flow_control_manager_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -18528,7 +18528,7 @@ target_include_directories(flow_control_
+ target_link_libraries(flow_control_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -18654,7 +18654,7 @@ target_include_directories(for_each_test
+ target_link_libraries(for_each_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -18916,7 +18916,7 @@ target_include_directories(frame_test
+ target_link_libraries(frame_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -22137,7 +22137,7 @@ target_include_directories(if_test
+ target_link_libraries(if_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -22462,7 +22462,7 @@ if(_gRPC_PLATFORM_LINUX OR _gRPC_PLATFOR
+   target_link_libraries(info_tool_test
+     ${_gRPC_ALLTARGETS_LIBRARIES}
+     gtest
+-    upb_textformat_lib
++    upb_textformat
+     ${_gRPC_ZLIB_LIBRARIES}
+     absl::no_destructor
+     absl::btree
+@@ -22882,7 +22882,7 @@ target_include_directories(inter_activit
+ target_link_libraries(inter_activity_pipe_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -23049,7 +23049,7 @@ target_include_directories(interceptor_l
+ target_link_libraries(interceptor_list_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -23411,7 +23411,7 @@ target_include_directories(join_test
+ target_link_libraries(join_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -23780,7 +23780,7 @@ target_include_directories(latch_test
+ target_link_libraries(latch_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -23967,7 +23967,7 @@ target_include_directories(latent_see_te
+ target_link_libraries(latent_see_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -24501,7 +24501,7 @@ target_include_directories(lock_based_mp
+ target_link_libraries(lock_based_mpsc_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -24661,7 +24661,7 @@ target_include_directories(loop_test
+ target_link_libraries(loop_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -24773,7 +24773,7 @@ target_include_directories(lru_cache_tes
+ target_link_libraries(lru_cache_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -24898,7 +24898,7 @@ target_include_directories(map_pipe_test
+ target_link_libraries(map_pipe_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -25013,7 +25013,7 @@ target_include_directories(match_promise
+ target_link_libraries(match_promise_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -26175,7 +26175,7 @@ target_include_directories(observable_te
+ target_link_libraries(observable_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -27284,7 +27284,7 @@ target_include_directories(periodic_upda
+ target_link_libraries(periodic_update_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::flat_hash_map
+   absl::function_ref
+   absl::hash
+@@ -27653,7 +27653,7 @@ target_include_directories(poll_test
+ target_link_libraries(poll_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -28781,7 +28781,7 @@ target_include_directories(prioritized_r
+ target_link_libraries(prioritized_race_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -28987,7 +28987,7 @@ target_include_directories(promise_facto
+ target_link_libraries(promise_factory_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -29101,7 +29101,7 @@ target_include_directories(promise_map_t
+ target_link_libraries(promise_map_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -29217,7 +29217,7 @@ target_include_directories(promise_mutex
+ target_link_libraries(promise_mutex_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -29331,7 +29331,7 @@ target_include_directories(promise_test
+ target_link_libraries(promise_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -29398,7 +29398,7 @@ target_include_directories(property_list
+ target_link_libraries(property_list_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::flat_hash_map
+   absl::statusor
+   absl::span
+@@ -29952,7 +29952,7 @@ target_include_directories(query_extensi
+ target_link_libraries(query_extensions_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -30065,7 +30065,7 @@ target_include_directories(race_test
+ target_link_libraries(race_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -30634,7 +30634,7 @@ target_include_directories(request_buffe
+ target_link_libraries(request_buffer_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::no_destructor
+   absl::btree
+   absl::flat_hash_map
+@@ -31632,7 +31632,7 @@ target_include_directories(seq_test
+ target_link_libraries(seq_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -33701,7 +33701,7 @@ target_include_directories(static_stride
+ target_link_libraries(static_stride_scheduler_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -33855,7 +33855,7 @@ target_include_directories(status_flag_t
+ target_link_libraries(status_flag_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -34582,7 +34582,7 @@ target_include_directories(switch_test
+ target_link_libraries(switch_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -35166,7 +35166,7 @@ target_include_directories(test_core_eve
+ target_link_libraries(test_core_event_engine_posix_timer_heap_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -35283,7 +35283,7 @@ target_include_directories(test_core_eve
+ target_link_libraries(test_core_event_engine_slice_buffer_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -36104,7 +36104,7 @@ target_include_directories(thread_quota_
+ target_link_libraries(thread_quota_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -37096,7 +37096,7 @@ if(_gRPC_PLATFORM_LINUX OR _gRPC_PLATFOR
+   target_link_libraries(tool_test_test
+     ${_gRPC_ALLTARGETS_LIBRARIES}
+     gtest
+-    upb_textformat_lib
++    upb_textformat
+     ${_gRPC_ZLIB_LIBRARIES}
+     absl::no_destructor
+     absl::btree
+@@ -37419,7 +37419,7 @@ target_include_directories(try_join_test
+ target_link_libraries(try_join_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -37575,7 +37575,7 @@ target_include_directories(try_seq_test
+ target_link_libraries(try_seq_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -37687,7 +37687,7 @@ target_include_directories(unique_ptr_wi
+ target_link_libraries(unique_ptr_with_bitset_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -38089,7 +38089,7 @@ target_include_directories(wait_for_call
+ target_link_libraries(wait_for_callback_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -38651,7 +38651,7 @@ target_include_directories(write_size_po
+ target_link_libraries(write_size_policy_test
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+   gtest
+-  upb_textformat_lib
++  upb_textformat
+   absl::btree
+   absl::flat_hash_map
+   absl::inlined_vector
+@@ -55484,7 +55484,7 @@ generate_pkgconfig(
+   "absl_algorithm_container absl_any_invocable absl_base absl_bind_front absl_bits absl_btree absl_check absl_cleanup absl_config absl_cord absl_core_headers absl_flags absl_flags_marshalling absl_flat_hash_map absl_flat_hash_set absl_function_ref absl_hash absl_inlined_vector absl_log absl_log_globals absl_log_severity absl_memory absl_no_destructor absl_node_hash_map absl_optional absl_random_bit_gen_ref absl_random_distributions absl_random_random absl_span absl_status absl_statusor absl_str_format absl_string_view absl_strings absl_synchronization absl_time absl_type_traits absl_utility gpr"
+   "libcares openssl re2 zlib"
+   "-lgrpc"
+-  "-laddress_sorting -lupb_textformat_lib -lupb_json_lib -lupb_reflection_lib -lupb_wire_lib -lupb_message_lib -lutf8_range -lupb_descriptor_lib -lupb_mini_descriptor_lib -lupb_mini_table_lib -lupb_hash_lib -lupb_mem_lib -lupb_base_lib -lupb_lex_lib"
++  "-laddress_sorting -lupb_textformat -lupb_json -lupb_reflection -lupb_wire -lupb_message -lutf8_range -lupb_descriptor -lupb_mini_descriptor -lupb_mini_table -lupb_hash -lupb_mem -lupb_base -lupb_lex"
+   "grpc.pc")
+ 
+ # grpc_unsecure .pc file
+@@ -55495,7 +55495,7 @@ generate_pkgconfig(
+   "absl_algorithm_container absl_any_invocable absl_base absl_bind_front absl_bits absl_btree absl_check absl_cleanup absl_config absl_cord absl_core_headers absl_flags absl_flags_marshalling absl_flat_hash_map absl_flat_hash_set absl_function_ref absl_hash absl_inlined_vector absl_log absl_log_globals absl_log_severity absl_memory absl_no_destructor absl_node_hash_map absl_optional absl_random_bit_gen_ref absl_random_distributions absl_random_random absl_span absl_status absl_statusor absl_str_format absl_string_view absl_strings absl_synchronization absl_time absl_type_traits absl_utility gpr"
+   "libcares zlib"
+   "-lgrpc_unsecure"
+-  "-laddress_sorting -lupb_textformat_lib -lupb_reflection_lib -lupb_wire_lib -lupb_message_lib -lutf8_range -lupb_descriptor_lib -lupb_mini_descriptor_lib -lupb_mini_table_lib -lupb_hash_lib -lupb_mem_lib -lupb_base_lib -lupb_lex_lib"
++  "-laddress_sorting -lupb_textformat -lupb_reflection -lupb_wire -lupb_message -lutf8_range -lupb_descriptor -lupb_mini_descriptor -lupb_mini_table -lupb_hash -lupb_mem -lupb_base -lupb_lex"
+   "grpc_unsecure.pc")
+ 
+ # grpc++ .pc file
+@@ -55506,7 +55506,7 @@ generate_pkgconfig(
+   "absl_absl_check absl_absl_log absl_algorithm_container absl_any_invocable absl_base absl_bind_front absl_bits absl_btree absl_charset absl_check absl_cleanup absl_config absl_cord absl_core_headers absl_dynamic_annotations absl_flags absl_flags_marshalling absl_flat_hash_map absl_flat_hash_set absl_function_ref absl_hash absl_inlined_vector absl_layout absl_log absl_log_globals absl_log_severity absl_memory absl_no_destructor absl_node_hash_map absl_optional absl_prefetch absl_random_bit_gen_ref absl_random_distributions absl_random_random absl_span absl_status absl_statusor absl_str_format absl_string_view absl_strings absl_strings_internal absl_synchronization absl_time absl_type_traits absl_utility gpr grpc"
+   "libcares openssl re2 zlib"
+   "-lgrpc++"
+-  "-laddress_sorting -lupb_textformat_lib -lupb_json_lib -lupb_reflection_lib -lupb_wire_lib -lupb_message_lib -lutf8_range -lupb_descriptor_lib -lupb_mini_descriptor_lib -lupb_mini_table_lib -lupb_hash_lib -lupb_mem_lib -lupb_base_lib -lupb_lex_lib"
++  "-laddress_sorting -lupb_textformat -lupb_json -lupb_reflection -lupb_wire -lupb_message -lutf8_range -lupb_descriptor -lupb_mini_descriptor -lupb_mini_table -lupb_hash -lupb_mem -lupb_base -lupb_lex"
+   "grpc++.pc")
+ 
+ # grpc++_unsecure .pc file
+@@ -55517,7 +55517,7 @@ generate_pkgconfig(
+   "absl_absl_check absl_absl_log absl_algorithm_container absl_any_invocable absl_base absl_bind_front absl_bits absl_btree absl_charset absl_check absl_cleanup absl_config absl_cord absl_core_headers absl_dynamic_annotations absl_flags absl_flags_marshalling absl_flat_hash_map absl_flat_hash_set absl_function_ref absl_hash absl_inlined_vector absl_layout absl_log absl_log_globals absl_log_severity absl_memory absl_no_destructor absl_node_hash_map absl_optional absl_prefetch absl_random_bit_gen_ref absl_random_distributions absl_random_random absl_span absl_status absl_statusor absl_str_format absl_string_view absl_strings absl_strings_internal absl_synchronization absl_time absl_type_traits absl_utility gpr grpc_unsecure"
+   "libcares zlib"
+   "-lgrpc++_unsecure"
+-  "-laddress_sorting -lupb_textformat_lib -lupb_reflection_lib -lupb_wire_lib -lupb_message_lib -lutf8_range -lupb_descriptor_lib -lupb_mini_descriptor_lib -lupb_mini_table_lib -lupb_hash_lib -lupb_mem_lib -lupb_base_lib -lupb_lex_lib"
++  "-laddress_sorting -lupb_textformat -lupb_reflection -lupb_wire -lupb_message -lutf8_range -lupb_descriptor -lupb_mini_descriptor -lupb_mini_table -lupb_hash -lupb_mem -lupb_base -lupb_lex"
+   "grpc++_unsecure.pc")
+ 
+ if(gRPC_BUILD_GRPCPP_OTEL_PLUGIN)
+@@ -55529,6 +55529,6 @@ if(gRPC_BUILD_GRPCPP_OTEL_PLUGIN)
+     "absl_absl_check absl_absl_log absl_algorithm_container absl_any_invocable absl_base absl_bind_front absl_bits absl_btree absl_charset absl_check absl_cleanup absl_config absl_cord absl_core_headers absl_dynamic_annotations absl_flags absl_flags_marshalling absl_flat_hash_map absl_flat_hash_set absl_function_ref absl_hash absl_inlined_vector absl_layout absl_log absl_log_globals absl_log_severity absl_memory absl_no_destructor absl_node_hash_map absl_optional absl_prefetch absl_random_bit_gen_ref absl_random_distributions absl_random_random absl_span absl_status absl_statusor absl_str_format absl_string_view absl_strings absl_strings_internal absl_synchronization absl_time absl_type_traits absl_utility gpr grpc grpc++ opentelemetry_api"
+     "libcares openssl re2 zlib"
+     "-lgrpcpp_otel_plugin"
+-    "-laddress_sorting -lupb_textformat_lib -lupb_json_lib -lupb_reflection_lib -lupb_wire_lib -lupb_message_lib -lutf8_range -lupb_descriptor_lib -lupb_mini_descriptor_lib -lupb_mini_table_lib -lupb_hash_lib -lupb_mem_lib -lupb_base_lib -lupb_lex_lib"
++    "-laddress_sorting -lupb_textformat -lupb_json -lupb_reflection -lupb_wire -lupb_message -lutf8_range -lupb_descriptor -lupb_mini_descriptor -lupb_mini_table -lupb_hash -lupb_mem -lupb_base -lupb_lex"
+     "grpcpp_otel_plugin.pc")
+ endif()

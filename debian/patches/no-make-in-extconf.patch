@@ -1,8 +1,6 @@
-Index: grpc/src/ruby/ext/grpc/extconf.rb
-===================================================================
---- grpc.orig/src/ruby/ext/grpc/extconf.rb
-+++ grpc/src/ruby/ext/grpc/extconf.rb
-@@ -124,22 +124,6 @@ ENV['BUILDDIR'] = output_dir
+--- a/src/ruby/ext/grpc/extconf.rb
++++ b/src/ruby/ext/grpc/extconf.rb
+@@ -126,22 +126,6 @@ ENV['BUILDDIR'] = output_dir
  strip_tool = RbConfig::CONFIG['STRIP']
  strip_tool += ' -x' if apple_toolchain
  
@@ -25,7 +23,7 @@ Index: grpc/src/ruby/ext/grpc/extconf.rb
  # C-core built, generate Makefile for ruby extension
  $LDFLAGS = maybe_remove_strip_all_linker_flag($LDFLAGS)
  $DLDFLAGS = maybe_remove_strip_all_linker_flag($DLDFLAGS)
-@@ -183,7 +167,7 @@ if apple_toolchain
+@@ -173,7 +157,7 @@ if apple_toolchain
    $LDFLAGS << ' -Wl,-exported_symbols_list,"' + ext_export_file + '.clang"'
  end
  
