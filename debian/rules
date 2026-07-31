@@ -127,7 +127,7 @@ override_dh_auto_build:
 
 	# Build python binding packages in specified order
 	for package in reflection observability status channelz health_checking testing; do \
-		ln -sfn ../../.. src/python/grpcio_$$package/grpc_root ; \
+		[ "$${package}" == "observability" ] && ln -sfn ../../.. src/python/grpcio_$$package/grpc_root ; \
 		GRPC_PYTHON_LDFLAGS="-L$(CURDIR)/build-shared -lgrpc" \
 		PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) \
 		PYBUILD_NAME=grpcio_$$package \
