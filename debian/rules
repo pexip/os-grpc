@@ -76,9 +76,9 @@ override_dh_auto_clean:
 
 override_dh_auto_configure:
 	mkdir -p $(CURDIR)/third_party/googletest/
-	ln -s /usr/src/googletest/googlemock/ \
+	ln -sf /usr/src/googletest/googlemock/ \
 		$(CURDIR)/third_party/googletest/
-	ln -s /usr/src/googletest/googletest/ \
+	ln -sf /usr/src/googletest/googletest/ \
 		$(CURDIR)/third_party/googletest/
 
 	dh_auto_configure -O--buildsystem=cmake \
@@ -127,7 +127,7 @@ override_dh_auto_build:
 
 	# Build python binding packages in specified order
 	for package in reflection observability status channelz health_checking testing; do \
-		[ "$${package}" == "observability" ] && ln -sfn ../../.. src/python/grpcio_$$package/grpc_root ; \
+		/usr/bin/test "$$package" == "observability" && ln -sfn ../../.. src/python/grpcio_$$package/grpc_root ; \
 		GRPC_PYTHON_LDFLAGS="-L$(CURDIR)/build-shared -lgrpc" \
 		PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) \
 		PYBUILD_NAME=grpcio_$$package \
@@ -141,7 +141,8 @@ override_dh_auto_build:
 			dh_auto_build -O--buildsystem=pybuild ; \
 		\
 		cd src/python/grpcio_$$package && HOME=$(CURDIR)/.pybuild/cpython3_$(PYTHON_VERSION)_grpcio_$$package \
-			python$(PYTHON_VERSION) setup.py install --root $(PYTHON_TMP_DIR) && cd $(CURDIR) ; \
+			python$(PYTHON_VERSION) setup.py install --root $(PYTHON_TMP_DIR) ; \
+		cd $(CURDIR) ; \
 	done
 
 	# dh_auto_build -O--buildsystem=ruby
