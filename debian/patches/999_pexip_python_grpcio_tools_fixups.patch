@@ -2,9 +2,9 @@ Compile grpcio_tools against system ABSL and protobuf instead
 of statically linking another copy.
 
 Improves our security posture by reducing duplicate code.
---- a/tools/distrib/python/grpcio_tools/setup.py
-+++ b/tools/distrib/python/grpcio_tools/setup.py
-@@ -43,6 +43,9 @@
+--- grpc.orig/tools/distrib/python/grpcio_tools/setup.py
++++ grpc/tools/distrib/python/grpcio_tools/setup.py
+@@ -43,6 +43,9 @@ import python_version
  
  _EXT_INIT_SYMBOL = "PyInit__protoc_compiler"
  
@@ -14,7 +14,7 @@ Improves our security posture by reducing duplicate code.
  _parallel_compile_patch.monkeypatch_compile_maybe()
  _spawn_patch.monkeypatch_spawn()
  
-@@ -260,6 +263,16 @@
+@@ -260,6 +263,16 @@ PROTO_PATH_PREFIX = os.path.normpath("go
  GRPC_PYTHON_TOOLS_PACKAGE = "grpc_tools"
  GRPC_PYTHON_PROTO_RESOURCES_NAME = "_proto"
  
@@ -31,3 +31,42 @@ Improves our security posture by reducing duplicate code.
  DEFINE_MACROS = ()
  if "win32" in sys.platform:
      DEFINE_MACROS += (
+--- grpc.orig/tools/distrib/python/grpcio_tools/protoc_lib_deps.py
++++ grpc/tools/distrib/python/grpcio_tools/protoc_lib_deps.py
+@@ -387,21 +387,21 @@ CC_FILES=[
+ ]
+ 
+ PROTO_FILES=[
+-    'go/google/protobuf/go_features.proto',
+-    'java/core/src/main/resources/google/protobuf/java_features.proto',
+-    'src/google/protobuf/any.proto',
+-    'src/google/protobuf/api.proto',
+-    'src/google/protobuf/compiler/plugin.proto',
+-    'src/google/protobuf/cpp_features.proto',
+-    'src/google/protobuf/descriptor.proto',
+-    'src/google/protobuf/duration.proto',
+-    'src/google/protobuf/empty.proto',
+-    'src/google/protobuf/field_mask.proto',
+-    'src/google/protobuf/source_context.proto',
+-    'src/google/protobuf/struct.proto',
+-    'src/google/protobuf/timestamp.proto',
+-    'src/google/protobuf/type.proto',
+-    'src/google/protobuf/wrappers.proto'
++    'google/protobuf/go_features.proto',
++    'google/protobuf/java_features.proto',
++    'google/protobuf/any.proto',
++    'google/protobuf/api.proto',
++    'google/protobuf/compiler/plugin.proto',
++    'google/protobuf/cpp_features.proto',
++    'google/protobuf/descriptor.proto',
++    'google/protobuf/duration.proto',
++    'google/protobuf/empty.proto',
++    'google/protobuf/field_mask.proto',
++    'google/protobuf/source_context.proto',
++    'google/protobuf/struct.proto',
++    'google/protobuf/timestamp.proto',
++    'google/protobuf/type.proto',
++    'google/protobuf/wrappers.proto'
+ ]
+ 
+ CC_INCLUDES=[
