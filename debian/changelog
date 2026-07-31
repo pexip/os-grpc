@@ -1,3 +1,9 @@
+grpc (1.82.0-1+pexip25u1) pexip-trixie; urgency=medium
+
+  * New upstream release.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Fri, 31 Jul 2026 17:07:40 +0100
+
 grpc (1.82.0-1) experimental; urgency=medium
 
   * New major upstream release.
