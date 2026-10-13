@@ -125,6 +125,17 @@ override_dh_auto_build:
 	cd tools/distrib/python/grpcio_tools && HOME=$(CURDIR)/.pybuild/cpython3_$(PYTHON_VERSION)_grpcio-tools \
 		python$(PYTHON_VERSION) setup.py install --root $(PYTHON_TMP_DIR)
 
+	# grpc_reflection depends on the compiled reflection proto files, which
+	# pybuild build doesn't generate.
+	PYTHONPATH=$(PYTHON_TMP_DIR_PYPATH) python$(PYTHON_VERSION) -m grpc_tools.protoc \
+		--python_out=src/python/grpcio_reflection/grpc_reflection/v1alpha/ \
+		--pyi_out=src/python/grpcio_reflection/grpc_reflection/v1alpha/ \
+		--grpc_python_out=src/python/grpcio_reflection/grpc_reflection/v1alpha/ \
+		--proto_path=src/proto/grpc/reflection/v1alpha/ \
+		src/proto/grpc/reflection/v1alpha/reflection.proto
+	sed -i -E 's/^(import reflection_pb2 as reflection__pb2)/from grpc_reflection.v1alpha \1/' \
+		src/python/grpcio_reflection/grpc_reflection/v1alpha/reflection_pb2_grpc.py
+
 	# Build python binding packages in specified order
 	for package in reflection observability status channelz health_checking testing; do \
 		/usr/bin/test "$$package" == "observability" && ln -sfn ../../.. src/python/grpcio_$$package/grpc_root ; \
