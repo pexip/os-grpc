@@ -1,3 +1,9 @@
+grpc (1.82.0-1+pexip25u3) pexip-trixie; urgency=medium
+
+  * python/aioserver/dealloc: fix segfault if server not started
+
+ -- Huw Jones <huw@pexip.com>  Wed, 21 Oct 2026 11:01:56 +0100
+
 grpc (1.82.0-1+pexip25u2) pexip-trixie; urgency=medium
 
   * Ensure reflection.proto is compiled for python3-grpcio-reflection

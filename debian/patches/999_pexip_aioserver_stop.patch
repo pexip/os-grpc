@@ -1,0 +1,12 @@
+python/aioserver/dealloc: don't allow log to keep server alive
+--- grpc.orig/src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi
++++ grpc/src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi
+@@ -1122,7 +1122,7 @@ cdef class AioServer:
+         if self._status != AIO_SERVER_STATUS_STOPPED:
+             _LOGGER.debug(
+                 '__dealloc__ called on running server %s with status %d',
+-                self,
++                id(self),
+                 self._status
+             )
+         shutdown_grpc_aio()
