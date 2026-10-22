@@ -1,0 +1,219 @@
+server: add plumbing to allow fetching the underlying peer socket FD
+diff --git a/include/grpc/grpc_posix.h b/include/grpc/grpc_posix.h
+index a66489d5..b331e04c 100644
+--- a/include/grpc/grpc_posix.h
++++ b/include/grpc/grpc_posix.h
+@@ -54,6 +54,11 @@ GRPCAPI grpc_channel* grpc_channel_create_from_fd(
+ GRPCAPI void grpc_server_add_channel_from_fd(grpc_server* server, int fd,
+                                              grpc_server_credentials* creds);
+ 
++/** Returns the fd of the connection the call arrived from, or -1 if unknown.
++   IMPORTANT: the FD should be treated as read only as it is managed by gRPC!
++ */
++GRPCAPI int grpc_call_get_socket_fd(grpc_call* call);
++
+ #ifdef __cplusplus
+ }
+ 
+diff --git a/src/core/call/metadata_batch.cc b/src/core/call/metadata_batch.cc
+index ff00d574..6bf9fa4b 100644
+--- a/src/core/call/metadata_batch.cc
++++ b/src/core/call/metadata_batch.cc
+@@ -71,6 +71,7 @@ bool IsMetadataKeyAllowedInDebugOutput(absl::string_view key) {
+   if (key == GrpcTarPit::DebugKey()) return true;
+   if (key == GrpcTrailersOnly::DebugKey()) return true;
+   if (key == PeerString::DebugKey()) return true;
++  if (key == SocketFd::DebugKey()) return true;
+   if (key == WaitForReady::DebugKey()) return true;
+   // go/keep-sorted end
+   return false;
+diff --git a/src/core/call/metadata_batch.h b/src/core/call/metadata_batch.h
+index 1f3b25da..75a82001 100644
+--- a/src/core/call/metadata_batch.h
++++ b/src/core/call/metadata_batch.h
+@@ -602,6 +602,14 @@ struct PeerString {
+   static std::string DisplayValue(const ValueType& x);
+ };
+ 
++// Annotation added by a server transport to note the underlying socket FD
++struct SocketFd {
++  static absl::string_view DebugKey() { return "SocketFd"; }
++  static constexpr bool kRepeatable = false;
++  using ValueType = int;
++  static std::string DisplayValue(int x) { return std::to_string(x); }
++};
++
+ // Annotation added by various systems to describe the reason for a failure.
+ struct GrpcStatusContext {
+   static absl::string_view DebugKey() { return "GrpcStatusContext"; }
+@@ -1752,7 +1760,7 @@ using grpc_metadata_batch_base = grpc_core::MetadataMap<
+     grpc_core::XEnvoyPeerMetadata, grpc_core::XForwardedForMetadata,
+     grpc_core::XForwardedHostMetadata, grpc_core::W3CTraceParentMetadata,
+     // Non-encodable things
+-    grpc_core::GrpcStreamNetworkState, grpc_core::PeerString,
++    grpc_core::GrpcStreamNetworkState, grpc_core::PeerString, grpc_core::SocketFd,
+     grpc_core::GrpcStatusContext, grpc_core::GrpcStatusFromWire,
+     grpc_core::GrpcCallWasCancelled, grpc_core::WaitForReady,
+     grpc_core::IsTransparentRetry, grpc_core::GrpcTrailersOnly,
+diff --git a/src/core/ext/transport/chttp2/transport/chttp2_transport.cc b/src/core/ext/transport/chttp2/transport/chttp2_transport.cc
+index 3a2c4cf3..69416643 100644
+--- a/src/core/ext/transport/chttp2/transport/chttp2_transport.cc
++++ b/src/core/ext/transport/chttp2/transport/chttp2_transport.cc
+@@ -715,6 +715,7 @@ grpc_chttp2_transport::grpc_chttp2_transport(
+     : ep(std::move(endpoint)),
+       peer_string(
+           grpc_core::Slice::FromCopiedString(grpc_endpoint_get_peer(ep.get()))),
++      socket_fd(grpc_endpoint_get_fd(ep.get())),
+       memory_owner(channel_args.GetObject<grpc_core::ResourceQuota>()
+                        ->memory_quota()
+                        ->CreateMemoryOwner()),
+@@ -2328,6 +2329,8 @@ void grpc_chttp2_maybe_complete_recv_initial_metadata(grpc_chttp2_transport* t,
+     *s->recv_initial_metadata = std::move(s->initial_metadata_buffer);
+     s->recv_initial_metadata->Set(grpc_core::PeerString(),
+                                   t->peer_string.Ref());
++    s->recv_initial_metadata->Set(grpc_core::SocketFd(),
++                                  t->socket_fd);
+     // If we didn't receive initial metadata from the wire and instead faked a
+     // status (due to stream cancellations for example), let upper layers know
+     // that trailing metadata is immediately available.
+diff --git a/src/core/ext/transport/chttp2/transport/internal.h b/src/core/ext/transport/chttp2/transport/internal.h
+index c1c4f79c..9529c428 100644
+--- a/src/core/ext/transport/chttp2/transport/internal.h
++++ b/src/core/ext/transport/chttp2/transport/internal.h
+@@ -314,6 +314,7 @@ struct grpc_chttp2_transport final : public grpc_core::FilterStackTransport,
+   grpc_core::Mutex ep_destroy_mu;  // Guards endpoint destruction only.
+ 
+   grpc_core::Slice peer_string;
++  int socket_fd = -1;
+ 
+   grpc_core::TransportFramingEndpointExtension*
+       transport_framing_endpoint_extension = nullptr;
+diff --git a/src/core/lib/surface/call.cc b/src/core/lib/surface/call.cc
+index a8c8684a..5ad6c467 100644
+--- a/src/core/lib/surface/call.cc
++++ b/src/core/lib/surface/call.cc
+@@ -22,6 +22,7 @@
+ #include <grpc/compression.h>
+ #include <grpc/event_engine/event_engine.h>
+ #include <grpc/grpc.h>
++#include <grpc/grpc_posix.h>
+ #include <grpc/impl/call.h>
+ #include <grpc/impl/propagation_bits.h>
+ #include <grpc/slice.h>
+@@ -323,6 +324,8 @@ void Call::PrepareOutgoingInitialMetadata(const grpc_op& op,
+ void Call::ProcessIncomingInitialMetadata(grpc_metadata_batch& md) {
+   Slice* peer_string = md.get_pointer(PeerString());
+   if (peer_string != nullptr) SetPeerString(peer_string->Ref());
++  const int* fd = md.get_pointer(SocketFd());
++  if (fd != nullptr) SetSocketFd(*fd);
+ 
+   SetIncomingCompressionAlgorithm(
+       md.Take(GrpcEncodingMetadata()).value_or(GRPC_COMPRESS_NONE));
+@@ -445,6 +448,10 @@ char* grpc_call_get_peer(grpc_call* call
+   return grpc_core::Call::FromC(call)->GetPeer();
+ }
+ 
++int grpc_call_get_socket_fd(grpc_call* call) {
++  return grpc_core::Call::FromC(call)->GetSocketFd();
++}
++
+ grpc_call_error grpc_call_cancel(grpc_call* call, void* reserved) {
+   GRPC_TRACE_LOG(api, INFO)
+       << "grpc_call_cancel(call=" << call << ", reserved=" << reserved << ")";
+diff --git a/src/core/lib/surface/call.h b/src/core/lib/surface/call.h
+index 348b2f71..8fdd4d56 100644
+--- a/src/core/lib/surface/call.h
++++ b/src/core/lib/surface/call.h
+@@ -19,6 +19,8 @@
+ #ifndef GRPC_SRC_CORE_LIB_SURFACE_CALL_H
+ #define GRPC_SRC_CORE_LIB_SURFACE_CALL_H
+ 
++#include <atomic>
++
+ #include <grpc/grpc.h>
+ #include <grpc/impl/compression_types.h>
+ #include <grpc/support/atm.h>
+@@ -104,6 +106,9 @@ class Call : public CppImplOf<Call, grpc_call>,
+   virtual void CancelWithError(grpc_error_handle error) = 0;
+   virtual void SetCompletionQueue(grpc_completion_queue* cq) = 0;
+   virtual char* GetPeer() = 0;
++  int GetSocketFd() const {
++    return socket_fd_.load(std::memory_order_relaxed);
++  }
+   virtual grpc_call_error StartBatch(const grpc_op* ops, size_t nops,
+                                      void* notify_tag,
+                                      bool is_notify_tag_closure) = 0;
+@@ -203,6 +208,10 @@ class Call : public CppImplOf<Call, grpc_call>,
+ 
+   void ClearPeerString() { SetPeerString(Slice(grpc_empty_slice())); }
+ 
++  void SetSocketFd(int fd) {
++    socket_fd_.store(fd, std::memory_order_relaxed);
++  }
++
+   // TODO(ctiller): cancel_func is for cancellation of the call - filter stack
+   // holds no mutexes here, promise stack does, and so locking is different.
+   // Remove this and cancel directly once promise conversion is done.
+@@ -242,6 +252,7 @@ class Call : public CppImplOf<Call, grpc_call>,
+   // of the recv_initial_metadata op.  The mutex should be mostly uncontended.
+   mutable Mutex peer_mu_;
+   Slice peer_string_;
++  std::atomic<int> socket_fd_{-1};
+   // Current deadline.
+   Mutex deadline_mu_;
+   Timestamp deadline_ ABSL_GUARDED_BY(deadline_mu_) = Timestamp::InfFuture();
+diff --git a/src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi b/src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi
+index b5f08f9b..77d278b8 100644
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi
+@@ -242,6 +242,9 @@ cdef class _ServicerContext:
+         gpr_free(c_peer)
+         return peer
+ 
++    def socket_fd(self):
++        return grpc_call_get_socket_fd(self._rpc_state.call)
++
+     def peer_identities(self):
+         cdef Call query_call = Call()
+         query_call.c_call = self._rpc_state.call
+@@ -338,6 +341,9 @@ cdef class _SyncServicerContext:
+     def peer(self):
+         return self._context.peer()
+ 
++    def socket_fd(self):
++        return self._context.socket_fd()
++
+     def peer_identities(self):
+         return self._context.peer_identities()
+ 
+diff --git a/src/python/grpcio/grpc/_cython/_cygrpc/grpc.pxi b/src/python/grpcio/grpc/_cython/_cygrpc/grpc.pxi
+index 6311f7c0..b75c9f92 100644
+--- a/src/python/grpcio/grpc/_cython/_cygrpc/grpc.pxi
++++ b/src/python/grpcio/grpc/_cython/_cygrpc/grpc.pxi
+@@ -516,6 +516,9 @@ cdef extern from "grpc/grpc.h":
+     # We don't care about the internals (and in fact don't know them)
+     pass
+ 
++cdef extern from "grpc/grpc_posix.h":
++  int grpc_call_get_socket_fd(grpc_call *call) nogil
++
+ cdef extern from "grpc/grpc_security_constants.h":
+ 
+   ctypedef enum grpc_security_level:
+--- a/src/python/grpcio/grpc/aio/_base_server.py
++++ b/src/python/grpcio/grpc/aio/_base_server.py
+@@ -284,6 +284,14 @@ class ServicerContext(Generic[RequestType, ResponseType], abc.ABC):
+           The string format is determined by gRPC runtime.
+         """
+ 
++    def socket_fd(self) -> int:
++        """Get the underlying socket FD of the peer that invoked the RPC being serviced.
++
++        Returns:
++          The integer socket FD if known, else -1 if unknown.
++        """
++        return -1
++
+     @abc.abstractmethod
+     def peer_identities(self) -> Optional[Iterable[bytes]]:
+         """Gets one or more peer identity(s).

@@ -27,3 +27,4 @@ link_python_all_absl.patch
 999_pexip_third_party_protos_protoc_gen_validate.patch
 999_pexip_third_party_protos_xds.patch
 999_pexip_aioserver_stop.patch
+999_pexip_get_socket_fd.patch

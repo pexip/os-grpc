@@ -1,3 +1,9 @@
+grpc (1.82.0-1+pexip25u4) pexip-trixie; urgency=medium
+
+  * server: add plumbing to allow fetching the underlying peer socket FD
+
+ -- Huw Jones <huw@pexip.com>  Thu, 22 Oct 2026 12:44:34 +0100
+
 grpc (1.82.0-1+pexip25u3) pexip-trixie; urgency=medium
 
   * python/aioserver/dealloc: fix segfault if server not started
